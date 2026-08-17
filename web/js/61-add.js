@@ -1,9 +1,11 @@
 /* ===================================================================
-   61-add.js — หน้าจดรายการ: พิมพ์ / พูด / สลิป / กรอกเอง
+   61-add.js — หน้าจดรายการ 2 แท็บ
+     1) แชท    — พิมพ์ + พูด + ส่งรูปสลิป รวมอยู่ในช่องเดียว
+     2) กรอกเอง — แป้นตัวเลข + เลือกหมวด
    =================================================================== */
 MJ.add = {
-  tab: 'text',
-  chat: [],          // {who:'bot'|'me', text}
+  tab: 'chat',
+  chat: [],          // {who:'bot'|'me', text, img}
   recognizer: null,
   recording: false,
   form: { amount: '', type: 'expense', category_id: null, date: null, note: '' },
@@ -11,16 +13,17 @@ MJ.add = {
 
 MJ.routes.add = (view) => {
   const p = MJ.state.routeParams || {};
-  if (p.tab) { MJ.add.tab = p.tab; MJ.state.routeParams = {}; }
+  if (p.tab) MJ.add.tab = (p.tab === 'form' ? 'form' : 'chat');
+  const action = p.action || null;      // 'voice' | 'slip'
+  MJ.state.routeParams = {};
+
   if (!MJ.add.chat.length) {
-    MJ.add.chat = [{ who: 'bot', text: 'สวัสดี! พิมพ์บอกหมีได้เลย เช่น "กินกาแฟ 80" หรือ "รับค่าขนม 100" 🐻' }];
+    MJ.add.chat = [{ who: 'bot', text: 'สวัสดี! บอกหมีได้เลย 🐻\n• พิมพ์ “กินกาแฟ 80”\n• กดไมค์แล้วพูด\n• หรือส่งรูปสลิปมาให้หมีอ่าน' }];
   }
 
   view.innerHTML = `
     <div class="seg" id="addTabs">
-      <button class="seg-btn" data-tab="text">✏️ พิมพ์</button>
-      <button class="seg-btn" data-tab="voice">🎤 พูด</button>
-      <button class="seg-btn" data-tab="slip">🧾 สลิป</button>
+      <button class="seg-btn" data-tab="chat">💬 แชท</button>
       <button class="seg-btn" data-tab="form">⌨️ กรอกเอง</button>
     </div>
     <div id="addBody"></div>`;
@@ -31,15 +34,15 @@ MJ.routes.add = (view) => {
   });
 
   const body = MJ.$('#addBody', view);
-  ({ text: renderChat, voice: renderVoice, slip: renderSlip, form: renderForm }[MJ.add.tab] || renderChat)(body);
+  if (MJ.add.tab === 'form') renderForm(body);
+  else renderChat(body, action);
 };
 
-/* ============================ โหมดพิมพ์ (แชท) ============================ */
-function renderChat(body, opts) {
-  const voiceMode = opts?.voice;
+/* ============================ แท็บแชท ============================ */
+function renderChat(body, action) {
   body.innerHTML = `
     <div class="chat" id="chatBox">
-      ${MJ.add.chat.map((m) => `<div class="bubble ${m.who}">${MJ.esc(m.text)}</div>`).join('')}
+      ${MJ.add.chat.map(bubbleHTML).join('')}
     </div>
     <div class="chips" id="samples">
       <button class="chip" data-s="กินข้าวเที่ยง 60">กินข้าวเที่ยง 60</button>
@@ -48,71 +51,74 @@ function renderChat(body, opts) {
       <button class="chip" data-s="เมื่อวาน ค่าไฟ 850">เมื่อวาน ค่าไฟ 850</button>
     </div>
     <div class="composer">
-      <textarea id="chatInput" rows="1" placeholder="${voiceMode ? 'กดไมค์แล้วพูดได้เลย…' : 'เช่น กินกาแฟ 80'}"></textarea>
+      <button class="rnd" id="btnSlip" title="ส่งรูปสลิป">🧾</button>
+      <textarea id="chatInput" rows="1" placeholder="พิมพ์ พูด หรือส่งสลิป…"></textarea>
       <button class="rnd" id="btnMic" title="พูด">🎤</button>
       <button class="rnd send" id="btnSend" title="ส่ง">➤</button>
-    </div>`;
-
-  const input = MJ.$('#chatInput', body);
-  input.oninput = () => { input.style.height = 'auto'; input.style.height = Math.min(110, input.scrollHeight) + 'px'; };
-  input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } };
-  MJ.$('#btnSend', body).onclick = submit;
-  MJ.$('#btnMic', body).onclick = () => MJ.add.toggleVoice(input);
-  body.querySelectorAll('#samples .chip').forEach((c) => c.onclick = () => { input.value = c.dataset.s; submit(); });
+    </div>
+    <input type="file" id="slipFile" accept="image/*" hidden multiple>
+    <p class="center tiny muted mt">รูปสลิป: หมีจะสแกน QR กันบันทึกซ้ำ แล้วอ่านยอด/วันที่/ชื่อร้านให้</p>`;
 
   const box = MJ.$('#chatBox', body);
-  box.scrollTop = box.scrollHeight;
-  if (voiceMode) setTimeout(() => MJ.add.toggleVoice(input), 300);
+  const input = MJ.$('#chatInput', body);
+  const fileInput = MJ.$('#slipFile', body);
 
-  function push(who, text) {
-    MJ.add.chat.push({ who, text });
-    const el = document.createElement('div');
-    el.className = 'bubble ' + who;
-    el.textContent = text;
-    box.appendChild(el);
-    box.scrollTop = box.scrollHeight;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  input.oninput = () => { input.style.height = 'auto'; input.style.height = Math.min(110, input.scrollHeight) + 'px'; };
+  input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitText(); } };
+  MJ.$('#btnSend', body).onclick = submitText;
+  MJ.$('#btnMic', body).onclick = () => MJ.add.toggleVoice(input);
+  MJ.$('#btnSlip', body).onclick = () => fileInput.click();
+  fileInput.onchange = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    files.forEach((f, i) => setTimeout(() => MJ.add.processSlip(f), i * 250));
+  };
+  body.querySelectorAll('#samples .chip').forEach((c) => c.onclick = () => { input.value = c.dataset.s; submitText(); });
+
+  scrollChat(box);
+  MJ.add.pushBubble = pushBubble;   // ให้ processSlip เรียกใช้ได้
+
+  if (action === 'voice') setTimeout(() => MJ.add.toggleVoice(input), 350);
+  if (action === 'slip') setTimeout(() => fileInput.click(), 250);
+
+  function pushBubble(who, text, img) {
+    const msg = { who, text, img: img || null };
+    MJ.add.chat.push(msg);
+    if (MJ.add.chat.length > 40) MJ.add.chat.splice(0, MJ.add.chat.length - 40);
+    box.insertAdjacentHTML('beforeend', bubbleHTML(msg));
+    scrollChat(box);
+    return msg;
   }
 
-  function submit() {
+  function submitText() {
     const text = input.value.trim();
     if (!text) return;
     input.value = ''; input.style.height = 'auto';
-    push('me', text);
+    pushBubble('me', text);
     const draft = MJ.nlp.parse(text);
     if (!draft || !draft.amount) {
-      push('bot', 'หมีหาจำนวนเงินไม่เจอ ลองใส่ตัวเลขด้วยนะ เช่น "กินข้าว 80" 🐻');
+      pushBubble('bot', 'หมีหาจำนวนเงินไม่เจอ ลองใส่ตัวเลขด้วยนะ เช่น “กินข้าว 80” 🐻');
       return;
     }
-    push('bot', 'เข้าใจแล้ว!\n' + MJ.nlp.describe(draft));
-    MJ.add.openDraftSheet(draft, { quickSave: true });
+    pushBubble('bot', 'เข้าใจแล้ว!\n' + MJ.nlp.describe(draft));
+    MJ.add.openDraftSheet(draft);
   }
 }
 
-/* ============================ โหมดพูด ============================ */
-function renderVoice(body) {
-  const supported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-  if (!supported) {
-    body.innerHTML = `<div class="card"><div class="empty"><span class="big">🎤</span>
-      เบราว์เซอร์นี้ยังไม่รองรับการพูดจด<br><span class="tiny">ลองใช้ Safari บน iPhone หรือ Chrome บน Android</span><br>
-      <button class="btn btn-soft btn-sm mt" id="toText">พิมพ์แทน</button></div></div>`;
-    MJ.$('#toText', body).onclick = () => { MJ.add.tab = 'text'; MJ.render(); };
-    return;
-  }
-  body.innerHTML = `<div class="card center">
-      <p class="muted tiny mb">กดปุ่มแล้วพูด เช่น “กินข้าวเที่ยงหกสิบบาท”</p>
-      <button class="fab" id="bigMic" style="margin:6px auto 12px;width:88px;height:88px;border-radius:32px;font-size:38px">🎤</button>
-      <div class="muted tiny" id="voiceHint">แตะเพื่อเริ่มพูด</div>
-    </div>
-    <div id="voiceChat"></div>`;
-  renderChat(MJ.$('#voiceChat', body), { voice: false });
-  const input = MJ.$('#chatInput', body);
-  MJ.$('#bigMic', body).onclick = () => MJ.add.toggleVoice(input, MJ.$('#voiceHint', body), MJ.$('#bigMic', body));
+function bubbleHTML(m) {
+  const img = m.img ? `<img src="${m.img}" alt="สลิป" style="width:100%;border-radius:12px;margin-bottom:${m.text ? '6px' : '0'}">` : '';
+  return `<div class="bubble ${m.who}" ${m.img ? 'style="max-width:66%"' : ''}>${img}${m.text ? MJ.esc(m.text) : ''}</div>`;
 }
 
-MJ.add.toggleVoice = function (input, hintEl, micEl) {
+function scrollChat(box) {
+  box.scrollTop = box.scrollHeight;
+  requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+}
+
+/* ============================ พูด (ใช้ในแท็บแชท) ============================ */
+MJ.add.toggleVoice = function (input) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { MJ.toast('เบราว์เซอร์นี้ไม่รองรับการพูด', 'err'); return; }
+  if (!SR) { MJ.toast('เบราว์เซอร์นี้ยังไม่รองรับการพูด ลองพิมพ์แทนนะ', 'err'); return; }
   if (MJ.add.recording) { try { MJ.add.recognizer.stop(); } catch (e) {} return; }
 
   const rec = new SR();
@@ -122,71 +128,40 @@ MJ.add.toggleVoice = function (input, hintEl, micEl) {
   MJ.add.recognizer = rec;
   MJ.add.recording = true;
   MJ.buzz(20);
-  if (hintEl) hintEl.textContent = 'กำลังฟัง… พูดได้เลย';
-  if (micEl) micEl.classList.add('rec');
   MJ.$$('#btnMic').forEach((b) => b.classList.add('rec'));
+  if (input) input.placeholder = 'กำลังฟัง… พูดได้เลย';
 
   rec.onresult = (e) => {
     const txt = Array.from(e.results).map((r) => r[0].transcript).join('');
     if (input) { input.value = txt; input.dispatchEvent(new Event('input')); }
-    if (hintEl) hintEl.textContent = '“' + txt + '”';
   };
   rec.onerror = (e) => {
     MJ.toast(e.error === 'not-allowed' ? 'ไม่ได้รับอนุญาตให้ใช้ไมค์' : 'ฟังไม่ชัด ลองใหม่อีกที', 'err');
   };
   rec.onend = () => {
     MJ.add.recording = false;
-    if (micEl) micEl.classList.remove('rec');
     MJ.$$('#btnMic').forEach((b) => b.classList.remove('rec'));
-    if (hintEl) hintEl.textContent = 'แตะเพื่อพูดอีกครั้ง';
+    if (input) input.placeholder = 'พิมพ์ พูด หรือส่งสลิป…';
     const txt = input?.value.trim();
-    if (txt) {
-      const draft = MJ.nlp.parse(txt);
-      draft && (draft.source = 'voice');
-      if (draft?.amount) { input.value = ''; MJ.add.openDraftSheet(draft, { quickSave: true }); }
-      else MJ.toast('ไม่เจอจำนวนเงิน ลองพูดใหม่พร้อมตัวเลข', 'err');
+    if (!txt) return;
+    input.value = ''; input.style.height = 'auto';
+    MJ.add.pushBubble && MJ.add.pushBubble('me', '🎤 ' + txt);
+    const draft = MJ.nlp.parse(txt);
+    if (draft) draft.source = 'voice';
+    if (draft?.amount) {
+      MJ.add.pushBubble && MJ.add.pushBubble('bot', 'เข้าใจแล้ว!\n' + MJ.nlp.describe(draft));
+      MJ.add.openDraftSheet(draft);
+    } else {
+      MJ.add.pushBubble && MJ.add.pushBubble('bot', 'ไม่เจอจำนวนเงิน ลองพูดใหม่พร้อมตัวเลขนะ 🐻');
     }
   };
   try { rec.start(); } catch (e) { MJ.add.recording = false; }
 };
 
-/* ============================ โหมดสลิป ============================ */
-function renderSlip(body) {
-  body.innerHTML = `
-    <div class="card">
-      <div class="card-head"><h3>อ่านสลิปอัตโนมัติ</h3>
-        <span class="badge">${MJ.state.profile?.ocr_endpoint ? 'PaddleOCR' : 'อ่านในเครื่อง'}</span></div>
-      <p class="muted tiny mb">สแกน QR บนสลิปเพื่อกันบันทึกซ้ำ แล้วอ่านยอดเงิน/วันที่/ชื่อร้านให้อัตโนมัติ</p>
-      <div class="row">
-        <button class="btn btn-primary" id="btnCam">📸 ถ่ายสลิป</button>
-        <button class="btn btn-soft" id="btnPick">🖼️ เลือกรูป</button>
-      </div>
-      <input type="file" id="slipCam" accept="image/*" capture="environment" hidden>
-      <input type="file" id="slipPick" accept="image/*" hidden multiple>
-      <div id="slipResult" class="mt"></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>สลิปที่บันทึกไว้เดือนนี้</h3></div>
-      ${(() => {
-        const withSlip = MJ.state.transactions.filter((t) => t.slip_reference || t.receipt_image_url);
-        return withSlip.length ? withSlip.slice(0, 8).map((t) => MJ.tx.row(t)).join('')
-          : '<div class="empty tiny">ยังไม่มีสลิปที่บันทึก</div>';
-      })()}
-    </div>`;
-
-  MJ.$('#btnCam', body).onclick = () => MJ.$('#slipCam', body).click();
-  MJ.$('#btnPick', body).onclick = () => MJ.$('#slipPick', body).click();
-  const handle = (e) => {
-    const files = Array.from(e.target.files || []);
-    e.target.value = '';
-    files.forEach((f, i) => setTimeout(() => MJ.add.processSlip(f), i * 200));
-  };
-  MJ.$('#slipCam', body).onchange = handle;
-  MJ.$('#slipPick', body).onchange = handle;
-  MJ.tx.bindRows(body);
-}
-
+/* ============================ สลิป (ใช้ในแท็บแชท) ============================ */
 MJ.add.processSlip = async function (file) {
+  const url = URL.createObjectURL(file);
+  if (MJ.add.pushBubble) MJ.add.pushBubble('me', '', url);
   MJ.loading(true, 'กำลังเปิดสลิป…');
   try {
     const draft = await MJ.slip.analyze(file, (msg) => MJ.loading(true, msg));
@@ -197,19 +172,32 @@ MJ.add.processSlip = async function (file) {
       const { data: dup } = await MJ.sb.from('transactions').select('id, amount, transaction_date')
         .eq('slip_reference', draft.slip_reference).maybeSingle();
       if (dup) {
-        MJ.toast('สลิปนี้บันทึกไปแล้วเมื่อ ' + MJ.dayLabel(dup.transaction_date), 'err');
+        const msg = `สลิปนี้บันทึกไปแล้วเมื่อ ${MJ.dayLabel(dup.transaction_date)} (${MJ.fmtBaht(dup.amount)}) 🐻`;
+        MJ.add.pushBubble && MJ.add.pushBubble('bot', msg);
+        MJ.toast('สลิปซ้ำ ไม่บันทึกซ้ำให้นะ', 'err');
         return;
       }
     }
-    if (!draft.amount) MJ.toast('อ่านยอดเงินไม่ชัด ใส่เองได้เลยนะ', 'err');
+
+    const when = draft.dateFromSlip
+      ? `${MJ.dayLabel(draft.transaction_date)} ${MJ.timeLabel(draft.transaction_date)} (จากสลิป)`
+      : 'อ่านวันที่ไม่ได้ ใช้วันนี้ไปก่อน';
+    const summary = draft.amount
+      ? `อ่านสลิปได้แล้ว!\n${draft.hasQR ? '✅ มี QR — กันบันทึกซ้ำให้' : '⚠️ ไม่พบ QR บนสลิป'}\n`
+        + `${draft.type === 'income' ? 'รายรับ' : 'รายจ่าย'} ${MJ.fmtBaht(draft.amount)}`
+        + `${draft.payee_name ? ' • ' + draft.payee_name : ''}\n📅 ${when}`
+      : `อ่านยอดเงินไม่ชัด ใส่เองได้เลยนะ 🐻\n📅 ${when}`;
+    MJ.add.pushBubble && MJ.add.pushBubble('bot', summary);
+
     MJ.add.openDraftSheet(draft, { slip: true });
   } catch (err) {
     MJ.loading(false);
-    MJ.toast('อ่านสลิปไม่สำเร็จ: ' + (err.message || err), 'err');
+    MJ.add.pushBubble && MJ.add.pushBubble('bot', 'อ่านสลิปไม่สำเร็จ: ' + (err.message || err));
+    MJ.toast('อ่านสลิปไม่สำเร็จ', 'err');
   }
 };
 
-/* ============================ โหมดกรอกเอง (แป้นตัวเลข) ============================ */
+/* ============================ แท็บกรอกเอง ============================ */
 function renderForm(body) {
   const f = MJ.add.form;
   if (!f.date) f.date = new Date();
@@ -307,17 +295,15 @@ MJ.add.openDraftSheet = function (draft, opts) {
       <input type="text" id="dNote" value="${MJ.esc(draft.note || '')}"></label>
     ${draft.payee_name ? `<label class="field"><span>ผู้รับเงิน / ร้านค้า</span>
       <input type="text" id="dPayee" value="${MJ.esc(draft.payee_name)}"></label>` : ''}
-    <label class="field"><span>วันและเวลา</span>
+    <label class="field"><span>วันและเวลา${opts.slip ? (draft.dateFromSlip ? ' <span class="badge in">อ่านจากสลิป</span>' : ' <span class="badge out">อ่านไม่ได้ ใช้วันนี้</span>') : ''}</span>
       <input type="datetime-local" id="dDate" value="${MJ.isoLocal(new Date(draft.transaction_date))}"></label>
     ${draft.ocrText ? `<details class="mb"><summary class="tiny muted">ดูข้อความที่อ่านได้จากสลิป</summary>
       <pre class="tiny muted" style="white-space:pre-wrap;max-height:150px;overflow:auto">${MJ.esc(draft.ocrText.slice(0, 1200))}</pre></details>` : ''}
     <button class="btn btn-primary btn-block" id="dSave">บันทึกเลย</button>
     <button class="btn btn-ghost btn-block" id="dCancel">ยกเลิก</button>
   `, (bodyEl) => {
-    if (draft.file) {
-      const url = URL.createObjectURL(draft.file);
-      MJ.$('#slipImg', bodyEl).src = url;
-    }
+    if (draft.file) MJ.$('#slipImg', bodyEl).src = URL.createObjectURL(draft.file);
+
     bodyEl.querySelectorAll('#dType .seg-btn').forEach((b) => b.onclick = () => {
       draft.type = b.dataset.type;
       bodyEl.querySelectorAll('#dType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
@@ -352,9 +338,7 @@ MJ.add.openDraftSheet = function (draft, opts) {
         MJ.buzz(30);
         MJ.sheet.close();
         MJ.toast('บันทึกแล้ว 🐻', 'ok');
-        if (MJ.add.tab === 'text' || MJ.add.tab === 'voice') {
-          MJ.add.chat.push({ who: 'bot', text: 'บันทึกให้แล้วนะ! 🍯 จดต่อได้เลย' });
-        }
+        MJ.add.chat.push({ who: 'bot', text: 'บันทึกให้แล้วนะ! 🍯 จดต่อได้เลย' });
         MJ.render();
       } catch (err) {
         MJ.toast(err.duplicate ? 'สลิปนี้ถูกบันทึกไปแล้ว' : ('บันทึกไม่สำเร็จ: ' + (err.message || err)), 'err');

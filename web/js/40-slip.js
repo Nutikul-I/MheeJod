@@ -158,8 +158,101 @@ MJ.slip = (() => {
   }
 
   /* ------------------------- แกะข้อมูลจากข้อความ OCR ------------------------- */
-  const THAI_MONTH_MAP = { 'ม.ค':0,'มค':0,'ก.พ':1,'กพ':1,'มี.ค':2,'มีค':2,'เม.ย':3,'เมย':3,'พ.ค':4,'พค':4,'มิ.ย':5,'มิย':5,
-    'ก.ค':6,'กค':6,'ส.ค':7,'สค':7,'ก.ย':8,'กย':8,'ต.ค':9,'ตค':9,'พ.ย':10,'พย':10,'ธ.ค':11,'ธค':11 };
+  /* ---------- เดือนไทย/อังกฤษ ทั้งแบบย่อและเต็ม ---------- */
+  const THAI_MONTHS = [
+    ['มกราคม', 'มค'], ['กุมภาพันธ์', 'กพ'], ['มีนาคม', 'มีค'], ['เมษายน', 'เมย'],
+    ['พฤษภาคม', 'พค'], ['มิถุนายน', 'มิย'], ['กรกฎาคม', 'กค'], ['สิงหาคม', 'สค'],
+    ['กันยายน', 'กย'], ['ตุลาคม', 'ตค'], ['พฤศจิกายน', 'พย'], ['ธันวาคม', 'ธค'],
+  ];
+  const EN_MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+  /** แปลงปีให้เป็น ค.ศ. (รับได้ทั้ง 68 / 2568 / 25 / 2025) */
+  function normalizeYear(y) {
+    y = parseInt(y, 10);
+    if (Number.isNaN(y)) return null;
+    if (y < 100) y += (y >= 50 ? 2500 : 2000);   // 68 -> 2568, 25 -> 2025
+    if (y > 2400) y -= 543;                       // พ.ศ. -> ค.ศ.
+    return y;
+  }
+
+  /** หาเดือนจากคำ (ไทยเต็ม/ไทยย่อ/อังกฤษ) */
+  function monthFromWord(word) {
+    const w = String(word).replace(/[.\s]/g, '').toLowerCase();
+    for (let i = 0; i < THAI_MONTHS.length; i++) {
+      const [full, abbr] = THAI_MONTHS[i];
+      if (w === full || w === abbr || full.startsWith(w) && w.length >= 3) return i;
+    }
+    const en = EN_MONTHS.indexOf(w.slice(0, 3));
+    if (en > -1) return en;
+    return null;
+  }
+
+  /**
+   * อ่านวันที่จากข้อความสลิป รองรับ
+   *   12 ส.ค. 68 / 12 สิงหาคม 2568 / 12 Aug 2025 / 12/08/2568 / 2025-08-12 / 12-08-68
+   * และเวลา 14:35 / 14.35 น. / 14:35:02
+   */
+  function parseDateFromText(flat) {
+    let d = null;
+
+    // 1) วัน + ชื่อเดือน + ปี(อาจไม่มี)
+    const named = flat.match(/(\d{1,2})\s*(ม\.?ค\.?|มกราคม|ก\.?พ\.?|กุมภาพันธ์|มี\.?ค\.?|มีนาคม|เม\.?ย\.?|เมษายน|พ\.?ค\.?|พฤษภาคม|มิ\.?ย\.?|มิถุนายน|ก\.?ค\.?|กรกฎาคม|ส\.?ค\.?|สิงหาคม|ก\.?ย\.?|กันยายน|ต\.?ค\.?|ตุลาคม|พ\.?ย\.?|พฤศจิกายน|ธ\.?ค\.?|ธันวาคม|jan\w*|feb\w*|mar\w*|apr\w*|may|jun\w*|jul\w*|aug\w*|sep\w*|oct\w*|nov\w*|dec\w*)\.?\s*(\d{2,4})?/i);
+    if (named) {
+      const mon = monthFromWord(named[2]);
+      const year = named[3] ? normalizeYear(named[3]) : new Date().getFullYear();
+      if (mon != null && year) d = new Date(year, mon, parseInt(named[1], 10));
+    }
+
+    // 2) รูปแบบ ปี-เดือน-วัน (2025-08-12 / 2568/08/12)
+    if (!d) {
+      const ymd = flat.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+      if (ymd) {
+        const year = normalizeYear(ymd[1]);
+        d = new Date(year, parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+      }
+    }
+
+    // 3) รูปแบบ วัน/เดือน/ปี (12/08/68, 12-08-2568)
+    if (!d) {
+      const dmy = flat.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+      if (dmy) {
+        const year = normalizeYear(dmy[3]);
+        let day = parseInt(dmy[1], 10), mon = parseInt(dmy[2], 10);
+        if (mon > 12 && day <= 12) { const t = day; day = mon; mon = t; }  // เผื่อสลับ MM/DD
+        d = new Date(year, mon - 1, day);
+      }
+    }
+
+    if (!d || isNaN(d.getTime())) return null;
+    // ถ้าวันที่ไม่มีจริง (เช่น 30 ก.พ.) JS จะเลื่อนเดือนให้ — ถือว่าอ่านผิด
+    const dayWanted = parseInt((named || flat.match(/(\d{1,2})[\/\-.]/) || [])[1], 10);
+    if (dayWanted && d.getDate() !== dayWanted && !flat.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/)) return null;
+
+    // เวลา: เอาตัวที่ติดคำว่า "น." ก่อน ไม่งั้นเอาแบบ hh:mm ทั่วไป
+    const tWithNa = flat.match(/(\d{1,2})[:.](\d{2})(?::(\d{2}))?\s*น\.?/);
+    const tPlain  = flat.match(/(?:^|\s)(\d{1,2}):(\d{2})(?::(\d{2}))?(?=\s|$)/);
+    const tm = tWithNa || tPlain;
+    if (tm && Number(tm[1]) < 24 && Number(tm[2]) < 60) {
+      d.setHours(Number(tm[1]), Number(tm[2]), Number(tm[3] || 0), 0);
+    } else {
+      d.setHours(12, 0, 0, 0);   // ไม่รู้เวลา ใช้เที่ยงกันเพี้ยนข้ามวันจาก timezone
+    }
+
+    // สลิปไม่ควรเป็นอนาคตเกิน 1 วัน — ถ้าเพี้ยนให้ถือว่าอ่านผิด
+    if (d.getTime() > Date.now() + 86400000) return null;
+    return d;
+  }
+
+  /** สลิปหลายธนาคารฝังวันที่ไว้ต้นรหัสอ้างอิง เช่น 20250812xxxxxxx */
+  function parseDateFromRef(ref) {
+    if (!ref) return null;
+    const m = String(ref).match(/(20\d{2}|2[45]\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/);
+    if (!m) return null;
+    const year = normalizeYear(m[1]);
+    const d = new Date(year, parseInt(m[2], 10) - 1, parseInt(m[3], 10), 12, 0, 0);
+    if (isNaN(d.getTime()) || d.getTime() > Date.now() + 86400000) return null;
+    return d;
+  }
 
   function extractFromText(text) {
     const out = { amount: null, date: null, payee: null, reference: null, lines: [] };
@@ -182,25 +275,8 @@ MJ.slip = (() => {
       if (baht) out.amount = parseFloat(baht[1].replace(/,/g, ''));
     }
 
-    // ---- วันที่
-    const dmy = flat.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-    const thai = flat.match(/(\d{1,2})\s*(ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค)\.?\s*(\d{2,4})?/);
-    let d = null;
-    if (thai) {
-      const mon = THAI_MONTH_MAP[thai[2].replace(/\./g, '')] ?? THAI_MONTH_MAP[thai[2]];
-      let y = thai[3] ? parseInt(thai[3], 10) : new Date().getFullYear() + 543;
-      if (y < 100) y += 2500;
-      if (y > 2400) y -= 543;
-      if (mon != null) d = new Date(y, mon, parseInt(thai[1], 10));
-    } else if (dmy) {
-      let y = parseInt(dmy[3], 10);
-      if (y < 100) y += (y > 50 ? 2400 : 2000);
-      if (y > 2400) y -= 543;
-      d = new Date(y, parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
-    }
-    const tm = flat.match(/(\d{1,2})[:.](\d{2})(?::(\d{2}))?\s*(?:น\.?)?/);
-    if (d && tm && Number(tm[1]) < 24) d.setHours(Number(tm[1]), Number(tm[2]));
-    if (d && !isNaN(d.getTime())) out.date = d;
+    // ---- วันที่และเวลา
+    out.date = parseDateFromText(flat);
 
     // ---- ชื่อผู้รับเงิน: บรรทัดหลังคำว่า "ไปยัง/ถึง/ผู้รับ" หรือบรรทัดที่มี บจก./บมจ./ร้าน
     const idxTo = lines.findIndex((l) => /(ไปยัง|ถึง|ผู้รับ|to\b|received)/i.test(l));
@@ -244,6 +320,12 @@ MJ.slip = (() => {
     const info = extractFromText(text);
     const payee = info.payee || slipInfo?.bank || null;
 
+    // วันที่: ข้อความบนสลิปมาก่อน ถ้าอ่านไม่ได้ลองถอดจากรหัสอ้างอิง สุดท้ายค่อยใช้วันนี้
+    const slipDate = info.date
+      || parseDateFromRef(slipInfo?.reference)
+      || parseDateFromRef(info.reference)
+      || null;
+
     // เดาหมวดจากชื่อร้าน + ข้อความทั้งหมด
     let categoryId = payee ? await MJ.data.matchMerchant(payee) : null;
     let category = categoryId ? MJ.data.catById(categoryId) : null;
@@ -259,7 +341,8 @@ MJ.slip = (() => {
       category,
       note: payee ? `โอนให้ ${payee}` : 'จ่ายผ่านสลิป',
       payee_name: payee,
-      transaction_date: info.date || new Date(),
+      transaction_date: slipDate || new Date(),
+      dateFromSlip: !!slipDate,
       slip_reference: slipInfo?.reference || info.reference || null,
       source: 'slip',
       raw_input: (qr ? 'QR: ' + qr + '\n' : '') + text.slice(0, 2000),
@@ -268,5 +351,6 @@ MJ.slip = (() => {
     };
   }
 
-  return { analyze, scanQR, parseSlipPayload, extractFromText, parseTLV, ensureTesseract };
+  return { analyze, scanQR, parseSlipPayload, extractFromText, parseTLV, ensureTesseract,
+           parseDateFromText, parseDateFromRef };
 })();

@@ -100,8 +100,13 @@ MJ.routes.dashboard = (view) => {
 
   view.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => MJ.go(b.dataset.go));
   view.querySelectorAll('[data-quick]').forEach((b) => b.onclick = () => {
-    const map = { 'พิมพ์': 'text', 'เสียง': 'voice', 'สลิป': 'slip', 'ฟอร์ม': 'form' };
-    MJ.go('add', { tab: map[b.dataset.quick] });
+    const map = {
+      'พิมพ์': { tab: 'chat' },
+      'เสียง': { tab: 'chat', action: 'voice' },
+      'สลิป': { tab: 'chat', action: 'slip' },
+      'ฟอร์ม': { tab: 'form' },
+    };
+    MJ.go('add', map[b.dataset.quick]);
   });
   MJ.tx.bindRows(view);
 };
