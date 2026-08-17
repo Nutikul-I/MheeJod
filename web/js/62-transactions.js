@@ -110,7 +110,7 @@ MJ.tx = {
       <button class="btn btn-primary btn-block" id="eSave">บันทึกการแก้ไข</button>
     `, (body) => {
       let type = t.type;
-      body.querySelectorAll('#eType .seg-btn').forEach((b) => b.onclick = () => {
+      MJ.segInit(MJ.$('#eType', body), (b) => {
         type = b.dataset.type;
         body.querySelectorAll('#eType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
         MJ.$('#eCat', body).innerHTML = cats.filter((c) => c.type === type)

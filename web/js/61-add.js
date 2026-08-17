@@ -28,23 +28,33 @@ MJ.routes.add = (view) => {
     </div>
     <div id="addBody"></div>`;
 
-  view.querySelectorAll('#addTabs .seg-btn').forEach((b) => {
-    b.classList.toggle('active', b.dataset.tab === MJ.add.tab);
-    b.onclick = () => { MJ.add.tab = b.dataset.tab; MJ.render(); };
-  });
+  view.querySelectorAll('#addTabs .seg-btn').forEach((b) =>
+    b.classList.toggle('active', b.dataset.tab === MJ.add.tab));
+  MJ.segInit(MJ.$('#addTabs', view), (b) => { MJ.add.tab = b.dataset.tab; MJ.render(); });
 
   const body = MJ.$('#addBody', view);
-  if (MJ.add.tab === 'form') renderForm(body);
-  else renderChat(body, action);
+  document.body.classList.toggle('chat-open', MJ.add.tab === 'chat');
+  if (MJ.add.tab === 'form') {
+    const dock = MJ.$('#composerDock');
+    dock.classList.add('hidden'); dock.innerHTML = '';
+    renderForm(body);
+  } else {
+    renderChat(body, action);
+  }
 };
 
 /* ============================ แท็บแชท ============================ */
 function renderChat(body, action) {
+  // ข้อความอยู่ในหน้า ส่วนแถบพิมพ์ตรึงติดด้านล่างเหมือนแอปแชท
   body.innerHTML = `
     <div class="chat" id="chatBox">
       ${MJ.add.chat.map(bubbleHTML).join('')}
-    </div>
-    <div class="chips" id="samples">
+    </div>`;
+
+  const dock = MJ.$('#composerDock');
+  dock.classList.remove('hidden');
+  dock.innerHTML = `
+    <div class="chips" id="samples" style="max-width:var(--wrap);margin:0 auto 8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px">
       <button class="chip" data-s="กินข้าวเที่ยง 60">กินข้าวเที่ยง 60</button>
       <button class="chip" data-s="ค่าแท็กซี่ 120">ค่าแท็กซี่ 120</button>
       <button class="chip" data-s="รับเงินเดือน 25000">รับเงินเดือน 25000</button>
@@ -56,12 +66,12 @@ function renderChat(body, action) {
       <button class="rnd" id="btnMic" title="พูด">🎤</button>
       <button class="rnd send" id="btnSend" title="ส่ง">➤</button>
     </div>
-    <input type="file" id="slipFile" accept="image/*" hidden multiple>
-    <p class="center tiny muted mt">รูปสลิป: หมีจะสแกน QR กันบันทึกซ้ำ แล้วอ่านยอด/วันที่/ชื่อร้านให้</p>`;
+    <input type="file" id="slipFile" accept="image/*" hidden multiple>`;
 
   const box = MJ.$('#chatBox', body);
-  const input = MJ.$('#chatInput', body);
-  const fileInput = MJ.$('#slipFile', body);
+  const input = MJ.$('#chatInput', dock);
+  const fileInput = MJ.$('#slipFile', dock);
+  body = dock;   // ปุ่มทั้งหมดอยู่ใน dock
 
   input.oninput = () => { input.style.height = 'auto'; input.style.height = Math.min(110, input.scrollHeight) + 'px'; };
   input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitText(); } };
@@ -234,7 +244,7 @@ function renderForm(body) {
     <button class="btn btn-primary btn-block" id="fSave">บันทึกรายการ</button>
     <div style="height:14px"></div>`;
 
-  body.querySelectorAll('#typeSeg .seg-btn').forEach((b) => b.onclick = () => {
+  MJ.segInit(MJ.$('#typeSeg', body), (b) => {
     f.type = b.dataset.type; f.category_id = null; renderForm(body);
   });
   body.querySelectorAll('#keypad button').forEach((b) => b.onclick = () => {
@@ -304,7 +314,7 @@ MJ.add.openDraftSheet = function (draft, opts) {
   `, (bodyEl) => {
     if (draft.file) MJ.$('#slipImg', bodyEl).src = URL.createObjectURL(draft.file);
 
-    bodyEl.querySelectorAll('#dType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.segInit(MJ.$('#dType', bodyEl), (b) => {
       draft.type = b.dataset.type;
       bodyEl.querySelectorAll('#dType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
       draft.category_id = null;

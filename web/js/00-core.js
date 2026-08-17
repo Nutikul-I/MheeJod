@@ -70,6 +70,40 @@ MJ.hex2rgba = (hex, a) => {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
+/* ---------------------- แถบสลับที่มีตัวชี้เลื่อนตาม ---------------------- */
+MJ.segInit = (segEl, onPick) => {
+  if (!segEl) return;
+  const btns = MJ.$$('.seg-btn', segEl);
+  segEl.style.setProperty('--seg-n', btns.length);
+  const move = (i) => segEl.style.setProperty('--seg-i', i);
+  btns.forEach((b, i) => {
+    if (b.classList.contains('active')) move(i);
+    b.addEventListener('click', () => {
+      btns.forEach((x) => x.classList.toggle('active', x === b));
+      move(i);
+      MJ.buzz(8);
+      if (onPick) onPick(b, i);
+    });
+  });
+};
+
+/* ---------------------- ตัวเลขวิ่งขึ้น (ใช้กับยอดเงิน) ---------------------- */
+MJ.countUp = (el, to, opts) => {
+  if (!el) return;
+  const o = Object.assign({ ms: 850, prefix: '฿', digits: undefined }, opts || {});
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = o.prefix + MJ.fmtMoney(to, o.digits); return;
+  }
+  const from = 0, start = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / o.ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = o.prefix + MJ.fmtMoney(from + (to - from) * eased, t < 1 ? 0 : o.digits);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+};
+
 /* ------------------------------ Feedback ------------------------------ */
 let toastTimer;
 MJ.toast = (msg, kind) => {
@@ -136,6 +170,11 @@ MJ.render = () => {
   MJ.$('#topTitle').textContent = t[0];
   MJ.$('#topSub').textContent = t[1];
   MJ.$$('.tab, .fab').forEach((el) => el.classList.toggle('active', el.dataset.route === MJ.state.route));
+  // หน้าแชทมีแถบพิมพ์ตรึงล่าง ต้องเผื่อที่ว่างให้เนื้อหา
+  const inChat = MJ.state.route === 'add' && MJ.add?.tab === 'chat';
+  document.body.classList.toggle('chat-open', inChat);
+  const dock = MJ.$('#composerDock');
+  if (dock && !inChat) { dock.classList.add('hidden'); dock.innerHTML = ''; }
   r(view);
   if (window.scrollTo) window.scrollTo({ top: 0 });
 };

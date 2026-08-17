@@ -21,7 +21,7 @@ MJ.routes.dashboard = (view) => {
   view.innerHTML = `
     <div class="balance">
       <div class="lbl">คงเหลือใน ${MJ.monthLabelFull(MJ.state.month)}</div>
-      <div class="amt">${MJ.fmtBaht(s.balance)}</div>
+      <div class="amt" id="balAmt">${MJ.fmtBaht(s.balance)}</div>
       <div class="grid">
         <div class="box in"><span class="tiny">รายรับ</span><b>${MJ.fmtBaht(s.income)}</b></div>
         <div class="box out"><span class="tiny">รายจ่าย</span><b>${MJ.fmtBaht(s.expense)}</b></div>
@@ -98,6 +98,7 @@ MJ.routes.dashboard = (view) => {
     </div>
   `;
 
+  MJ.countUp(MJ.$('#balAmt', view), s.balance);
   view.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => MJ.go(b.dataset.go));
   view.querySelectorAll('[data-quick]').forEach((b) => b.onclick = () => {
     const map = {

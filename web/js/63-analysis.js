@@ -80,7 +80,7 @@ MJ.routes.analysis = (view) => {
     </div>
     <div style="height:10px"></div>`;
 
-  view.querySelectorAll('#anType .seg-btn').forEach((b) => b.onclick = () => {
+  MJ.segInit(MJ.$('#anType', view), (b) => {
     MJ.analysis.type = b.dataset.type; MJ.render();
   });
 

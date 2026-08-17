@@ -53,6 +53,7 @@
 <div id="app" class="app hidden">
 
   <header class="topbar">
+   <div class="topbar-inner">
     <div class="topbar-left">
       <span class="topbar-logo">🐻</span>
       <div>
@@ -65,16 +66,22 @@
       <button class="pill" id="btnMonth">ส.ค. 2569</button>
       <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป">›</button>
     </div>
+   </div>
   </header>
 
   <main id="view" class="view"><!-- แต่ละหน้า render ที่นี่ --></main>
 
+  <!-- แถบพิมพ์ของหน้าแชท ตรึงอยู่เหนือแถบเมนูล่าง -->
+  <div id="composerDock" class="composer-dock hidden"></div>
+
   <nav class="tabbar">
+   <div class="tabbar-inner">
     <button class="tab" data-route="dashboard"><span>🏠</span><em>ภาพรวม</em></button>
     <button class="tab" data-route="transactions"><span>📒</span><em>รายการ</em></button>
     <button class="fab" data-route="add" aria-label="เพิ่มรายการ">＋</button>
     <button class="tab" data-route="analysis"><span>📊</span><em>วิเคราะห์</em></button>
     <button class="tab" data-route="settings"><span>⚙️</span><em>ตั้งค่า</em></button>
+   </div>
   </nav>
 </div>
 

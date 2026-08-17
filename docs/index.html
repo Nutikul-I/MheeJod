@@ -14,246 +14,511 @@
 <link rel="icon" href="icons/icon-192.png">
 <style>
 /* ===================================================================
-   หมีจด MheeJod — Design system
-   โทน: ครีม/น้ำผึ้ง/น้ำตาลหมี  •  มือถือมาก่อน  •  ใช้มือเดียวได้
+   หมีจด MheeJod — Design system v2
+   โทนเดิม: ครีม / น้ำผึ้ง / น้ำตาลหมี  •  มือถือมาก่อน  •  ใช้มือเดียวได้
    =================================================================== */
 :root{
-  --honey:#F2B23E; --honey-d:#E09A1E; --bear:#8B5E3C; --bear-d:#6B462B;
-  --cream:#FFF8F0; --card:#FFFFFF; --ink:#2E2A26; --ink-2:#6B6560; --ink-3:#9A938C;
-  --line:#EFE6DA; --in:#3EA96B; --out:#E2607A; --warn:#E8952F;
-  --shadow:0 6px 20px rgba(139,94,60,.10); --shadow-lg:0 12px 36px rgba(139,94,60,.18);
-  --r:18px; --r-sm:12px; --r-lg:26px;
-  --safe-b: env(safe-area-inset-bottom, 0px);
-  --safe-t: env(safe-area-inset-top, 0px);
-  --tab-h: 66px;
+  /* สี */
+  --honey:#F2B23E; --honey-l:#FFCB63; --honey-d:#E09A1E;
+  --bear:#8B5E3C; --bear-d:#6B462B; --bear-l:#A87A55;
+  --cream:#FFF9F2; --cream-2:#FDEFE0;
+  --card:#FFFFFF; --card-2:#FFFDFA;
+  --ink:#2C2622; --ink-2:#6E645C; --ink-3:#A2968C;
+  --line:#F0E5D8; --line-2:#E6D8C6;
+  --in:#2FA36B; --in-l:#5CC993; --out:#E3556F; --out-l:#F27D92; --warn:#E8952F;
+
+  /* เงา (นุ่ม ซ้อนสองชั้นให้ดูลอย) */
+  --sh-sm:0 1px 2px rgba(122,80,45,.06), 0 2px 8px rgba(122,80,45,.05);
+  --sh:0 2px 4px rgba(122,80,45,.05), 0 8px 24px rgba(122,80,45,.09);
+  --sh-lg:0 6px 12px rgba(122,80,45,.07), 0 20px 48px rgba(122,80,45,.16);
+  --sh-honey:0 6px 18px rgba(242,178,62,.38);
+
+  /* รูปทรง */
+  --r-xs:12px; --r-sm:16px; --r:20px; --r-lg:26px; --r-xl:32px;
+  --safe-b:env(safe-area-inset-bottom, 0px);
+  --safe-t:env(safe-area-inset-top, 0px);
+  --tab-h:70px; --top-h:62px; --wrap:680px;
+
+  /* จังหวะการเคลื่อนไหว */
+  --ease:cubic-bezier(.22,.68,.32,1);
+  --spring:cubic-bezier(.22,1.2,.36,1);
 }
 :root[data-theme="dark"]{
-  --cream:#17130F; --card:#221C17; --ink:#F6EFE7; --ink-2:#C3B7AA; --ink-3:#8C8177;
-  --line:#33291F; --shadow:0 6px 20px rgba(0,0,0,.4); --shadow-lg:0 12px 36px rgba(0,0,0,.55);
+  --cream:#151210; --cream-2:#1C1714; --card:#221D19; --card-2:#282019;
+  --ink:#F7F0E8; --ink-2:#C6B9AC; --ink-3:#8E8175;
+  --line:#332920; --line-2:#3E3227;
+  --sh-sm:0 1px 3px rgba(0,0,0,.4); --sh:0 4px 18px rgba(0,0,0,.45);
+  --sh-lg:0 12px 40px rgba(0,0,0,.6); --sh-honey:0 6px 18px rgba(242,178,62,.28);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --cream:#17130F; --card:#221C17; --ink:#F6EFE7; --ink-2:#C3B7AA; --ink-3:#8C8177;
-    --line:#33291F; --shadow:0 6px 20px rgba(0,0,0,.4); --shadow-lg:0 12px 36px rgba(0,0,0,.55);
+    --cream:#151210; --cream-2:#1C1714; --card:#221D19; --card-2:#282019;
+    --ink:#F7F0E8; --ink-2:#C6B9AC; --ink-3:#8E8175;
+    --line:#332920; --line-2:#3E3227;
+    --sh-sm:0 1px 3px rgba(0,0,0,.4); --sh:0 4px 18px rgba(0,0,0,.45);
+    --sh-lg:0 12px 40px rgba(0,0,0,.6); --sh-honey:0 6px 18px rgba(242,178,62,.28);
   }
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%}
+html,body{margin:0;padding:0;min-height:100%}
 body{
-  background:var(--cream); color:var(--ink);
-  font-family:"IBM Plex Sans Thai","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:16px; line-height:1.5; overscroll-behavior-y:none;
+  background:
+    radial-gradient(760px 420px at 12% -8%, rgba(242,178,62,.16), transparent 62%),
+    radial-gradient(680px 380px at 92% 4%, rgba(139,94,60,.10), transparent 60%),
+    var(--cream);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.55; letter-spacing:-.005em;
+  overscroll-behavior-y:none; -webkit-font-smoothing:antialiased;
 }
 .hidden{display:none !important}
 button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:none;background:none}
-h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
+button{cursor:pointer;border:none;background:none;padding:0}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.02em}
 a{color:var(--bear)}
+::-webkit-scrollbar{width:0;height:0}
 
-/* ---------- ปุ่ม ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:13px 18px;border-radius:var(--r);font-weight:600;transition:transform .12s,filter .12s;}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:linear-gradient(135deg,var(--honey),var(--honey-d));color:#3A2A10;box-shadow:0 6px 16px rgba(242,178,62,.35)}
-.btn-dark{background:var(--bear);color:#fff}
-.btn-soft{background:var(--line);color:var(--ink)}
+/* ============================ อนิเมชันกลาง ============================ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{0%{opacity:0;transform:scale(.9) translateY(6px)}60%{transform:scale(1.02)}100%{opacity:1;transform:none}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@keyframes wobble{0%,100%{transform:rotate(-9deg) scale(1)}50%{transform:rotate(9deg) scale(1.1)}}
+@keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(227,85,111,.55)}70%{box-shadow:0 0 0 14px rgba(227,85,111,0)}100%{box-shadow:0 0 0 0 rgba(227,85,111,0)}}
+@keyframes shimmer{0%{background-position:-450px 0}100%{background-position:450px 0}}
+@keyframes drawArc{from{stroke-dashoffset:var(--arc-len)}}
+@keyframes growBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+
+/* ============================ ปุ่ม ============================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 20px;border-radius:var(--r-sm);font-weight:650;font-size:15px;
+  transition:transform .16s var(--spring), box-shadow .2s var(--ease), filter .2s;
+  position:relative;overflow:hidden;
+}
+.btn:active{transform:scale(.965)}
+.btn-primary{background:linear-gradient(135deg,var(--honey-l),var(--honey-d));color:#3A2A10;box-shadow:var(--sh-honey)}
+.btn-primary:active{box-shadow:0 3px 10px rgba(242,178,62,.34)}
+.btn-dark{background:linear-gradient(135deg,var(--bear-l),var(--bear-d));color:#fff;box-shadow:var(--sh)}
+.btn-soft{background:var(--cream-2);color:var(--ink);box-shadow:var(--sh-sm)}
 .btn-ghost{background:transparent;color:var(--ink-2)}
-.btn-danger{background:rgba(226,96,122,.12);color:var(--out)}
+.btn-danger{background:rgba(227,85,111,.12);color:var(--out)}
 .btn-block{width:100%}
-.btn-sm{padding:8px 14px;border-radius:12px;font-size:14px}
-.icon-btn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
-  font-size:20px;color:var(--ink-2);background:transparent}
-.icon-btn:active{background:var(--line)}
-.pill{padding:8px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
-  font-weight:600;font-size:14px;box-shadow:var(--shadow)}
+.btn-sm{padding:9px 15px;border-radius:var(--r-xs);font-size:13.5px}
+.icon-btn{
+  width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+  font-size:19px;color:var(--ink-2);transition:background .2s,transform .16s var(--spring)
+}
+.icon-btn:active{background:var(--line);transform:scale(.9)}
+.pill{
+  padding:9px 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  font-weight:650;font-size:13.5px;box-shadow:var(--sh-sm);transition:transform .16s var(--spring)
+}
+.pill:active{transform:scale(.95)}
 
-/* ---------- ฟอร์ม ---------- */
-.field{display:block;margin-bottom:14px}
-.field>span{display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px;font-weight:600}
+/* ============================ ฟอร์ม ============================ */
+.field{display:block;margin-bottom:16px}
+.field>span{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:7px;font-weight:650;letter-spacing:.01em}
 .field input,.field select,.field textarea{
-  width:100%;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);
-  background:var(--card);color:var(--ink);outline:none;transition:border-color .15s}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--honey)}
+  width:100%;padding:14px 15px;border-radius:var(--r-sm);border:1.5px solid var(--line);
+  background:var(--card);color:var(--ink);outline:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--honey);box-shadow:0 0 0 4px rgba(242,178,62,.16)
+}
+.field input:disabled{background:var(--cream-2);color:var(--ink-3)}
 .row{display:flex;gap:10px}
 .row>*{flex:1}
-.seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:18px}
-.seg-btn{flex:1;padding:10px;border-radius:11px;font-weight:600;font-size:14px;color:var(--ink-2)}
-.seg-btn.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 
-/* ---------- หน้าเข้าสู่ระบบ ---------- */
-.auth-screen{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:24px 20px calc(24px + var(--safe-b));
-  background:radial-gradient(1200px 600px at 50% -10%,rgba(242,178,62,.25),transparent 60%),var(--cream)}
-.auth-card{width:100%;max-width:420px;background:var(--card);border-radius:28px;padding:28px 22px;box-shadow:var(--shadow-lg)}
-.auth-logo{font-size:56px;text-align:center;line-height:1;animation:bob 3s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-.auth-title{text-align:center;font-size:28px;margin:8px 0 2px}
-.auth-title span{display:block;font-size:13px;color:var(--ink-3);letter-spacing:.28em;font-weight:600}
-.auth-sub{text-align:center;color:var(--ink-2);font-size:14px;margin:6px 0 20px}
-.auth-note{font-size:13px;color:var(--ink-2);text-align:center;margin:10px 0 0;min-height:20px}
-.auth-note.err{color:var(--out)}
-.auth-note.ok{color:var(--in)}
-.auth-footer{color:var(--ink-3);font-size:12px;margin-top:18px}
-.auth-form .btn{margin-top:6px}
+/* แถบสลับ (มีแถบเลื่อนตามปุ่มที่เลือก) */
+.seg{
+  position:relative;display:flex;background:var(--cream-2);border-radius:var(--r-sm);
+  padding:5px;margin-bottom:18px;box-shadow:inset 0 1px 3px rgba(122,80,45,.07);
+  --seg-i:0; --seg-n:2;
+}
+.seg::before{
+  content:"";position:absolute;top:5px;bottom:5px;left:5px;
+  width:calc((100% - 10px)/var(--seg-n));
+  border-radius:calc(var(--r-sm) - 5px);background:var(--card);box-shadow:var(--sh-sm);
+  transform:translateX(calc(var(--seg-i) * 100%));
+  transition:transform .38s var(--spring);
+}
+.seg-btn{
+  position:relative;z-index:1;flex:1;padding:11px 4px;border-radius:calc(var(--r-sm) - 5px);
+  font-weight:650;font-size:14px;color:var(--ink-3);transition:color .25s
+}
+.seg-btn.active{color:var(--ink)}
 
-/* ---------- โครงแอป ---------- */
-.app{min-height:100%;padding-top:calc(60px + var(--safe-t));padding-bottom:calc(var(--tab-h) + var(--safe-b) + 12px)}
-.topbar{position:fixed;top:0;left:0;right:0;z-index:30;height:calc(60px + var(--safe-t));padding:var(--safe-t) 14px 0;
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  background:color-mix(in srgb,var(--cream) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
-.topbar-logo{font-size:26px}
+/* ============================ หน้าเข้าสู่ระบบ ============================ */
+.auth-screen{
+  min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 20px calc(24px + var(--safe-b));animation:fadeIn .4s var(--ease)
+}
+.auth-card{
+  width:100%;max-width:420px;background:var(--card);border-radius:var(--r-xl);
+  padding:30px 24px;box-shadow:var(--sh-lg);border:1px solid var(--line);
+  animation:popIn .5s var(--spring)
+}
+.auth-logo{font-size:60px;text-align:center;line-height:1;animation:bob 3.4s ease-in-out infinite}
+.auth-title{text-align:center;font-size:29px;margin:10px 0 2px}
+.auth-title span{display:block;font-size:12px;color:var(--ink-3);letter-spacing:.32em;font-weight:700;margin-top:4px}
+.auth-sub{text-align:center;color:var(--ink-2);font-size:14px;margin:10px 0 22px}
+.auth-note{font-size:13px;color:var(--ink-2);text-align:center;margin:12px 0 0;min-height:20px}
+.auth-note.err{color:var(--out)} .auth-note.ok{color:var(--in)}
+.auth-footer{color:var(--ink-3);font-size:12px;margin-top:20px}
+.auth-form .btn{margin-top:8px}
+
+/* ============================ โครงแอป ============================ */
+.app{
+  min-height:100dvh;
+  padding-top:calc(var(--top-h) + var(--safe-t));
+  padding-bottom:calc(var(--tab-h) + var(--safe-b) + 14px);
+}
+body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
+
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:30;
+  height:calc(var(--top-h) + var(--safe-t));padding-top:var(--safe-t);
+  background:color-mix(in srgb,var(--cream) 82%,transparent);
+  backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+}
+.topbar-inner{
+  max-width:var(--wrap);height:var(--top-h);margin:0 auto;padding:0 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.topbar-left{display:flex;align-items:center;gap:11px;min-width:0}
+.topbar-logo{font-size:27px;animation:floaty 4s ease-in-out infinite}
 .topbar-title{font-weight:700;font-size:17px;line-height:1.2}
-.topbar-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
-.topbar-right{display:flex;align-items:center;gap:2px}
-.view{padding:14px 14px 8px;max-width:680px;margin:0 auto;animation:fade .22s ease}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.topbar-sub{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
+.topbar-right{display:flex;align-items:center;gap:1px}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--tab-h) + var(--safe-b));
-  padding-bottom:var(--safe-b);display:flex;align-items:center;justify-content:space-around;
-  background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink-3);padding:6px 0}
-.tab span{font-size:21px;line-height:1}
-.tab em{font-style:normal;font-size:11px;font-weight:600}
+.view{padding:16px 14px 8px;max-width:var(--wrap);margin:0 auto}
+/* ลูกของ view โผล่ขึ้นมาไล่กันทีละชิ้น */
+.view>*{animation:fadeUp .42s var(--ease) both}
+.view>*:nth-child(1){animation-delay:.02s}
+.view>*:nth-child(2){animation-delay:.06s}
+.view>*:nth-child(3){animation-delay:.1s}
+.view>*:nth-child(4){animation-delay:.14s}
+.view>*:nth-child(5){animation-delay:.18s}
+.view>*:nth-child(n+6){animation-delay:.22s}
+
+/* แถบล่าง */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  height:calc(var(--tab-h) + var(--safe-b));padding-bottom:var(--safe-b);
+  background:color-mix(in srgb,var(--card) 88%,transparent);
+  backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+}
+.tabbar-inner{
+  max-width:var(--wrap);height:var(--tab-h);margin:0 auto;padding:0 6px;
+  display:flex;align-items:center;justify-content:space-between
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--ink-3);padding:8px 0 6px;position:relative;transition:color .25s
+}
+.tab span{font-size:21px;line-height:1;transition:transform .32s var(--spring)}
+.tab em{font-style:normal;font-size:10.5px;font-weight:650}
+.tab::after{
+  content:"";position:absolute;top:2px;width:5px;height:5px;border-radius:99px;
+  background:var(--honey-d);opacity:0;transform:scale(.4);transition:.3s var(--spring)
+}
 .tab.active{color:var(--bear)}
+.tab.active span{transform:translateY(-2px) scale(1.16)}
+.tab.active::after{opacity:1;transform:none}
 :root[data-theme="dark"] .tab.active{color:var(--honey)}
-.fab{width:58px;height:58px;border-radius:22px;margin-top:-26px;font-size:30px;font-weight:300;color:#3A2A10;
-  background:linear-gradient(135deg,var(--honey),var(--honey-d));box-shadow:0 8px 22px rgba(242,178,62,.5);
-  display:grid;place-items:center;transition:transform .15s}
-.fab:active{transform:scale(.92)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab.active{color:var(--honey)}}
+.fab{
+  width:60px;height:60px;border-radius:24px;margin-top:-28px;flex:none;
+  font-size:30px;font-weight:300;color:#3A2A10;
+  background:linear-gradient(135deg,var(--honey-l),var(--honey-d));
+  box-shadow:0 10px 26px rgba(242,178,62,.5);
+  display:grid;place-items:center;transition:transform .2s var(--spring),box-shadow .2s
+}
+.fab:active{transform:scale(.9) rotate(90deg)}
+.fab.active{transform:rotate(45deg)}
 
-/* ---------- การ์ด ---------- */
-.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
-.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+/* ============================ การ์ด ============================ */
+.card{
+  background:var(--card);border-radius:var(--r);padding:18px;
+  box-shadow:var(--sh);margin-bottom:14px;border:1px solid color-mix(in srgb,var(--line) 55%,transparent);
+  transition:box-shadow .25s,transform .25s var(--ease)
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px}
 .card-head h3{font-size:16px}
-.card-head .link{font-size:13px;color:var(--ink-2);font-weight:600}
+.card-head .link{font-size:13px;color:var(--ink-2);font-weight:650;transition:color .2s}
+.card-head .link:active{color:var(--honey-d)}
 .muted{color:var(--ink-2)}
 .tiny{font-size:12px}
-.empty{text-align:center;color:var(--ink-3);padding:26px 12px}
-.empty .big{font-size:40px;display:block;margin-bottom:8px}
+.empty{text-align:center;color:var(--ink-3);padding:28px 12px}
+.empty .big{font-size:42px;display:block;margin-bottom:10px;animation:bob 3.4s ease-in-out infinite}
 
-/* ---------- การ์ดยอดคงเหลือ ---------- */
-.balance{background:linear-gradient(140deg,var(--bear),var(--bear-d));color:#FFF6E9;border-radius:var(--r-lg);
-  padding:20px;box-shadow:var(--shadow-lg);margin-bottom:14px;position:relative;overflow:hidden}
-.balance::after{content:"🍯";position:absolute;right:-6px;bottom:-14px;font-size:88px;opacity:.13;transform:rotate(-12deg)}
-.balance .lbl{font-size:13px;opacity:.8}
-.balance .amt{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:2px 0 14px}
+/* การ์ดยอดคงเหลือ */
+.balance{
+  position:relative;overflow:hidden;color:#FFF6E9;border-radius:var(--r-lg);padding:22px;
+  background:linear-gradient(145deg,var(--bear-l),var(--bear-d) 70%);
+  box-shadow:var(--sh-lg);margin-bottom:14px
+}
+.balance::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(420px 200px at 88% -20%, rgba(255,203,99,.34), transparent 70%);
+}
+.balance::after{
+  content:"🍯";position:absolute;right:-8px;bottom:-18px;font-size:96px;opacity:.14;transform:rotate(-12deg)
+}
+.balance>*{position:relative}
+.balance .lbl{font-size:12.5px;opacity:.82;letter-spacing:.02em}
+.balance .amt{font-size:36px;font-weight:800;letter-spacing:-.03em;margin:4px 0 16px;font-variant-numeric:tabular-nums}
 .balance .grid{display:flex;gap:10px}
-.balance .box{flex:1;background:rgba(255,255,255,.14);border-radius:14px;padding:10px 12px}
-.balance .box b{display:block;font-size:17px;margin-top:2px}
-.balance .box.in b{color:#B6F2C9}
-.balance .box.out b{color:#FFC3CE}
+.balance .box{
+  flex:1;background:rgba(255,255,255,.15);border-radius:var(--r-xs);padding:11px 13px;
+  backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.13)
+}
+.balance .box b{display:block;font-size:17px;margin-top:3px;font-variant-numeric:tabular-nums}
+.balance .box.in b{color:#B9F5D2} .balance .box.out b{color:#FFC7D2}
 
-/* ---------- รายการ transaction ---------- */
-.tx{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line)}
+/* ============================ รายการ ============================ */
+.tx{
+  display:flex;align-items:center;gap:13px;padding:12px 4px;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+  transition:background .2s,transform .18s var(--ease);border-radius:12px
+}
 .tx:last-child{border-bottom:none}
-.tx-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:20px;flex:none}
+.tx:active{background:var(--cream-2);transform:scale(.99)}
+.tx-ico{
+  width:44px;height:44px;border-radius:15px;display:grid;place-items:center;
+  font-size:20px;flex:none;transition:transform .25s var(--spring)
+}
+.tx:active .tx-ico{transform:scale(1.08) rotate(-6deg)}
 .tx-main{flex:1;min-width:0}
-.tx-title{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-amt{font-weight:700;font-size:15px;white-space:nowrap}
-.tx-amt.in{color:var(--in)}
-.tx-amt.out{color:var(--out)}
-.day-head{display:flex;justify-content:space-between;align-items:baseline;
-  padding:14px 4px 4px;font-size:13px;color:var(--ink-3);font-weight:600}
+.tx-title{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-sub{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-amt{font-weight:750;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tx-amt.in{color:var(--in)} .tx-amt.out{color:var(--out)}
+.day-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:16px 4px 6px;font-size:12.5px;color:var(--ink-3);font-weight:650
+}
 
-/* ---------- แถบงบประมาณ ---------- */
-.bud{margin-bottom:14px}
+/* ============================ งบประมาณ ============================ */
+.bud{margin-bottom:16px}
 .bud:last-child{margin-bottom:0}
-.bud-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:6px}
-.bud-name{display:flex;align-items:center;gap:8px;font-weight:600}
-.bar{height:9px;border-radius:999px;background:var(--line);overflow:hidden}
-.bar>i{display:block;height:100%;border-radius:999px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
-.bud-foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);margin-top:4px}
+.bud-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:7px;gap:8px}
+.bud-name{display:flex;align-items:center;gap:8px;font-weight:650;min-width:0}
+.bar{height:10px;border-radius:999px;background:var(--cream-2);overflow:hidden;position:relative}
+.bar>i{
+  display:block;height:100%;border-radius:999px;
+  transition:width .9s var(--ease);position:relative;overflow:hidden
+}
+.bar>i::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.45) 50%,transparent 80%);
+  background-size:450px 100%;animation:shimmer 2.6s infinite linear
+}
+.bud-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
 
-/* ---------- แชท/เพิ่มรายการ ---------- */
-.chat{display:flex;flex-direction:column;gap:10px;min-height:140px;margin-bottom:12px}
-.bubble{max-width:86%;padding:11px 14px;border-radius:18px;font-size:14.5px;box-shadow:var(--shadow);white-space:pre-wrap}
-.bubble.bot{background:var(--card);border-bottom-left-radius:6px;align-self:flex-start}
-.bubble.me{background:linear-gradient(135deg,var(--honey),var(--honey-d));color:#3A2A10;border-bottom-right-radius:6px;align-self:flex-end}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.chip{padding:8px 13px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13.5px;font-weight:600;box-shadow:var(--shadow)}
+/* ============================ แชท ============================ */
+.chat{
+  display:flex;flex-direction:column;gap:10px;
+  min-height:calc(100dvh - var(--top-h) - var(--tab-h) - 210px);
+  padding-bottom:6px
+}
+.bubble{
+  max-width:84%;padding:12px 15px;border-radius:20px;font-size:14.5px;line-height:1.5;
+  box-shadow:var(--sh-sm);white-space:pre-wrap;word-break:break-word;
+  animation:popIn .34s var(--spring) both
+}
+.bubble.bot{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:7px;align-self:flex-start}
+.bubble.me{
+  background:linear-gradient(135deg,var(--honey-l),var(--honey-d));color:#3A2A10;
+  border-bottom-right-radius:7px;align-self:flex-end;box-shadow:var(--sh-honey)
+}
+.bubble img{display:block;border-radius:14px}
+.typing{display:inline-flex;gap:4px;align-items:center;padding:2px 0}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-3);animation:floaty .9s infinite}
+.typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:9px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  font-size:13.5px;font-weight:650;box-shadow:var(--sh-sm);
+  transition:transform .16s var(--spring),background .2s,color .2s,border-color .2s
+}
+.chip:active{transform:scale(.94)}
 .chip.active{background:var(--bear);color:#fff;border-color:var(--bear)}
-.composer{position:sticky;bottom:calc(var(--tab-h) + var(--safe-b) + 8px);display:flex;gap:8px;align-items:flex-end;
-  background:var(--card);border:1px solid var(--line);border-radius:22px;padding:7px 7px 7px 14px;box-shadow:var(--shadow-lg)}
-.composer textarea{flex:1;border:none;background:none;resize:none;max-height:110px;padding:8px 0;outline:none}
-.composer .rnd{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--line)}
-.composer .rnd.send{background:linear-gradient(135deg,var(--honey),var(--honey-d));color:#3A2A10}
-.composer .rnd.rec{background:var(--out);color:#fff;animation:pulse 1.1s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,96,122,.6)}70%{box-shadow:0 0 0 12px rgba(226,96,122,0)}}
 
-/* ---------- ตัวเลือกหมวด ---------- */
+/* แถบพิมพ์ — ตรึงติดด้านล่างเหนือแถบเมนู เหมือนแอปแชท */
+.composer-dock{
+  position:fixed;left:0;right:0;z-index:29;
+  bottom:calc(var(--tab-h) + var(--safe-b));
+  padding:8px 14px 10px;
+  background:linear-gradient(to top,var(--cream) 62%,color-mix(in srgb,var(--cream) 0%,transparent));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.composer{
+  max-width:var(--wrap);margin:0 auto;
+  display:flex;gap:8px;align-items:flex-end;
+  background:var(--card);border:1px solid var(--line);border-radius:26px;
+  padding:7px 7px 7px 8px;box-shadow:var(--sh-lg);
+  transition:border-color .2s,box-shadow .2s
+}
+.composer:focus-within{border-color:var(--honey);box-shadow:var(--sh-lg),0 0 0 4px rgba(242,178,62,.14)}
+.composer textarea{
+  flex:1;border:none;background:none;resize:none;max-height:112px;
+  padding:10px 2px;outline:none;line-height:1.4
+}
+.composer .rnd{
+  width:44px;height:44px;border-radius:17px;display:grid;place-items:center;font-size:19px;flex:none;
+  background:var(--cream-2);transition:transform .18s var(--spring),background .2s,box-shadow .2s
+}
+.composer .rnd:active{transform:scale(.88)}
+.composer .rnd.send{background:linear-gradient(135deg,var(--honey-l),var(--honey-d));color:#3A2A10;box-shadow:var(--sh-honey)}
+.composer .rnd.rec{background:var(--out);color:#fff;animation:pulseRing 1.3s infinite}
+.chat-hint{max-width:var(--wrap);margin:7px auto 0;text-align:center;font-size:11px;color:var(--ink-3)}
+
+/* ============================ ตัวเลือกหมวด / แป้นตัวเลข ============================ */
 .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.cat-pick{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px;border-radius:16px;
-  background:var(--card);border:1.5px solid var(--line);font-size:11.5px;text-align:center;line-height:1.25}
-.cat-pick .ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;font-size:19px}
+.cat-pick{
+  display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;
+  border-radius:var(--r-sm);background:var(--card);border:1.5px solid var(--line);
+  font-size:11.5px;text-align:center;line-height:1.25;
+  transition:transform .18s var(--spring),border-color .2s,background .2s
+}
+.cat-pick:active{transform:scale(.94)}
+.cat-pick .ic{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:19px;transition:transform .25s var(--spring)}
 .cat-pick.active{border-color:var(--honey);background:rgba(242,178,62,.12)}
+.cat-pick.active .ic{transform:scale(1.12)}
 
-/* ---------- แผงตัวเลข ---------- */
-.amount-display{text-align:center;padding:8px 0 14px}
-.amount-display b{font-size:40px;font-weight:800;letter-spacing:-.02em}
-.amount-display span{font-size:16px;color:var(--ink-3);margin-left:4px}
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.keypad button{padding:15px 0;border-radius:16px;background:var(--card);font-size:21px;font-weight:600;box-shadow:var(--shadow)}
-.keypad button:active{background:var(--line)}
+.amount-display{text-align:center;padding:10px 0 16px}
+.amount-display b{font-size:44px;font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.amount-display span{font-size:16px;color:var(--ink-3);margin-left:5px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.keypad button{
+  padding:16px 0;border-radius:var(--r-sm);background:var(--card-2);font-size:22px;font-weight:650;
+  box-shadow:var(--sh-sm);transition:transform .14s var(--spring),background .15s
+}
+.keypad button:active{background:var(--cream-2);transform:scale(.93)}
 
-/* ---------- Sheet ---------- */
+/* ============================ Sheet ============================ */
 .sheet-wrap{position:fixed;inset:0;z-index:60}
-.sheet-backdrop{position:absolute;inset:0;background:rgba(30,20,10,.45);animation:fade .2s}
-.sheet{position:absolute;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--cream);
-  border-radius:26px 26px 0 0;padding:6px 16px calc(20px + var(--safe-b));box-shadow:var(--shadow-lg);
-  animation:up .26s cubic-bezier(.2,.9,.25,1);max-width:680px;margin:0 auto}
-@keyframes up{from{transform:translateY(100%)}to{transform:none}}
-.sheet-handle{width:44px;height:5px;border-radius:99px;background:var(--line);margin:8px auto 4px}
-.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px;position:sticky;top:0;background:var(--cream);z-index:2}
+.sheet-backdrop{position:absolute;inset:0;background:rgba(38,26,16,.5);backdrop-filter:blur(3px);animation:fadeIn .25s}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;max-height:92dvh;overflow:auto;
+  background:var(--cream);border-radius:var(--r-xl) var(--r-xl) 0 0;
+  padding:6px 16px calc(22px + var(--safe-b));box-shadow:var(--sh-lg);
+  animation:slideUp .42s var(--spring);max-width:var(--wrap);margin:0 auto
+}
+.sheet-handle{width:46px;height:5px;border-radius:99px;background:var(--line-2);margin:9px auto 4px}
+.sheet-head{
+  display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;
+  position:sticky;top:0;background:var(--cream);z-index:2
+}
 .sheet-head h3{font-size:18px}
+.sheet-body>*{animation:fadeUp .3s var(--ease) both}
+.sheet-body>*:nth-child(2){animation-delay:.04s}
+.sheet-body>*:nth-child(3){animation-delay:.07s}
+.sheet-body>*:nth-child(n+4){animation-delay:.1s}
 
-/* ---------- Toast / loading ---------- */
-.toast{position:fixed;left:50%;bottom:calc(var(--tab-h) + var(--safe-b) + 22px);transform:translateX(-50%);
-  background:var(--bear);color:#fff;padding:11px 18px;border-radius:16px;z-index:80;font-size:14px;font-weight:600;
-  box-shadow:var(--shadow-lg);max-width:90vw;text-align:center;animation:up .2s}
-.toast.err{background:var(--out)}
-.toast.ok{background:var(--in)}
-.loading{position:fixed;inset:0;z-index:90;display:grid;place-items:center;gap:10px;align-content:center;
-  background:color-mix(in srgb,var(--cream) 80%,transparent);backdrop-filter:blur(3px);color:var(--ink-2);font-size:14px}
-.bear-spin{font-size:46px;animation:spin 1.4s ease-in-out infinite}
-@keyframes spin{0%,100%{transform:rotate(-12deg) scale(1)}50%{transform:rotate(12deg) scale(1.12)}}
+/* ============================ Toast / loading ============================ */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--tab-h) + var(--safe-b) + 24px);transform:translateX(-50%);
+  background:var(--bear-d);color:#fff;padding:12px 20px;border-radius:var(--r-sm);z-index:80;
+  font-size:14px;font-weight:650;box-shadow:var(--sh-lg);max-width:90vw;text-align:center;
+  animation:popIn .32s var(--spring)
+}
+.toast.err{background:var(--out)} .toast.ok{background:var(--in)}
+.loading{
+  position:fixed;inset:0;z-index:90;display:grid;place-items:center;align-content:center;gap:12px;
+  background:color-mix(in srgb,var(--cream) 78%,transparent);backdrop-filter:blur(4px);
+  color:var(--ink-2);font-size:14px;animation:fadeIn .2s
+}
+.bear-spin{font-size:50px;animation:wobble 1.3s ease-in-out infinite}
+.skeleton{
+  border-radius:var(--r-xs);background:linear-gradient(100deg,var(--cream-2) 30%,var(--line) 50%,var(--cream-2) 70%);
+  background-size:450px 100%;animation:shimmer 1.4s infinite linear
+}
 
-/* ---------- กราฟ ---------- */
-.legend{display:flex;flex-direction:column;gap:9px;margin-top:12px}
-.legend-row{display:flex;align-items:center;gap:9px;font-size:13.5px}
+/* ============================ กราฟ ============================ */
+.chart-donut{display:block;margin:0 auto}
+.chart-donut circle.seg{animation:drawArc 1s var(--ease) both}
+.chart-bars rect{transform-origin:bottom;animation:growBar .6s var(--ease) both}
+.legend{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.legend-row{display:flex;align-items:center;gap:10px;font-size:13.5px;animation:fadeUp .35s var(--ease) both}
+.legend-row:nth-child(2){animation-delay:.05s}
+.legend-row:nth-child(3){animation-delay:.1s}
+.legend-row:nth-child(n+4){animation-delay:.15s}
 .legend-dot{width:11px;height:11px;border-radius:4px;flex:none}
 .legend-row .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.legend-row .vl{font-weight:700}
-.legend-row .pc{color:var(--ink-3);font-size:12px;width:44px;text-align:right}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat{background:var(--card);border-radius:16px;padding:13px;box-shadow:var(--shadow)}
-.stat .k{font-size:12px;color:var(--ink-3)}
-.stat .v{font-size:19px;font-weight:700;margin-top:2px}
+.legend-row .vl{font-weight:700;font-variant-numeric:tabular-nums}
+.legend-row .pc{color:var(--ink-3);font-size:12px;width:42px;text-align:right}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{
+  background:var(--card);border-radius:var(--r-sm);padding:14px;box-shadow:var(--sh-sm);
+  border:1px solid color-mix(in srgb,var(--line) 55%,transparent)
+}
+.stat .k{font-size:11.5px;color:var(--ink-3)}
+.stat .v{font-size:19px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums}
 
-/* ---------- รายการตั้งค่า ---------- */
-.list-item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line)}
+/* ============================ รายการตั้งค่า ============================ */
+.list-item{
+  display:flex;align-items:center;gap:13px;padding:14px 4px;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+  transition:background .2s;border-radius:12px
+}
 .list-item:last-child{border-bottom:none}
-.list-item .ic{width:36px;height:36px;border-radius:12px;background:var(--line);display:grid;place-items:center;font-size:17px;flex:none}
+.list-item:active{background:var(--cream-2)}
+.list-item .ic{
+  width:38px;height:38px;border-radius:13px;background:var(--cream-2);
+  display:grid;place-items:center;font-size:17px;flex:none
+}
 .list-item .tx2{flex:1;min-width:0}
-.list-item .tx2 b{display:block;font-size:14.5px;font-weight:600}
-.list-item .tx2 small{color:var(--ink-3);font-size:12px}
-.switch{width:50px;height:29px;border-radius:99px;background:var(--line);position:relative;transition:background .2s;flex:none}
-.switch i{position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.list-item .tx2 b{display:block;font-size:14.5px;font-weight:650}
+.list-item .tx2 small{color:var(--ink-3);font-size:11.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.switch{
+  width:52px;height:30px;border-radius:99px;background:var(--line-2);position:relative;
+  transition:background .28s var(--ease);flex:none
+}
+.switch i{
+  position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;
+  transition:transform .3s var(--spring);box-shadow:0 2px 6px rgba(0,0,0,.22)
+}
 .switch.on{background:var(--in)}
-.switch.on i{transform:translateX(21px)}
-.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--line);color:var(--ink-2)}
-.badge.in{background:rgba(62,169,107,.15);color:var(--in)}
-.badge.out{background:rgba(226,96,122,.15);color:var(--out)}
-.slip-preview{width:100%;border-radius:16px;margin-bottom:12px;max-height:320px;object-fit:contain;background:var(--line)}
-.search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);
-  border-radius:16px;padding:10px 14px;box-shadow:var(--shadow);margin-bottom:12px}
+.switch.on i{transform:translateX(22px)}
+.badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
+.badge.in{background:rgba(47,163,107,.15);color:var(--in)}
+.badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+.slip-preview{
+  width:100%;border-radius:var(--r-sm);margin-bottom:14px;max-height:320px;
+  object-fit:contain;background:var(--cream-2);animation:popIn .4s var(--spring)
+}
+.search{
+  display:flex;gap:9px;align-items:center;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:11px 15px;box-shadow:var(--sh-sm);margin-bottom:12px;
+  transition:border-color .2s,box-shadow .2s
+}
+.search:focus-within{border-color:var(--honey);box-shadow:0 0 0 4px rgba(242,178,62,.14)}
 .search input{flex:1;border:none;background:none;outline:none}
-.hr{height:1px;background:var(--line);margin:14px 0}
+.hr{height:1px;background:var(--line);margin:16px 0}
 .center{text-align:center}
-.mt{margin-top:12px}
-.mb{margin-bottom:12px}
+.mt{margin-top:12px} .mb{margin-bottom:12px}
+details summary{cursor:pointer;padding:6px 0}
+
+/* จอใหญ่ขึ้นนิดหน่อย */
+@media (min-width:620px){
+  .view{padding:22px 18px 10px}
+  .balance .amt{font-size:40px}
+}
 
 </style>
 </head>
@@ -296,6 +561,7 @@ a{color:var(--bear)}
 <div id="app" class="app hidden">
 
   <header class="topbar">
+   <div class="topbar-inner">
     <div class="topbar-left">
       <span class="topbar-logo">🐻</span>
       <div>
@@ -308,16 +574,22 @@ a{color:var(--bear)}
       <button class="pill" id="btnMonth">ส.ค. 2569</button>
       <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป">›</button>
     </div>
+   </div>
   </header>
 
   <main id="view" class="view"><!-- แต่ละหน้า render ที่นี่ --></main>
 
+  <!-- แถบพิมพ์ของหน้าแชท ตรึงอยู่เหนือแถบเมนูล่าง -->
+  <div id="composerDock" class="composer-dock hidden"></div>
+
   <nav class="tabbar">
+   <div class="tabbar-inner">
     <button class="tab" data-route="dashboard"><span>🏠</span><em>ภาพรวม</em></button>
     <button class="tab" data-route="transactions"><span>📒</span><em>รายการ</em></button>
     <button class="fab" data-route="add" aria-label="เพิ่มรายการ">＋</button>
     <button class="tab" data-route="analysis"><span>📊</span><em>วิเคราะห์</em></button>
     <button class="tab" data-route="settings"><span>⚙️</span><em>ตั้งค่า</em></button>
+   </div>
   </nav>
 </div>
 
@@ -414,6 +686,40 @@ MJ.hex2rgba = (hex, a) => {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
+/* ---------------------- แถบสลับที่มีตัวชี้เลื่อนตาม ---------------------- */
+MJ.segInit = (segEl, onPick) => {
+  if (!segEl) return;
+  const btns = MJ.$$('.seg-btn', segEl);
+  segEl.style.setProperty('--seg-n', btns.length);
+  const move = (i) => segEl.style.setProperty('--seg-i', i);
+  btns.forEach((b, i) => {
+    if (b.classList.contains('active')) move(i);
+    b.addEventListener('click', () => {
+      btns.forEach((x) => x.classList.toggle('active', x === b));
+      move(i);
+      MJ.buzz(8);
+      if (onPick) onPick(b, i);
+    });
+  });
+};
+
+/* ---------------------- ตัวเลขวิ่งขึ้น (ใช้กับยอดเงิน) ---------------------- */
+MJ.countUp = (el, to, opts) => {
+  if (!el) return;
+  const o = Object.assign({ ms: 850, prefix: '฿', digits: undefined }, opts || {});
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = o.prefix + MJ.fmtMoney(to, o.digits); return;
+  }
+  const from = 0, start = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / o.ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = o.prefix + MJ.fmtMoney(from + (to - from) * eased, t < 1 ? 0 : o.digits);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+};
+
 /* ------------------------------ Feedback ------------------------------ */
 let toastTimer;
 MJ.toast = (msg, kind) => {
@@ -480,6 +786,11 @@ MJ.render = () => {
   MJ.$('#topTitle').textContent = t[0];
   MJ.$('#topSub').textContent = t[1];
   MJ.$$('.tab, .fab').forEach((el) => el.classList.toggle('active', el.dataset.route === MJ.state.route));
+  // หน้าแชทมีแถบพิมพ์ตรึงล่าง ต้องเผื่อที่ว่างให้เนื้อหา
+  const inChat = MJ.state.route === 'add' && MJ.add?.tab === 'chat';
+  document.body.classList.toggle('chat-open', inChat);
+  const dock = MJ.$('#composerDock');
+  if (dock && !inChat) { dock.classList.add('hidden'); dock.innerHTML = ''; }
   r(view);
   if (window.scrollTo) window.scrollTo({ top: 0 });
 };
@@ -496,10 +807,9 @@ MJ.auth = {
   mount() {
     const note = MJ.$('#authNote');
 
-    MJ.$$('#authTabs .seg-btn').forEach((btn) => {
-      btn.onclick = () => {
+    MJ.segInit(MJ.$('#authTabs'), (btn) => {
+      {
         MJ.auth.mode = btn.dataset.mode;
-        MJ.$$('#authTabs .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
         const up = MJ.auth.mode === 'signup';
         MJ.$('#nameField').hidden = !up;
         MJ.$('#authSubmit').textContent = up ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
@@ -1026,6 +1336,22 @@ MJ.slip = (() => {
     return { canvas: cv, ctx, w, h };
   }
 
+  /**
+   * เพิ่มคอนทราสต์ + ทำเป็นขาวดำก่อนส่งเข้า OCR
+   * สลิปหลายธนาคารมีลายน้ำ/พื้นหลังอ่อน ทำให้ตัวเลขจม — ขั้นนี้ช่วยให้อ่านยอดได้ขึ้นชัดเจน
+   */
+  function boostContrast(canvas, ctx) {
+    const im = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = im.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      const c = Math.max(0, Math.min(255, (v - 128) * 1.9 + 128));
+      d[i] = d[i + 1] = d[i + 2] = c;
+    }
+    ctx.putImageData(im, 0, 0);
+    return canvas;
+  }
+
   /* ------------------------- 1) สแกน QR ------------------------- */
   async function scanQR(img) {
     const tries = [1400, 900, 2000];
@@ -1061,28 +1387,44 @@ MJ.slip = (() => {
   }
 
   /**
-   * ดึงรหัสอ้างอิงจาก payload ของ Mini QR
-   * ใช้ payload ดิบเป็นกุญแจกันซ้ำเสมอ (ไม่ขึ้นกับว่าถอดโครงสร้างได้ไหม)
+   * ดึงข้อมูลจาก payload ของ Mini QR บนสลิปไทย
+   * โครงสร้างจริง (EMVCo TLV ซ้อนกัน) เช่น
+   *   0046 00[06]000001 01[03]014 02[25]202608012vWAeIOheGunNmdz2  51[02]TH  91[04]3E89
+   *        └─ tag 00 = กลุ่มข้อมูลสลิป: 00=เวอร์ชัน, 01=รหัสธนาคารผู้ส่ง, 02=เลขอ้างอิงรายการ
+   * ใช้เลขอ้างอิงเป็นกุญแจกันบันทึกซ้ำ ถ้าถอดไม่ได้ค่อยใช้ payload ดิบ
    */
   function parseSlipPayload(payload) {
-    const res = { raw: payload, reference: payload.trim(), fields: {}, bank: null };
-    if (!/^\d{2}\d{2}/.test(payload)) return res;
-    const tlv = parseTLV(payload);
+    const raw = String(payload || '').trim();
+    const res = { raw, reference: raw, fields: {}, inner: {}, bank: null, bankCode: null, version: null };
+    if (!/^\d{4}/.test(raw)) return res;
+
+    const tlv = parseTLV(raw);
     res.fields = tlv;
-    // ฟิลด์ย่อยที่มักเก็บ transaction ref (ตัวอักษร+ตัวเลข ยาว 15-30)
-    const candidates = Object.values(tlv).filter((v) => /^[A-Za-z0-9]{12,40}$/.test(v));
-    if (candidates.length) res.reference = candidates.sort((a, b) => b.length - a.length)[0];
-    // รหัสธนาคาร 3 หลักมักอยู่ในฟิลด์ย่อยของ tag 01
-    const m = payload.match(/\b(002|004|006|011|014|022|025|030|033|034|065|066|067|069|070|071|073)\d{9,}/);
-    if (m) res.bank = BANKS[m[1]] || null;
+
+    const inner = parseTLV(tlv['00'] || '');
+    res.inner = inner;
+    res.version = inner['00'] || null;
+    res.bankCode = inner['01'] || null;
+    res.bank = res.bankCode ? (BANKS[res.bankCode] || null) : null;
+
+    if (inner['02'] && /^[A-Za-z0-9]{6,}$/.test(inner['02'])) {
+      res.reference = inner['02'];
+    } else {
+      const candidates = Object.values(tlv).concat(Object.values(inner))
+        .filter((v) => /^[A-Za-z0-9]{12,40}$/.test(v));
+      if (candidates.length) res.reference = candidates.sort((a, b) => b.length - a.length)[0];
+    }
     return res;
   }
 
   const BANKS = {
     '002':'ธ.กรุงเทพ','004':'ธ.กสิกรไทย','006':'ธ.กรุงไทย','011':'ธ.ทหารไทยธนชาต','014':'ธ.ไทยพาณิชย์',
-    '022':'ธ.ซีไอเอ็มบี','025':'ธ.กรุงศรีอยุธยา','030':'ธ.ออมสิน','033':'ธ.อาคารสงเคราะห์','034':'ธ.ก.ส.',
-    '065':'ธ.ธนชาต','066':'ธ.อิสลาม','067':'ธ.ทิสโก้','069':'ธ.เกียรตินาคินภัทร','070':'ธ.ไอซีบีซี',
-    '071':'ธ.ไทยเครดิต','073':'ธ.แลนด์ แอนด์ เฮ้าส์',
+    '017':'ธ.ซิตี้แบงก์','018':'ธ.ซูมิโตโม','020':'ธ.สแตนดาร์ดชาร์เตอร์ด','022':'ธ.ซีไอเอ็มบี',
+    '024':'ธ.ยูโอบี','025':'ธ.กรุงศรีอยุธยา','026':'ธ.เมกะสากลพาณิชย์','030':'ธ.ออมสิน',
+    '031':'ธ.เอชเอสบีซี','032':'ธ.ดอยซ์แบงก์','033':'ธ.อาคารสงเคราะห์','034':'ธ.ก.ส.',
+    '039':'ธ.มิซูโฮ','045':'ธ.บีเอ็นพี พารีบาส์','052':'ธ.แห่งประเทศจีน','066':'ธ.อิสลาม',
+    '067':'ธ.ทิสโก้','069':'ธ.เกียรตินาคินภัทร','070':'ธ.ไอซีบีซี','071':'ธ.ไทยเครดิต',
+    '073':'ธ.แลนด์ แอนด์ เฮ้าส์','098':'ธ.พัฒนาวิสาหกิจ','099':'ธ.เพื่อการส่งออกและนำเข้า',
   };
 
   /* ------------------------- 2) OCR ------------------------- */
@@ -1108,10 +1450,11 @@ MJ.slip = (() => {
     return tesseractWorker;
   }
 
-  async function ocrLocal(img, onProgress) {
+  async function ocrLocal(img, onProgress, opts) {
     const worker = await ensureTesseract(onProgress);
-    onProgress && onProgress('กำลังอ่านตัวหนังสือบนสลิป…');
-    const { canvas } = drawScaled(img, 1600);
+    onProgress && onProgress(opts?.second ? 'กำลังอ่านซ้ำอีกรอบให้ชัวร์…' : 'กำลังอ่านตัวหนังสือบนสลิป…');
+    const { canvas, ctx } = drawScaled(img, 1600);
+    if (opts?.boost !== false) boostContrast(canvas, ctx);
     const { data } = await worker.recognize(canvas);
     return data?.text || '';
   }
@@ -1239,57 +1582,175 @@ MJ.slip = (() => {
     return d;
   }
 
-  /** สลิปหลายธนาคารฝังวันที่ไว้ต้นรหัสอ้างอิง เช่น 20250812xxxxxxx */
+  /**
+   * ถอดวันที่จากรหัสอ้างอิงสลิป รองรับ 2 แบบที่เจอจริง
+   *   ก) ฝังวันที่เต็ม   เช่น SCB "202608012vWAeIOheGunNmdz2" -> 2026-08-01
+   *   ข) วันที่ N ของปี + เวลา เช่น กสิกร "016225114146BPM01937"
+   *      016 | 225 (วันที่ 225 ของปี = 13 ส.ค.) | 114146 (11:41:46)
+   */
   function parseDateFromRef(ref) {
     if (!ref) return null;
-    const m = String(ref).match(/(20\d{2}|2[45]\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/);
-    if (!m) return null;
-    const year = normalizeYear(m[1]);
-    const d = new Date(year, parseInt(m[2], 10) - 1, parseInt(m[3], 10), 12, 0, 0);
-    if (isNaN(d.getTime()) || d.getTime() > Date.now() + 86400000) return null;
-    return d;
+    const s = String(ref);
+
+    // ก) YYYYMMDD
+    const full = s.match(/(20\d{2}|2[45]\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/);
+    if (full) {
+      const d = new Date(normalizeYear(full[1]), parseInt(full[2], 10) - 1, parseInt(full[3], 10), 12, 0, 0);
+      if (!isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000) return d;
+    }
+
+    const now = new Date();
+    const buildDoy = (day, hh, mm, ss) => {
+      if (!(day >= 1 && day <= 366)) return null;
+      let d = new Date(now.getFullYear(), 0, day, hh || 12, mm || 0, ss || 0);
+      if (d.getTime() > now.getTime() + 86400000) d = new Date(now.getFullYear() - 1, 0, day, hh || 12, mm || 0, ss || 0);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    // ข) กสิกร K PLUS: 016 + DDD(วันที่ N ของปี) + HHMMSS + ตัวอักษร
+    const doyTime = s.match(/^0\d{2}(\d{3})(\d{2})(\d{2})(\d{2})/);
+    if (doyTime && +doyTime[2] < 24 && +doyTime[3] < 60 && +doyTime[4] < 60) {
+      const d = buildDoy(+doyTime[1], +doyTime[2], +doyTime[3], +doyTime[4]);
+      if (d) return d;
+    }
+
+    // ค) MAKE by KBank: 046 + DDD แล้วตามด้วยตัวอักษรผสม (ไม่มีเวลา)
+    const doyOnly = s.match(/^0\d{2}(\d{3})(?=[A-Za-z0-9])/);
+    if (doyOnly) {
+      const d = buildDoy(+doyOnly[1]);
+      if (d) return d;
+    }
+    return null;
   }
 
-  function extractFromText(text) {
+  /** ทำความสะอาดข้อความจาก OCR ให้เทียบง่ายขึ้น */
+  function normalizeText(text) {
+    return String(text || '')
+      .replace(/ํา/g, 'ำ')                 // "จํานวน" -> "จำนวน"
+      .replace(/[๐-๙]/g, (d) => String(d.charCodeAt(0) - 0x0E50))  // เลขไทย -> อารบิก
+      .replace(/[​-‍﻿]/g, '')
+      .replace(/[ \t]+/g, ' ');
+  }
+
+  const FEE_RE = /(ค่าธรรมเนียม|ธรรมเนียม|fee|charge|คงเหลือ|ยอดคงเหลือ|balance)/i;
+  const AMOUNT_LABEL_RE = /(จำนวนเงิน|จำนวน|ยอดเงิน|ยอดชำระ|ยอดรวม|ยอด|รวมทั้งสิ้น|amount|total)\s*:?/i;
+  const NOT_PAYEE_RE = /(รหัส|เลขที่|หมายเลข|อ้างอิง|บัญชี|account|ref|xxx|สแกน|ตรวจสอบ|ธนาคาร|ธ\.|จำนวน|ค่าธรรมเนียม|บาท|สำเร็จ)/i;
+
+  /** ตัวเลขที่ "หน้าตาเป็นจำนวนเงิน" จริง ๆ คือมีทศนิยม 2 ตำแหน่ง เช่น 160.00 / 49,999.00
+   *  OCR มักอ่านลูกน้ำเป็นช่องว่าง ("49 999.00") จึงรับตัวคั่นได้ทั้งสองแบบ */
+  function decimalsIn(line) {
+    return [...line.matchAll(/(?:^|[^\d.,])(\d{1,3}(?:[,\s]\d{3})+|\d{1,7})\.(\d{2})(?!\d)/g)]
+      .map((m) => parseFloat((m[1] + '.' + m[2]).replace(/[,\s]/g, '')))
+      .filter((n) => n > 0 && n < 10000000);
+  }
+
+  /** เลขจำนวนเต็มที่ตามด้วยหน่วยเงิน เช่น "500 บาท" */
+  function bahtIntIn(line) {
+    return [...line.matchAll(/(?:^|[^\d.,])(\d{1,3}(?:,\d{3})*|\d{1,7})\s*(?:บาท|THB|฿)/gi)]
+      .map((m) => parseFloat(m[1].replace(/,/g, '')))
+      .filter((n) => n > 0 && n < 10000000);
+  }
+
+  function extractFromText(rawText) {
     const out = { amount: null, date: null, payee: null, reference: null, lines: [] };
-    if (!text) return out;
+    if (!rawText) return out;
+
+    const text = normalizeText(rawText);
     const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
     out.lines = lines;
     const flat = lines.join(' ');
 
-    // ---- ยอดเงิน: ตัวเลขที่มีทศนิยม 2 ตำแหน่ง หรืออยู่หลังคำว่า "จำนวน/ยอด"
-    const labeled = flat.match(/(?:จำนวน(?:เงิน)?|ยอดเงิน|ยอด|amount|total)\s*:?\s*([\d,]+\.?\d{0,2})/i);
-    if (labeled) out.amount = parseFloat(labeled[1].replace(/,/g, ''));
+    /* ---------- ยอดเงิน ----------
+       1) บรรทัดที่มีคำว่า "จำนวน/ยอด" (แต่ไม่ใช่ค่าธรรมเนียม) — ตัวเลขอาจอยู่บรรทัดถัดไป
+       2) ถ้าไม่เจอ ใช้ตัวเลขทศนิยม 2 ตำแหน่งที่มากที่สุด โดยข้ามบรรทัดค่าธรรมเนียม/ยอดคงเหลือ  */
+    for (let i = 0; i < lines.length && !out.amount; i++) {
+      if (FEE_RE.test(lines[i]) || !AMOUNT_LABEL_RE.test(lines[i])) continue;
+      const after = lines[i].replace(/^.*?(จำนวนเงิน|จำนวน|ยอดเงิน|ยอดชำระ|ยอดรวม|ยอด|amount|total)\s*:?/i, '');
+      const here = decimalsIn(after).concat(bahtIntIn(after));
+      if (here.length) { out.amount = Math.max(...here); break; }
+      // สลิปหลายแบบวางตัวเลขไว้บรรทัดถัดไป (มองลงไปได้ 3 บรรทัด)
+      for (let k = 1; k <= 3 && i + k < lines.length; k++) {
+        if (FEE_RE.test(lines[i + k])) break;
+        const next = decimalsIn(lines[i + k]).concat(bahtIntIn(lines[i + k]));
+        if (next.length) { out.amount = Math.max(...next); break; }
+      }
+    }
     if (!out.amount) {
-      const cands = [...flat.matchAll(/([\d]{1,3}(?:,[\d]{3})*|\d+)\.(\d{2})(?!\d)/g)]
-        .map((m) => parseFloat((m[1] + '.' + m[2]).replace(/,/g, '')))
-        .filter((n) => n > 0 && n < 10000000);
+      const cands = [];
+      lines.forEach((l) => { if (!FEE_RE.test(l)) cands.push(...decimalsIn(l)); });
       if (cands.length) out.amount = Math.max(...cands);
     }
     if (!out.amount) {
-      const baht = flat.match(/([\d,]+)\s*(?:บาท|THB|฿)/i);
-      if (baht) out.amount = parseFloat(baht[1].replace(/,/g, ''));
+      const cands = [];
+      lines.forEach((l) => { if (!FEE_RE.test(l)) cands.push(...bahtIntIn(l)); });
+      if (cands.length) out.amount = Math.max(...cands);
+    }
+    // ทางสุดท้าย: เลขจำนวนเต็มบนบรรทัดที่มีคำว่า "จำนวน/ยอด" (รับเฉพาะ >= 10 กันเศษขยะจาก OCR)
+    if (!out.amount) {
+      for (let i = 0; i < lines.length && !out.amount; i++) {
+        if (FEE_RE.test(lines[i]) || !AMOUNT_LABEL_RE.test(lines[i])) continue;
+        for (let k = 0; k <= 2 && i + k < lines.length; k++) {
+          const l = lines[i + k];
+          if (k && FEE_RE.test(l)) break;
+          const ints = [...l.matchAll(/(?:^|[^\d.,\-])(\d{1,3}(?:,\d{3})*|\d{2,7})(?![\d.,])/g)]
+            .map((m) => parseFloat(m[1].replace(/,/g, '')))
+            .filter((n) => n >= 10 && n < 10000000);
+          if (ints.length) { out.amount = Math.max(...ints); break; }
+        }
+      }
     }
 
-    // ---- วันที่และเวลา
+    /* ---------- วันที่และเวลา ---------- */
     out.date = parseDateFromText(flat);
 
-    // ---- ชื่อผู้รับเงิน: บรรทัดหลังคำว่า "ไปยัง/ถึง/ผู้รับ" หรือบรรทัดที่มี บจก./บมจ./ร้าน
-    const idxTo = lines.findIndex((l) => /(ไปยัง|ถึง|ผู้รับ|to\b|received)/i.test(l));
+    /* ---------- ชื่อผู้รับเงิน/ร้านค้า ---------- */
+    const idxTo = lines.findIndex((l) => /(ไปยัง|ถึง|ผู้รับ(เงิน)?|to\b|received)/i.test(l));
     if (idxTo > -1) {
-      const same = lines[idxTo].replace(/.*(ไปยัง|ถึง|ผู้รับ|to|received)\s*:?\s*/i, '').trim();
-      out.payee = same.length > 2 ? same : (lines[idxTo + 1] || null);
+      const same = lines[idxTo].replace(/.*?(ไปยัง|ถึง|ผู้รับเงิน|ผู้รับ|to|received)\s*:?\s*/i, '').trim();
+      out.payee = cleanPayee(same) || cleanPayee(lines[idxTo + 1] || '');
     }
     if (!out.payee) {
-      const biz = lines.find((l) => /(บจก|บมจ|บริษัท|ห้างหุ้นส่วน|ร้าน|จำกัด|co\.,?\s*ltd)/i.test(l));
-      if (biz) out.payee = biz.trim();
+      const biz = lines.find((l) => /(บจก|บมจ|บริษัท|ห้างหุ้นส่วน|ร้าน(?!ค้า)|จำกัด|co\.,?\s*ltd|company|merchant|shop)/i.test(l)
+        && !/รหัสร้านค้า/.test(l));
+      if (biz) out.payee = cleanPayee(biz);
     }
-    if (out.payee) out.payee = out.payee.replace(/\s{2,}/g, ' ').replace(/^[:\-–]\s*/, '').slice(0, 80);
+    if (!out.payee) {
+      /* สลิปกสิกร/MAKE ไม่มีคำว่า "ไปยัง" แต่เรียงเป็น
+         ชื่อผู้โอน → ธนาคาร → เลขบัญชีปิดบัง(XXX-X-X9382-X) → ชื่อผู้รับ
+         จึงหยิบบรรทัดถัดจากเลขบัญชีปิดบังอันแรก */
+      const maskIdx = lines.findIndex((l) => /[Xx%*]{3}[-\s][\dXx%*-]{3,}/.test(l));
+      if (maskIdx > -1) {
+        for (let i = maskIdx + 1; i < Math.min(lines.length, maskIdx + 4); i++) {
+          if (/^(ธ\.|ธนาคาร|prompt|พร้อมเพย์|bank)/i.test(lines[i].trim())) continue;
+          const cand = cleanPayee(lines[i]);
+          if (cand) { out.payee = cand; break; }
+        }
+      }
+    }
+    if (!out.payee) {
+      // ชื่อร้านแบบตัวพิมพ์ใหญ่ล้วน เช่น ZENITHLINK / LINE PAY MERCHANT
+      const caps = lines.find((l) => /^[A-Z][A-Z\s&.'()\-]{3,34}$/.test(l.trim()) && !/^X+$/i.test(l.trim()));
+      if (caps) out.payee = cleanPayee(caps);
+    }
 
-    // ---- เลขอ้างอิงในข้อความ
-    const ref = flat.match(/(?:เลขที่รายการ|รหัสอ้างอิง|อ้างอิง|ref(?:erence)?(?:\s*no)?)\s*:?\s*([A-Za-z0-9]{8,40})/i);
+    /* ---------- เลขอ้างอิงในข้อความ ---------- */
+    const ref = flat.match(/(?:เลขที่รายการ|เลขที่อ้างอิง|รหัสอ้างอิง|อ้างอิง|ref(?:erence)?(?:\s*no)?)\s*:?\s*([A-Za-z0-9]{8,40})/i);
     if (ref) out.reference = ref[1];
     return out;
+  }
+
+  function cleanPayee(s) {
+    let v = String(s || '')
+      .replace(/^\S{1,2}\s+(?=\S{3,})/, '')   // ตัดเศษตัวอักษร/ตัวเลขที่ OCR หลุดมาหน้าแถว
+      .replace(/\s{2,}\S{1,3}$/, '')          // และเศษที่หลุดมาท้ายแถว
+      .replace(/^[\s:@\-–|>.©®]+/, '')
+      .replace(/^(นาย|นาง|นางสาว|น\.ส\.|บจก\.|บมจ\.)\s*/i, (m) => m)   // คงคำนำหน้าไว้
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (v.length < 3 || v.length > 80) return null;
+    if (NOT_PAYEE_RE.test(v) && !/(บจก|บมจ|บริษัท|จำกัด|co\.,?\s*ltd|company)/i.test(v)) return null;
+    if (/^[A-F0-9]{12,}$/i.test(v)) return null;   // ดูเป็นรหัส ไม่ใช่ชื่อ
+    return v;
   }
 
   /* ------------------------- 3) รวมผลเป็นร่างรายการ ------------------------- */
@@ -1313,14 +1774,36 @@ MJ.slip = (() => {
       }
     }
 
-    const info = extractFromText(text);
+    let info = extractFromText(text);
+
+    // ยังขาดข้อมูลสำคัญ -> อ่านซ้ำจากภาพต้นฉบับ (ไม่เพิ่มคอนทราสต์) แล้วเติมช่องที่ว่าง
+    if (!endpoint && (!info.amount || !info.date || !info.payee)) {
+      try {
+        const text2 = await ocrLocal(img, onProgress, { boost: false, second: true });
+        const info2 = extractFromText(text2);
+        info = {
+          amount: info.amount || info2.amount,
+          date: info.date || info2.date,
+          payee: info.payee || info2.payee,
+          reference: info.reference || info2.reference,
+          lines: info.lines.concat(info2.lines),
+        };
+        text = text + '\n' + text2;
+      } catch (e) { /* รอบสองล้มเหลวก็ใช้ผลรอบแรก */ }
+    }
     const payee = info.payee || slipInfo?.bank || null;
 
-    // วันที่: ข้อความบนสลิปมาก่อน ถ้าอ่านไม่ได้ลองถอดจากรหัสอ้างอิง สุดท้ายค่อยใช้วันนี้
-    const slipDate = info.date
-      || parseDateFromRef(slipInfo?.reference)
-      || parseDateFromRef(info.reference)
-      || null;
+    // วันที่: รวมสองแหล่ง — รหัสอ้างอิง (แม่นเพราะเป็นโครงสร้าง) กับข้อความ OCR (มีเวลา)
+    const refDate = parseDateFromRef(slipInfo?.reference) || parseDateFromRef(info.reference);
+    let slipDate = null;
+    if (refDate && info.date) {
+      const sameDay = refDate.getFullYear() === info.date.getFullYear()
+        && refDate.getMonth() === info.date.getMonth()
+        && refDate.getDate() === info.date.getDate();
+      slipDate = sameDay ? info.date : refDate;   // วันตรงกัน ใช้เวลาจาก OCR
+    } else {
+      slipDate = refDate || info.date || null;
+    }
 
     // เดาหมวดจากชื่อร้าน + ข้อความทั้งหมด
     let categoryId = payee ? await MJ.data.matchMerchant(payee) : null;
@@ -1373,13 +1856,14 @@ MJ.charts = {
     const arcs = items.map((i) => {
       const frac = i.total / total;
       const dash = `${(frac * C).toFixed(2)} ${(C - frac * C).toFixed(2)}`;
-      const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${i.color}"
+      const seg = `<circle class="seg" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${i.color}"
         stroke-width="${o.thickness}" stroke-dasharray="${dash}" stroke-dashoffset="${(-offset * C).toFixed(2)}"
-        transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"><title>${MJ.esc(i.name)} ${MJ.fmtBaht(i.total)}</title></circle>`;
+        transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"
+        style="--arc-len:${C.toFixed(0)};animation-delay:${(offset * .5).toFixed(2)}s"><title>${MJ.esc(i.name)} ${MJ.fmtBaht(i.total)}</title></circle>`;
       offset += frac;
       return seg;
     }).join('');
-    return `<svg viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px;display:block;margin:0 auto">
+    return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
       ${arcs}
       <text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="var(--ink-3)" font-size="12">${MJ.esc(o.centerTop)}</text>
@@ -1401,14 +1885,14 @@ MJ.charts = {
       const ih = income ? (income[i] / max) * 100 : 0;
       const x = i * w;
       const isToday = isThisMonth && today.getDate() === i + 1;
-      if (ih > 0) bars += `<rect x="${x + w * 0.12}" y="${100 - ih}" width="${w * 0.34}" height="${ih}"
+      if (ih > 0) bars += `<rect style="animation-delay:${(i * .012).toFixed(3)}s" x="${x + w * 0.12}" y="${100 - ih}" width="${w * 0.34}" height="${ih}"
         rx="1.2" fill="var(--in)" opacity=".85"><title>${i + 1}: รับ ${MJ.fmtBaht(income[i])}</title></rect>`;
-      if (eh > 0) bars += `<rect x="${x + w * (ih > 0 ? 0.52 : 0.22)}" y="${100 - eh}" width="${w * (ih > 0 ? 0.34 : 0.56)}" height="${eh}"
+      if (eh > 0) bars += `<rect style="animation-delay:${(i * .012).toFixed(3)}s" x="${x + w * (ih > 0 ? 0.52 : 0.22)}" y="${100 - eh}" width="${w * (ih > 0 ? 0.34 : 0.56)}" height="${eh}"
         rx="1.2" fill="${isToday ? 'var(--honey)' : 'var(--out)'}"><title>${i + 1}: จ่าย ${MJ.fmtBaht(expense[i])}</title></rect>`;
     }
     const labels = [1, Math.ceil(n / 2), n].map((d) =>
       `<text x="${((d - 0.5) / n) * 100}" y="118" text-anchor="middle" fill="var(--ink-3)" font-size="7">${d}</text>`).join('');
-    return `<svg viewBox="0 0 100 122" width="100%" height="${o.h}" preserveAspectRatio="none"
+    return `<svg class="chart-bars" viewBox="0 0 100 122" width="100%" height="${o.h}" preserveAspectRatio="none"
       style="overflow:visible">${bars}
       <line x1="0" y1="100" x2="100" y2="100" stroke="var(--line)" stroke-width=".6"/>${labels}</svg>`;
   },
@@ -1486,7 +1970,7 @@ MJ.routes.dashboard = (view) => {
   view.innerHTML = `
     <div class="balance">
       <div class="lbl">คงเหลือใน ${MJ.monthLabelFull(MJ.state.month)}</div>
-      <div class="amt">${MJ.fmtBaht(s.balance)}</div>
+      <div class="amt" id="balAmt">${MJ.fmtBaht(s.balance)}</div>
       <div class="grid">
         <div class="box in"><span class="tiny">รายรับ</span><b>${MJ.fmtBaht(s.income)}</b></div>
         <div class="box out"><span class="tiny">รายจ่าย</span><b>${MJ.fmtBaht(s.expense)}</b></div>
@@ -1563,6 +2047,7 @@ MJ.routes.dashboard = (view) => {
     </div>
   `;
 
+  MJ.countUp(MJ.$('#balAmt', view), s.balance);
   view.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => MJ.go(b.dataset.go));
   view.querySelectorAll('[data-quick]').forEach((b) => b.onclick = () => {
     const map = {
@@ -1609,23 +2094,33 @@ MJ.routes.add = (view) => {
     </div>
     <div id="addBody"></div>`;
 
-  view.querySelectorAll('#addTabs .seg-btn').forEach((b) => {
-    b.classList.toggle('active', b.dataset.tab === MJ.add.tab);
-    b.onclick = () => { MJ.add.tab = b.dataset.tab; MJ.render(); };
-  });
+  view.querySelectorAll('#addTabs .seg-btn').forEach((b) =>
+    b.classList.toggle('active', b.dataset.tab === MJ.add.tab));
+  MJ.segInit(MJ.$('#addTabs', view), (b) => { MJ.add.tab = b.dataset.tab; MJ.render(); });
 
   const body = MJ.$('#addBody', view);
-  if (MJ.add.tab === 'form') renderForm(body);
-  else renderChat(body, action);
+  document.body.classList.toggle('chat-open', MJ.add.tab === 'chat');
+  if (MJ.add.tab === 'form') {
+    const dock = MJ.$('#composerDock');
+    dock.classList.add('hidden'); dock.innerHTML = '';
+    renderForm(body);
+  } else {
+    renderChat(body, action);
+  }
 };
 
 /* ============================ แท็บแชท ============================ */
 function renderChat(body, action) {
+  // ข้อความอยู่ในหน้า ส่วนแถบพิมพ์ตรึงติดด้านล่างเหมือนแอปแชท
   body.innerHTML = `
     <div class="chat" id="chatBox">
       ${MJ.add.chat.map(bubbleHTML).join('')}
-    </div>
-    <div class="chips" id="samples">
+    </div>`;
+
+  const dock = MJ.$('#composerDock');
+  dock.classList.remove('hidden');
+  dock.innerHTML = `
+    <div class="chips" id="samples" style="max-width:var(--wrap);margin:0 auto 8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px">
       <button class="chip" data-s="กินข้าวเที่ยง 60">กินข้าวเที่ยง 60</button>
       <button class="chip" data-s="ค่าแท็กซี่ 120">ค่าแท็กซี่ 120</button>
       <button class="chip" data-s="รับเงินเดือน 25000">รับเงินเดือน 25000</button>
@@ -1637,12 +2132,12 @@ function renderChat(body, action) {
       <button class="rnd" id="btnMic" title="พูด">🎤</button>
       <button class="rnd send" id="btnSend" title="ส่ง">➤</button>
     </div>
-    <input type="file" id="slipFile" accept="image/*" hidden multiple>
-    <p class="center tiny muted mt">รูปสลิป: หมีจะสแกน QR กันบันทึกซ้ำ แล้วอ่านยอด/วันที่/ชื่อร้านให้</p>`;
+    <input type="file" id="slipFile" accept="image/*" hidden multiple>`;
 
   const box = MJ.$('#chatBox', body);
-  const input = MJ.$('#chatInput', body);
-  const fileInput = MJ.$('#slipFile', body);
+  const input = MJ.$('#chatInput', dock);
+  const fileInput = MJ.$('#slipFile', dock);
+  body = dock;   // ปุ่มทั้งหมดอยู่ใน dock
 
   input.oninput = () => { input.style.height = 'auto'; input.style.height = Math.min(110, input.scrollHeight) + 'px'; };
   input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitText(); } };
@@ -1815,7 +2310,7 @@ function renderForm(body) {
     <button class="btn btn-primary btn-block" id="fSave">บันทึกรายการ</button>
     <div style="height:14px"></div>`;
 
-  body.querySelectorAll('#typeSeg .seg-btn').forEach((b) => b.onclick = () => {
+  MJ.segInit(MJ.$('#typeSeg', body), (b) => {
     f.type = b.dataset.type; f.category_id = null; renderForm(body);
   });
   body.querySelectorAll('#keypad button').forEach((b) => b.onclick = () => {
@@ -1885,7 +2380,7 @@ MJ.add.openDraftSheet = function (draft, opts) {
   `, (bodyEl) => {
     if (draft.file) MJ.$('#slipImg', bodyEl).src = URL.createObjectURL(draft.file);
 
-    bodyEl.querySelectorAll('#dType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.segInit(MJ.$('#dType', bodyEl), (b) => {
       draft.type = b.dataset.type;
       bodyEl.querySelectorAll('#dType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
       draft.category_id = null;
@@ -2043,7 +2538,7 @@ MJ.tx = {
       <button class="btn btn-primary btn-block" id="eSave">บันทึกการแก้ไข</button>
     `, (body) => {
       let type = t.type;
-      body.querySelectorAll('#eType .seg-btn').forEach((b) => b.onclick = () => {
+      MJ.segInit(MJ.$('#eType', body), (b) => {
         type = b.dataset.type;
         body.querySelectorAll('#eType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
         MJ.$('#eCat', body).innerHTML = cats.filter((c) => c.type === type)
@@ -2226,7 +2721,7 @@ MJ.routes.analysis = (view) => {
     </div>
     <div style="height:10px"></div>`;
 
-  view.querySelectorAll('#anType .seg-btn').forEach((b) => b.onclick = () => {
+  MJ.segInit(MJ.$('#anType', view), (b) => {
     MJ.analysis.type = b.dataset.type; MJ.render();
   });
 
@@ -2319,7 +2814,7 @@ MJ.routes.budget = (view) => {
     </div>` : ''}
     <div style="height:10px"></div>`;
 
-  view.querySelectorAll('#budType .seg-btn').forEach((b) => b.onclick = () => { MJ.budget.type = b.dataset.type; MJ.render(); });
+  MJ.segInit(MJ.$('#budType', view), (b) => { MJ.budget.type = b.dataset.type; MJ.render(); });
   MJ.$('#addCat', view).onclick = () => MJ.budget.openEditor(null);
   view.querySelectorAll('[data-cat]').forEach((el) => el.onclick = () => {
     MJ.budget.openEditor(MJ.data.catById(el.dataset.cat));
@@ -2354,7 +2849,7 @@ MJ.budget.openEditor = function (cat) {
     ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="cDel">ลบหมวดนี้</button>'}
   `, (body) => {
     let type = c.type, icon = c.icon, color = c.color;
-    body.querySelectorAll('#cType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.segInit(MJ.$('#cType', body), (b) => {
       type = b.dataset.type;
       body.querySelectorAll('#cType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
     });
@@ -2579,7 +3074,7 @@ function openRecurSheet(r) {
     ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="rDel">ลบรายการประจำ</button>'}
   `, (body) => {
     let type = v.type, active = v.is_active !== false;
-    body.querySelectorAll('#rType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.segInit(MJ.$('#rType', body), (b) => {
       type = b.dataset.type;
       body.querySelectorAll('#rType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
       MJ.$('#rCat', body).innerHTML = cats.filter((c) => c.type === type)

@@ -181,7 +181,7 @@ function openRecurSheet(r) {
     ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="rDel">ลบรายการประจำ</button>'}
   `, (body) => {
     let type = v.type, active = v.is_active !== false;
-    body.querySelectorAll('#rType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.segInit(MJ.$('#rType', body), (b) => {
       type = b.dataset.type;
       body.querySelectorAll('#rType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
       MJ.$('#rCat', body).innerHTML = cats.filter((c) => c.type === type)

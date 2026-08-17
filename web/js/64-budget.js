@@ -52,7 +52,7 @@ MJ.routes.budget = (view) => {
     </div>` : ''}
     <div style="height:10px"></div>`;
 
-  view.querySelectorAll('#budType .seg-btn').forEach((b) => b.onclick = () => { MJ.budget.type = b.dataset.type; MJ.render(); });
+  MJ.segInit(MJ.$('#budType', view), (b) => { MJ.budget.type = b.dataset.type; MJ.render(); });
   MJ.$('#addCat', view).onclick = () => MJ.budget.openEditor(null);
   view.querySelectorAll('[data-cat]').forEach((el) => el.onclick = () => {
     MJ.budget.openEditor(MJ.data.catById(el.dataset.cat));
@@ -87,7 +87,7 @@ MJ.budget.openEditor = function (cat) {
     ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="cDel">ลบหมวดนี้</button>'}
   `, (body) => {
     let type = c.type, icon = c.icon, color = c.color;
-    body.querySelectorAll('#cType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.segInit(MJ.$('#cType', body), (b) => {
       type = b.dataset.type;
       body.querySelectorAll('#cType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
     });

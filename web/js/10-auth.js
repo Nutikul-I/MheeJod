@@ -7,10 +7,9 @@ MJ.auth = {
   mount() {
     const note = MJ.$('#authNote');
 
-    MJ.$$('#authTabs .seg-btn').forEach((btn) => {
-      btn.onclick = () => {
+    MJ.segInit(MJ.$('#authTabs'), (btn) => {
+      {
         MJ.auth.mode = btn.dataset.mode;
-        MJ.$$('#authTabs .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
         const up = MJ.auth.mode === 'signup';
         MJ.$('#nameField').hidden = !up;
         MJ.$('#authSubmit').textContent = up ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
