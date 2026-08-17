@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>หมีจด MheeJod — จดรายรับรายจ่ายง่าย ๆ</title>
+<meta name="description" content="หมีจด MheeJod — แอปจดรายรับรายจ่าย พิมพ์ พูด หรือถ่ายสลิปก็จดได้">
+<meta name="theme-color" content="#F2B23E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="หมีจด">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============================ หน้าเข้าสู่ระบบ ============================ -->
+<div id="authScreen" class="auth-screen hidden">
+  <div class="auth-card">
+    <div class="auth-logo">🐻</div>
+    <h1 class="auth-title">หมีจด<span>MheeJod</span></h1>
+    <p class="auth-sub">จดรายรับ-รายจ่ายง่าย ๆ พิมพ์ พูด หรือถ่ายสลิป</p>
+
+    <div class="seg" id="authTabs">
+      <button class="seg-btn active" data-mode="signin">เข้าสู่ระบบ</button>
+      <button class="seg-btn" data-mode="signup">สมัครใหม่</button>
+    </div>
+
+    <form id="authForm" class="auth-form" autocomplete="on">
+      <label class="field" id="nameField" hidden>
+        <span>ชื่อที่อยากให้เรียก</span>
+        <input type="text" id="authName" placeholder="เช่น หมีน้อย" autocomplete="name">
+      </label>
+      <label class="field">
+        <span>อีเมล</span>
+        <input type="email" id="authEmail" required placeholder="you@example.com" autocomplete="email" inputmode="email">
+      </label>
+      <label class="field">
+        <span>รหัสผ่าน</span>
+        <input type="password" id="authPassword" required minlength="6" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="current-password">
+      </label>
+      <button type="submit" class="btn btn-primary btn-block" id="authSubmit">เข้าสู่ระบบ</button>
+      <button type="button" class="btn btn-ghost btn-block" id="authMagic">ส่งลิงก์เข้าใช้งานทางอีเมลแทน</button>
+      <p class="auth-note" id="authNote"></p>
+    </form>
+  </div>
+  <p class="auth-footer">ข้อมูลทั้งหมดเก็บในบัญชี Supabase ของคุณเอง 🔒</p>
+</div>
+
+<!-- ============================ แอปหลัก ============================ -->
+<div id="app" class="app hidden">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">🐻</span>
+      <div>
+        <div class="topbar-title" id="topTitle">ภาพรวม</div>
+        <div class="topbar-sub" id="topSub">สวัสดี</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="btnMonthPrev" title="เดือนก่อนหน้า">‹</button>
+      <button class="pill" id="btnMonth">ส.ค. 2569</button>
+      <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป">›</button>
+    </div>
+  </header>
+
+  <main id="view" class="view"><!-- แต่ละหน้า render ที่นี่ --></main>
+
+  <nav class="tabbar">
+    <button class="tab" data-route="dashboard"><span>🏠</span><em>ภาพรวม</em></button>
+    <button class="tab" data-route="transactions"><span>📒</span><em>รายการ</em></button>
+    <button class="fab" data-route="add" aria-label="เพิ่มรายการ">＋</button>
+    <button class="tab" data-route="analysis"><span>📊</span><em>วิเคราะห์</em></button>
+    <button class="tab" data-route="settings"><span>⚙️</span><em>ตั้งค่า</em></button>
+  </nav>
+</div>
+
+<!-- ============================ ชิ้นส่วนกลาง ============================ -->
+<div id="sheet" class="sheet-wrap hidden">
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-handle" data-close></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="icon-btn" data-close>✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<div id="loading" class="loading hidden"><div class="bear-spin">🐻</div><span id="loadingText">กำลังโหลด…</span></div>
+
+<!-- ============================ ไลบรารีภายนอก ============================ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- ============================ โค้ดแอป ============================ -->
+<script src="js/00-core.js"></script>
+<script src="js/10-auth.js"></script>
+<script src="js/20-data.js"></script>
+<script src="js/30-nlp.js"></script>
+<script src="js/40-slip.js"></script>
+<script src="js/50-charts.js"></script>
+<script src="js/60-dashboard.js"></script>
+<script src="js/61-add.js"></script>
+<script src="js/62-transactions.js"></script>
+<script src="js/63-analysis.js"></script>
+<script src="js/64-budget.js"></script>
+<script src="js/65-settings.js"></script>
+<script src="js/99-boot.js"></script>
+</body>
+</html>

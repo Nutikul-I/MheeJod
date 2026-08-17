@@ -1,0 +1,7 @@
+.env
+.env.local
+# dist/ ถูก commit ลง docs/ สำหรับ GitHub Pages
+dist/
+node_modules/
+.DS_Store
+supabase/.temp/

@@ -1,0 +1,5 @@
+project_id = "ksfytoazukimilrvxcea"
+
+[functions.app]
+verify_jwt = false
+

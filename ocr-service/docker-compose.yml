@@ -1,0 +1,8 @@
+services:
+  ocr:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ALLOW_ORIGINS: "*"
+    restart: unless-stopped

@@ -1,0 +1,13 @@
+{
+  "name": "mheejod",
+  "version": "1.0.0",
+  "description": "หมีจด MheeJod — PWA จดรายรับรายจ่าย บน Supabase",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "icons": "node scripts/gen-icons.mjs",
+    "build": "node scripts/gen-icons.mjs && node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && npx --yes http-server dist -p 4173 -c-1",
+    "deploy": "node scripts/build.mjs && npx --yes supabase functions deploy app --no-verify-jwt --project-ref ksfytoazukimilrvxcea"
+  }
+}

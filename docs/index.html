@@ -1,0 +1,2684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>หมีจด MheeJod — จดรายรับรายจ่ายง่าย ๆ</title>
+<meta name="description" content="หมีจด MheeJod — แอปจดรายรับรายจ่าย พิมพ์ พูด หรือถ่ายสลิปก็จดได้">
+<meta name="theme-color" content="#F2B23E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="หมีจด">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+/* ===================================================================
+   หมีจด MheeJod — Design system
+   โทน: ครีม/น้ำผึ้ง/น้ำตาลหมี  •  มือถือมาก่อน  •  ใช้มือเดียวได้
+   =================================================================== */
+:root{
+  --honey:#F2B23E; --honey-d:#E09A1E; --bear:#8B5E3C; --bear-d:#6B462B;
+  --cream:#FFF8F0; --card:#FFFFFF; --ink:#2E2A26; --ink-2:#6B6560; --ink-3:#9A938C;
+  --line:#EFE6DA; --in:#3EA96B; --out:#E2607A; --warn:#E8952F;
+  --shadow:0 6px 20px rgba(139,94,60,.10); --shadow-lg:0 12px 36px rgba(139,94,60,.18);
+  --r:18px; --r-sm:12px; --r-lg:26px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --tab-h: 66px;
+}
+:root[data-theme="dark"]{
+  --cream:#17130F; --card:#221C17; --ink:#F6EFE7; --ink-2:#C3B7AA; --ink-3:#8C8177;
+  --line:#33291F; --shadow:0 6px 20px rgba(0,0,0,.4); --shadow-lg:0 12px 36px rgba(0,0,0,.55);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --cream:#17130F; --card:#221C17; --ink:#F6EFE7; --ink-2:#C3B7AA; --ink-3:#8C8177;
+    --line:#33291F; --shadow:0 6px 20px rgba(0,0,0,.4); --shadow-lg:0 12px 36px rgba(0,0,0,.55);
+  }
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--cream); color:var(--ink);
+  font-family:"IBM Plex Sans Thai","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.5; overscroll-behavior-y:none;
+}
+.hidden{display:none !important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
+a{color:var(--bear)}
+
+/* ---------- ปุ่ม ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 18px;border-radius:var(--r);font-weight:600;transition:transform .12s,filter .12s;}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--honey),var(--honey-d));color:#3A2A10;box-shadow:0 6px 16px rgba(242,178,62,.35)}
+.btn-dark{background:var(--bear);color:#fff}
+.btn-soft{background:var(--line);color:var(--ink)}
+.btn-ghost{background:transparent;color:var(--ink-2)}
+.btn-danger{background:rgba(226,96,122,.12);color:var(--out)}
+.btn-block{width:100%}
+.btn-sm{padding:8px 14px;border-radius:12px;font-size:14px}
+.icon-btn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  font-size:20px;color:var(--ink-2);background:transparent}
+.icon-btn:active{background:var(--line)}
+.pill{padding:8px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  font-weight:600;font-size:14px;box-shadow:var(--shadow)}
+
+/* ---------- ฟอร์ม ---------- */
+.field{display:block;margin-bottom:14px}
+.field>span{display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px;font-weight:600}
+.field input,.field select,.field textarea{
+  width:100%;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--ink);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--honey)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:18px}
+.seg-btn{flex:1;padding:10px;border-radius:11px;font-weight:600;font-size:14px;color:var(--ink-2)}
+.seg-btn.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* ---------- หน้าเข้าสู่ระบบ ---------- */
+.auth-screen{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 20px calc(24px + var(--safe-b));
+  background:radial-gradient(1200px 600px at 50% -10%,rgba(242,178,62,.25),transparent 60%),var(--cream)}
+.auth-card{width:100%;max-width:420px;background:var(--card);border-radius:28px;padding:28px 22px;box-shadow:var(--shadow-lg)}
+.auth-logo{font-size:56px;text-align:center;line-height:1;animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.auth-title{text-align:center;font-size:28px;margin:8px 0 2px}
+.auth-title span{display:block;font-size:13px;color:var(--ink-3);letter-spacing:.28em;font-weight:600}
+.auth-sub{text-align:center;color:var(--ink-2);font-size:14px;margin:6px 0 20px}
+.auth-note{font-size:13px;color:var(--ink-2);text-align:center;margin:10px 0 0;min-height:20px}
+.auth-note.err{color:var(--out)}
+.auth-note.ok{color:var(--in)}
+.auth-footer{color:var(--ink-3);font-size:12px;margin-top:18px}
+.auth-form .btn{margin-top:6px}
+
+/* ---------- โครงแอป ---------- */
+.app{min-height:100%;padding-top:calc(60px + var(--safe-t));padding-bottom:calc(var(--tab-h) + var(--safe-b) + 12px)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:30;height:calc(60px + var(--safe-t));padding:var(--safe-t) 14px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:color-mix(in srgb,var(--cream) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
+.topbar-logo{font-size:26px}
+.topbar-title{font-weight:700;font-size:17px;line-height:1.2}
+.topbar-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.topbar-right{display:flex;align-items:center;gap:2px}
+.view{padding:14px 14px 8px;max-width:680px;margin:0 auto;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--tab-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);display:flex;align-items:center;justify-content:space-around;
+  background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink-3);padding:6px 0}
+.tab span{font-size:21px;line-height:1}
+.tab em{font-style:normal;font-size:11px;font-weight:600}
+.tab.active{color:var(--bear)}
+:root[data-theme="dark"] .tab.active{color:var(--honey)}
+.fab{width:58px;height:58px;border-radius:22px;margin-top:-26px;font-size:30px;font-weight:300;color:#3A2A10;
+  background:linear-gradient(135deg,var(--honey),var(--honey-d));box-shadow:0 8px 22px rgba(242,178,62,.5);
+  display:grid;place-items:center;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+
+/* ---------- การ์ด ---------- */
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-head h3{font-size:16px}
+.card-head .link{font-size:13px;color:var(--ink-2);font-weight:600}
+.muted{color:var(--ink-2)}
+.tiny{font-size:12px}
+.empty{text-align:center;color:var(--ink-3);padding:26px 12px}
+.empty .big{font-size:40px;display:block;margin-bottom:8px}
+
+/* ---------- การ์ดยอดคงเหลือ ---------- */
+.balance{background:linear-gradient(140deg,var(--bear),var(--bear-d));color:#FFF6E9;border-radius:var(--r-lg);
+  padding:20px;box-shadow:var(--shadow-lg);margin-bottom:14px;position:relative;overflow:hidden}
+.balance::after{content:"🍯";position:absolute;right:-6px;bottom:-14px;font-size:88px;opacity:.13;transform:rotate(-12deg)}
+.balance .lbl{font-size:13px;opacity:.8}
+.balance .amt{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:2px 0 14px}
+.balance .grid{display:flex;gap:10px}
+.balance .box{flex:1;background:rgba(255,255,255,.14);border-radius:14px;padding:10px 12px}
+.balance .box b{display:block;font-size:17px;margin-top:2px}
+.balance .box.in b{color:#B6F2C9}
+.balance .box.out b{color:#FFC3CE}
+
+/* ---------- รายการ transaction ---------- */
+.tx{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line)}
+.tx:last-child{border-bottom:none}
+.tx-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:20px;flex:none}
+.tx-main{flex:1;min-width:0}
+.tx-title{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-amt{font-weight:700;font-size:15px;white-space:nowrap}
+.tx-amt.in{color:var(--in)}
+.tx-amt.out{color:var(--out)}
+.day-head{display:flex;justify-content:space-between;align-items:baseline;
+  padding:14px 4px 4px;font-size:13px;color:var(--ink-3);font-weight:600}
+
+/* ---------- แถบงบประมาณ ---------- */
+.bud{margin-bottom:14px}
+.bud:last-child{margin-bottom:0}
+.bud-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:6px}
+.bud-name{display:flex;align-items:center;gap:8px;font-weight:600}
+.bar{height:9px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bud-foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);margin-top:4px}
+
+/* ---------- แชท/เพิ่มรายการ ---------- */
+.chat{display:flex;flex-direction:column;gap:10px;min-height:140px;margin-bottom:12px}
+.bubble{max-width:86%;padding:11px 14px;border-radius:18px;font-size:14.5px;box-shadow:var(--shadow);white-space:pre-wrap}
+.bubble.bot{background:var(--card);border-bottom-left-radius:6px;align-self:flex-start}
+.bubble.me{background:linear-gradient(135deg,var(--honey),var(--honey-d));color:#3A2A10;border-bottom-right-radius:6px;align-self:flex-end}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:8px 13px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13.5px;font-weight:600;box-shadow:var(--shadow)}
+.chip.active{background:var(--bear);color:#fff;border-color:var(--bear)}
+.composer{position:sticky;bottom:calc(var(--tab-h) + var(--safe-b) + 8px);display:flex;gap:8px;align-items:flex-end;
+  background:var(--card);border:1px solid var(--line);border-radius:22px;padding:7px 7px 7px 14px;box-shadow:var(--shadow-lg)}
+.composer textarea{flex:1;border:none;background:none;resize:none;max-height:110px;padding:8px 0;outline:none}
+.composer .rnd{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--line)}
+.composer .rnd.send{background:linear-gradient(135deg,var(--honey),var(--honey-d));color:#3A2A10}
+.composer .rnd.rec{background:var(--out);color:#fff;animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,96,122,.6)}70%{box-shadow:0 0 0 12px rgba(226,96,122,0)}}
+
+/* ---------- ตัวเลือกหมวด ---------- */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cat-pick{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px;border-radius:16px;
+  background:var(--card);border:1.5px solid var(--line);font-size:11.5px;text-align:center;line-height:1.25}
+.cat-pick .ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;font-size:19px}
+.cat-pick.active{border-color:var(--honey);background:rgba(242,178,62,.12)}
+
+/* ---------- แผงตัวเลข ---------- */
+.amount-display{text-align:center;padding:8px 0 14px}
+.amount-display b{font-size:40px;font-weight:800;letter-spacing:-.02em}
+.amount-display span{font-size:16px;color:var(--ink-3);margin-left:4px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.keypad button{padding:15px 0;border-radius:16px;background:var(--card);font-size:21px;font-weight:600;box-shadow:var(--shadow)}
+.keypad button:active{background:var(--line)}
+
+/* ---------- Sheet ---------- */
+.sheet-wrap{position:fixed;inset:0;z-index:60}
+.sheet-backdrop{position:absolute;inset:0;background:rgba(30,20,10,.45);animation:fade .2s}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--cream);
+  border-radius:26px 26px 0 0;padding:6px 16px calc(20px + var(--safe-b));box-shadow:var(--shadow-lg);
+  animation:up .26s cubic-bezier(.2,.9,.25,1);max-width:680px;margin:0 auto}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.sheet-handle{width:44px;height:5px;border-radius:99px;background:var(--line);margin:8px auto 4px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px;position:sticky;top:0;background:var(--cream);z-index:2}
+.sheet-head h3{font-size:18px}
+
+/* ---------- Toast / loading ---------- */
+.toast{position:fixed;left:50%;bottom:calc(var(--tab-h) + var(--safe-b) + 22px);transform:translateX(-50%);
+  background:var(--bear);color:#fff;padding:11px 18px;border-radius:16px;z-index:80;font-size:14px;font-weight:600;
+  box-shadow:var(--shadow-lg);max-width:90vw;text-align:center;animation:up .2s}
+.toast.err{background:var(--out)}
+.toast.ok{background:var(--in)}
+.loading{position:fixed;inset:0;z-index:90;display:grid;place-items:center;gap:10px;align-content:center;
+  background:color-mix(in srgb,var(--cream) 80%,transparent);backdrop-filter:blur(3px);color:var(--ink-2);font-size:14px}
+.bear-spin{font-size:46px;animation:spin 1.4s ease-in-out infinite}
+@keyframes spin{0%,100%{transform:rotate(-12deg) scale(1)}50%{transform:rotate(12deg) scale(1.12)}}
+
+/* ---------- กราฟ ---------- */
+.legend{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.legend-row{display:flex;align-items:center;gap:9px;font-size:13.5px}
+.legend-dot{width:11px;height:11px;border-radius:4px;flex:none}
+.legend-row .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legend-row .vl{font-weight:700}
+.legend-row .pc{color:var(--ink-3);font-size:12px;width:44px;text-align:right}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border-radius:16px;padding:13px;box-shadow:var(--shadow)}
+.stat .k{font-size:12px;color:var(--ink-3)}
+.stat .v{font-size:19px;font-weight:700;margin-top:2px}
+
+/* ---------- รายการตั้งค่า ---------- */
+.list-item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line)}
+.list-item:last-child{border-bottom:none}
+.list-item .ic{width:36px;height:36px;border-radius:12px;background:var(--line);display:grid;place-items:center;font-size:17px;flex:none}
+.list-item .tx2{flex:1;min-width:0}
+.list-item .tx2 b{display:block;font-size:14.5px;font-weight:600}
+.list-item .tx2 small{color:var(--ink-3);font-size:12px}
+.switch{width:50px;height:29px;border-radius:99px;background:var(--line);position:relative;transition:background .2s;flex:none}
+.switch i{position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.switch.on{background:var(--in)}
+.switch.on i{transform:translateX(21px)}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--line);color:var(--ink-2)}
+.badge.in{background:rgba(62,169,107,.15);color:var(--in)}
+.badge.out{background:rgba(226,96,122,.15);color:var(--out)}
+.slip-preview{width:100%;border-radius:16px;margin-bottom:12px;max-height:320px;object-fit:contain;background:var(--line)}
+.search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:10px 14px;box-shadow:var(--shadow);margin-bottom:12px}
+.search input{flex:1;border:none;background:none;outline:none}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.center{text-align:center}
+.mt{margin-top:12px}
+.mb{margin-bottom:12px}
+
+</style>
+</head>
+<body>
+
+<!-- ============================ หน้าเข้าสู่ระบบ ============================ -->
+<div id="authScreen" class="auth-screen hidden">
+  <div class="auth-card">
+    <div class="auth-logo">🐻</div>
+    <h1 class="auth-title">หมีจด<span>MheeJod</span></h1>
+    <p class="auth-sub">จดรายรับ-รายจ่ายง่าย ๆ พิมพ์ พูด หรือถ่ายสลิป</p>
+
+    <div class="seg" id="authTabs">
+      <button class="seg-btn active" data-mode="signin">เข้าสู่ระบบ</button>
+      <button class="seg-btn" data-mode="signup">สมัครใหม่</button>
+    </div>
+
+    <form id="authForm" class="auth-form" autocomplete="on">
+      <label class="field" id="nameField" hidden>
+        <span>ชื่อที่อยากให้เรียก</span>
+        <input type="text" id="authName" placeholder="เช่น หมีน้อย" autocomplete="name">
+      </label>
+      <label class="field">
+        <span>อีเมล</span>
+        <input type="email" id="authEmail" required placeholder="you@example.com" autocomplete="email" inputmode="email">
+      </label>
+      <label class="field">
+        <span>รหัสผ่าน</span>
+        <input type="password" id="authPassword" required minlength="6" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="current-password">
+      </label>
+      <button type="submit" class="btn btn-primary btn-block" id="authSubmit">เข้าสู่ระบบ</button>
+      <button type="button" class="btn btn-ghost btn-block" id="authMagic">ส่งลิงก์เข้าใช้งานทางอีเมลแทน</button>
+      <p class="auth-note" id="authNote"></p>
+    </form>
+  </div>
+  <p class="auth-footer">ข้อมูลทั้งหมดเก็บในบัญชี Supabase ของคุณเอง 🔒</p>
+</div>
+
+<!-- ============================ แอปหลัก ============================ -->
+<div id="app" class="app hidden">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">🐻</span>
+      <div>
+        <div class="topbar-title" id="topTitle">ภาพรวม</div>
+        <div class="topbar-sub" id="topSub">สวัสดี</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="btnMonthPrev" title="เดือนก่อนหน้า">‹</button>
+      <button class="pill" id="btnMonth">ส.ค. 2569</button>
+      <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป">›</button>
+    </div>
+  </header>
+
+  <main id="view" class="view"><!-- แต่ละหน้า render ที่นี่ --></main>
+
+  <nav class="tabbar">
+    <button class="tab" data-route="dashboard"><span>🏠</span><em>ภาพรวม</em></button>
+    <button class="tab" data-route="transactions"><span>📒</span><em>รายการ</em></button>
+    <button class="fab" data-route="add" aria-label="เพิ่มรายการ">＋</button>
+    <button class="tab" data-route="analysis"><span>📊</span><em>วิเคราะห์</em></button>
+    <button class="tab" data-route="settings"><span>⚙️</span><em>ตั้งค่า</em></button>
+  </nav>
+</div>
+
+<!-- ============================ ชิ้นส่วนกลาง ============================ -->
+<div id="sheet" class="sheet-wrap hidden">
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-handle" data-close></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="icon-btn" data-close>✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<div id="loading" class="loading hidden"><div class="bear-spin">🐻</div><span id="loadingText">กำลังโหลด…</span></div>
+
+<!-- ============================ ไลบรารีภายนอก ============================ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- ============================ โค้ดแอป ============================ -->
+<script>
+/* ===== 00-core.js ===== */
+/* ===================================================================
+   00-core.js — ค่าคงที่ สถานะกลาง ตัวช่วย และ router
+   =================================================================== */
+window.MJ = window.MJ || {};
+
+MJ.CONFIG = {
+  SUPABASE_URL: 'https://ksfytoazukimilrvxcea.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_nBHEErfeiPQKhRivP_h2uQ_seyPJeoK',
+};
+
+MJ.sb = window.supabase.createClient(MJ.CONFIG.SUPABASE_URL, MJ.CONFIG.SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+});
+
+/* ------------------------------ สถานะกลาง ------------------------------ */
+MJ.state = {
+  user: null,
+  profile: null,
+  categories: [],
+  transactions: [],   // ของเดือนที่เลือก
+  recurring: [],
+  month: new Date(),  // วันที่ใดก็ได้ในเดือนที่กำลังดู
+  route: 'dashboard',
+  draft: null,        // ร่างรายการที่รอยืนยัน
+};
+
+/* ------------------------------ วันที่/ตัวเลข ------------------------------ */
+MJ.TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+MJ.TH_MONTHS_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+MJ.TH_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+MJ.fmtMoney = (n, digits) => {
+  const v = Number(n || 0);
+  const d = digits === undefined ? (Math.abs(v) % 1 === 0 ? 0 : 2) : digits;
+  return v.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d });
+};
+MJ.fmtBaht = (n, digits) => '฿' + MJ.fmtMoney(n, digits);
+MJ.monthLabel = (d) => `${MJ.TH_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
+MJ.monthLabelFull = (d) => `${MJ.TH_MONTHS_FULL[d.getMonth()]} ${d.getFullYear() + 543}`;
+
+MJ.startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0);
+MJ.endOfMonth   = (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+MJ.isoDate = (d) => {
+  const p = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+MJ.isoLocal = (d) => `${MJ.isoDate(d)}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+MJ.sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+MJ.dayLabel = (dateStr) => {
+  const d = new Date(dateStr), now = new Date();
+  const yst = new Date(now); yst.setDate(now.getDate() - 1);
+  if (MJ.sameDay(d, now)) return 'วันนี้';
+  if (MJ.sameDay(d, yst)) return 'เมื่อวาน';
+  return `${MJ.TH_DAYS[d.getDay()]} ${d.getDate()} ${MJ.TH_MONTHS[d.getMonth()]}`;
+};
+MJ.timeLabel = (dateStr) => {
+  const d = new Date(dateStr);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} น.`;
+};
+
+/* ------------------------------ DOM ------------------------------ */
+MJ.$  = (sel, root) => (root || document).querySelector(sel);
+MJ.$$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+MJ.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+MJ.hex2rgba = (hex, a) => {
+  const h = String(hex || '#F2B23E').replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+
+/* ------------------------------ Feedback ------------------------------ */
+let toastTimer;
+MJ.toast = (msg, kind) => {
+  const el = MJ.$('#toast');
+  el.className = 'toast' + (kind ? ' ' + kind : '');
+  el.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 2600);
+};
+MJ.loading = (on, text) => {
+  const el = MJ.$('#loading');
+  MJ.$('#loadingText').textContent = text || 'กำลังโหลด…';
+  el.classList.toggle('hidden', !on);
+};
+MJ.buzz = (ms) => { try { navigator.vibrate && navigator.vibrate(ms || 12); } catch (e) {} };
+
+/* ------------------------------ Bottom sheet ------------------------------ */
+MJ.sheet = {
+  open(title, html, onMount) {
+    MJ.$('#sheetTitle').textContent = title;
+    MJ.$('#sheetBody').innerHTML = html;
+    MJ.$('#sheet').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    if (onMount) onMount(MJ.$('#sheetBody'));
+  },
+  close() {
+    MJ.$('#sheet').classList.add('hidden');
+    MJ.$('#sheetBody').innerHTML = '';
+    document.body.style.overflow = '';
+  },
+};
+
+MJ.confirm = (title, message, okLabel) => new Promise((resolve) => {
+  MJ.sheet.open(title, `
+    <p class="muted mb">${MJ.esc(message)}</p>
+    <button class="btn btn-danger btn-block" id="cfmOk">${MJ.esc(okLabel || 'ยืนยัน')}</button>
+    <button class="btn btn-ghost btn-block" id="cfmNo">ยกเลิก</button>`, (body) => {
+    MJ.$('#cfmOk', body).onclick = () => { MJ.sheet.close(); resolve(true); };
+    MJ.$('#cfmNo', body).onclick = () => { MJ.sheet.close(); resolve(false); };
+  });
+});
+
+/* ------------------------------ Router ------------------------------ */
+MJ.routes = {};
+MJ.go = (route, params) => {
+  MJ.state.route = route;
+  MJ.state.routeParams = params || {};
+  location.hash = '#' + route;
+  MJ.render();
+};
+MJ.render = () => {
+  const r = MJ.routes[MJ.state.route] || MJ.routes.dashboard;
+  const view = MJ.$('#view');
+  view.innerHTML = '';
+  const titles = {
+    dashboard: ['ภาพรวม', 'สรุปเงินเดือนนี้'],
+    transactions: ['รายการ', 'ประวัติทั้งหมด'],
+    add: ['จดรายการ', 'พิมพ์ พูด หรือถ่ายสลิป'],
+    analysis: ['วิเคราะห์', 'เงินหายไปไหนบ้าง'],
+    budget: ['หมวดหมู่และงบ', 'ตั้งงบรายเดือน'],
+    settings: ['ตั้งค่า', MJ.state.profile?.display_name || ''],
+  };
+  const t = titles[MJ.state.route] || ['หมีจด', ''];
+  MJ.$('#topTitle').textContent = t[0];
+  MJ.$('#topSub').textContent = t[1];
+  MJ.$$('.tab, .fab').forEach((el) => el.classList.toggle('active', el.dataset.route === MJ.state.route));
+  r(view);
+  if (window.scrollTo) window.scrollTo({ top: 0 });
+};
+
+</script>
+<script>
+/* ===== 10-auth.js ===== */
+/* ===================================================================
+   10-auth.js — สมัคร / เข้าสู่ระบบ / ลิงก์เวทมนตร์
+   =================================================================== */
+MJ.auth = {
+  mode: 'signin',
+
+  mount() {
+    const note = MJ.$('#authNote');
+
+    MJ.$$('#authTabs .seg-btn').forEach((btn) => {
+      btn.onclick = () => {
+        MJ.auth.mode = btn.dataset.mode;
+        MJ.$$('#authTabs .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
+        const up = MJ.auth.mode === 'signup';
+        MJ.$('#nameField').hidden = !up;
+        MJ.$('#authSubmit').textContent = up ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
+        MJ.$('#authPassword').autocomplete = up ? 'new-password' : 'current-password';
+        note.textContent = '';
+      };
+    });
+
+    MJ.$('#authForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const email = MJ.$('#authEmail').value.trim();
+      const password = MJ.$('#authPassword').value;
+      const name = MJ.$('#authName').value.trim();
+      note.className = 'auth-note';
+      note.textContent = '';
+      MJ.loading(true, MJ.auth.mode === 'signup' ? 'กำลังสมัคร…' : 'กำลังเข้าสู่ระบบ…');
+      try {
+        if (MJ.auth.mode === 'signup') {
+          const { data, error } = await MJ.sb.auth.signUp({
+            email, password,
+            options: { data: { display_name: name || email.split('@')[0] } },
+          });
+          if (error) throw error;
+          if (!data.session) {
+            note.className = 'auth-note ok';
+            note.textContent = 'สมัครเรียบร้อย! เช็กอีเมลเพื่อยืนยันก่อนเข้าใช้งานนะ 🐻';
+          }
+        } else {
+          const { error } = await MJ.sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+      } catch (err) {
+        note.className = 'auth-note err';
+        note.textContent = MJ.auth.thaiError(err);
+      } finally {
+        MJ.loading(false);
+      }
+    };
+
+    MJ.$('#authMagic').onclick = async () => {
+      const email = MJ.$('#authEmail').value.trim();
+      if (!email) { note.className = 'auth-note err'; note.textContent = 'ใส่อีเมลก่อนนะ'; return; }
+      MJ.loading(true, 'กำลังส่งลิงก์…');
+      const { error } = await MJ.sb.auth.signInWithOtp({
+        email, options: { emailRedirectTo: location.href.split('#')[0] },
+      });
+      MJ.loading(false);
+      note.className = 'auth-note ' + (error ? 'err' : 'ok');
+      note.textContent = error ? MJ.auth.thaiError(error) : 'ส่งลิงก์ไปที่อีเมลแล้ว เปิดจากมือถือเครื่องนี้ได้เลย ✉️';
+    };
+  },
+
+  thaiError(err) {
+    const m = String(err?.message || err || '');
+    if (/Invalid login credentials/i.test(m)) return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    if (/already registered|User already/i.test(m)) return 'อีเมลนี้สมัครไว้แล้ว ลองเข้าสู่ระบบดู';
+    if (/Email not confirmed/i.test(m)) return 'ยังไม่ได้ยืนยันอีเมล เช็กกล่องจดหมายก่อนนะ';
+    if (/Password should be at least/i.test(m)) return 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
+    if (/rate limit|too many/i.test(m)) return 'ลองบ่อยเกินไป พักสักครู่แล้วลองใหม่';
+    if (/Failed to fetch|network/i.test(m)) return 'เชื่อมต่อไม่ได้ เช็กอินเทอร์เน็ตก่อนนะ';
+    return m || 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง';
+  },
+
+  async signOut() {
+    if (!(await MJ.confirm('ออกจากระบบ', 'ต้องการออกจากระบบใช่ไหม?', 'ออกจากระบบ'))) return;
+    await MJ.sb.auth.signOut();
+    location.reload();
+  },
+};
+
+</script>
+<script>
+/* ===== 20-data.js ===== */
+/* ===================================================================
+   20-data.js — ชั้นข้อมูล: โหลด/บันทึก/ลบ + สรุปยอด + อัปโหลดสลิป
+   =================================================================== */
+MJ.data = {
+  /* ---------------------- โหลดข้อมูลทั้งหมดของเดือน ---------------------- */
+  async loadAll() {
+    const uid = MJ.state.user.id;
+
+    const [profile, cats] = await Promise.all([
+      MJ.sb.from('profiles').select('*').eq('id', uid).maybeSingle(),
+      MJ.sb.from('categories').select('*').eq('user_id', uid).eq('is_archived', false)
+        .order('type').order('sort_order').order('name'),
+    ]);
+
+    if (profile.data) MJ.state.profile = profile.data;
+    else {
+      // เผื่อ trigger ไม่ทำงาน (เช่นผู้ใช้ที่มีอยู่ก่อน) สร้าง profile ให้เอง
+      const { data } = await MJ.sb.from('profiles')
+        .insert({ id: uid, email: MJ.state.user.email, display_name: MJ.state.user.email.split('@')[0] })
+        .select().maybeSingle();
+      MJ.state.profile = data || { id: uid, display_name: 'หมีน้อย', theme: 'auto' };
+    }
+    MJ.state.categories = cats.data || [];
+
+    await Promise.all([this.loadMonth(), this.loadRecurring()]);
+  },
+
+  async loadMonth() {
+    const from = MJ.startOfMonth(MJ.state.month), to = MJ.endOfMonth(MJ.state.month);
+    const { data, error } = await MJ.sb.from('transactions')
+      .select('*')
+      .gte('transaction_date', from.toISOString())
+      .lte('transaction_date', to.toISOString())
+      .order('transaction_date', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (error) { MJ.toast('โหลดรายการไม่สำเร็จ', 'err'); return; }
+    MJ.state.transactions = data || [];
+  },
+
+  async loadRecurring() {
+    const { data } = await MJ.sb.from('recurring_transactions').select('*').order('next_run_date');
+    MJ.state.recurring = data || [];
+  },
+
+  /* ---------------------- ประมวลผลรายการประจำ ---------------------- */
+  async runRecurring() {
+    try {
+      const { data, error } = await MJ.sb.rpc('process_recurring', { p_user: MJ.state.user.id });
+      if (error) return 0;
+      if (data > 0) {
+        await this.loadMonth();
+        MJ.toast(`บันทึกรายการประจำให้แล้ว ${data} รายการ 🐻`, 'ok');
+      }
+      return data || 0;
+    } catch (e) { return 0; }
+  },
+
+  /* ---------------------- CRUD transactions ---------------------- */
+  async addTransaction(tx) {
+    const payload = {
+      user_id: MJ.state.user.id,
+      category_id: tx.category_id || null,
+      amount: Number(tx.amount),
+      type: tx.type,
+      note: tx.note || null,
+      transaction_date: (tx.transaction_date instanceof Date ? tx.transaction_date : new Date(tx.transaction_date || Date.now())).toISOString(),
+      receipt_image_url: tx.receipt_image_url || null,
+      slip_reference: tx.slip_reference || null,
+      payee_name: tx.payee_name || null,
+      source: tx.source || 'manual',
+      raw_input: tx.raw_input || null,
+    };
+    const { data, error } = await MJ.sb.from('transactions').insert(payload).select().maybeSingle();
+    if (error) {
+      if (/duplicate key|transactions_user_slip_key/i.test(error.message)) {
+        const e = new Error('สลิปนี้ถูกบันทึกไปแล้ว');
+        e.duplicate = true; throw e;
+      }
+      throw error;
+    }
+    // จำร้าน/ผู้รับโอน เพื่อเดาหมวดครั้งหน้า
+    if (tx.payee_name && tx.category_id) this.rememberMerchant(tx.payee_name, tx.category_id);
+    const d = new Date(data.transaction_date);
+    if (d >= MJ.startOfMonth(MJ.state.month) && d <= MJ.endOfMonth(MJ.state.month)) {
+      MJ.state.transactions.unshift(data);
+      MJ.state.transactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+    }
+    return data;
+  },
+
+  async updateTransaction(id, patch) {
+    const { data, error } = await MJ.sb.from('transactions').update(patch).eq('id', id).select().maybeSingle();
+    if (error) throw error;
+    const i = MJ.state.transactions.findIndex((t) => t.id === id);
+    if (i > -1) MJ.state.transactions[i] = data;
+    return data;
+  },
+
+  async deleteTransaction(id) {
+    const { error } = await MJ.sb.from('transactions').delete().eq('id', id);
+    if (error) throw error;
+    MJ.state.transactions = MJ.state.transactions.filter((t) => t.id !== id);
+  },
+
+  /* ---------------------- CRUD categories ---------------------- */
+  async saveCategory(cat) {
+    const payload = {
+      user_id: MJ.state.user.id,
+      name: cat.name.trim(),
+      type: cat.type,
+      icon: cat.icon || '🐻',
+      color: cat.color || '#F2B23E',
+      budget_limit: cat.budget_limit === '' || cat.budget_limit == null ? null : Number(cat.budget_limit),
+      keywords: cat.keywords || [],
+    };
+    const q = cat.id
+      ? MJ.sb.from('categories').update(payload).eq('id', cat.id)
+      : MJ.sb.from('categories').insert(payload);
+    const { data, error } = await q.select().maybeSingle();
+    if (error) throw error;
+    const i = MJ.state.categories.findIndex((c) => c.id === data.id);
+    if (i > -1) MJ.state.categories[i] = data; else MJ.state.categories.push(data);
+    return data;
+  },
+
+  async archiveCategory(id) {
+    const { error } = await MJ.sb.from('categories').update({ is_archived: true }).eq('id', id);
+    if (error) throw error;
+    MJ.state.categories = MJ.state.categories.filter((c) => c.id !== id);
+  },
+
+  /* ---------------------- CRUD recurring ---------------------- */
+  async saveRecurring(r) {
+    const payload = {
+      user_id: MJ.state.user.id,
+      category_id: r.category_id || null,
+      amount: Number(r.amount),
+      type: r.type,
+      note: r.note || null,
+      frequency: r.frequency,
+      next_run_date: r.next_run_date,
+      is_active: r.is_active !== false,
+    };
+    const q = r.id
+      ? MJ.sb.from('recurring_transactions').update(payload).eq('id', r.id)
+      : MJ.sb.from('recurring_transactions').insert(payload);
+    const { error } = await q;
+    if (error) throw error;
+    await this.loadRecurring();
+  },
+
+  async deleteRecurring(id) {
+    await MJ.sb.from('recurring_transactions').delete().eq('id', id);
+    await this.loadRecurring();
+  },
+
+  /* ---------------------- profile ---------------------- */
+  async saveProfile(patch) {
+    const { data, error } = await MJ.sb.from('profiles').update(patch).eq('id', MJ.state.user.id).select().maybeSingle();
+    if (error) throw error;
+    MJ.state.profile = data;
+    return data;
+  },
+
+  /* ---------------------- merchant rules ---------------------- */
+  async rememberMerchant(payee, categoryId) {
+    const key = String(payee).trim().toLowerCase().slice(0, 60);
+    if (!key) return;
+    try {
+      await MJ.sb.from('merchant_rules')
+        .upsert({ user_id: MJ.state.user.id, keyword: key, category_id: categoryId },
+                { onConflict: 'user_id,keyword' });
+    } catch (e) { /* ไม่สำคัญพอที่จะรบกวนผู้ใช้ */ }
+  },
+
+  async matchMerchant(payee) {
+    if (!payee) return null;
+    const key = String(payee).trim().toLowerCase();
+    const { data } = await MJ.sb.from('merchant_rules').select('keyword, category_id');
+    if (!data) return null;
+    const hit = data.find((r) => key.includes(r.keyword) || r.keyword.includes(key));
+    return hit ? hit.category_id : null;
+  },
+
+  /* ---------------------- อัปโหลดสลิปขึ้น Storage ---------------------- */
+  async uploadReceipt(file) {
+    const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${MJ.state.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await MJ.sb.storage.from('receipts').upload(path, file, {
+      contentType: file.type || 'image/jpeg', upsert: false,
+    });
+    if (error) throw error;
+    return path;
+  },
+
+  async receiptUrl(path) {
+    if (!path) return null;
+    const { data } = await MJ.sb.storage.from('receipts').createSignedUrl(path, 3600);
+    return data?.signedUrl || null;
+  },
+
+  /* ---------------------- สรุปยอด ---------------------- */
+  summary(list) {
+    const txs = list || MJ.state.transactions;
+    let income = 0, expense = 0;
+    txs.forEach((t) => { if (t.type === 'income') income += Number(t.amount); else expense += Number(t.amount); });
+    return { income, expense, balance: income - expense, count: txs.length };
+  },
+
+  byCategory(type, list) {
+    const txs = (list || MJ.state.transactions).filter((t) => t.type === type);
+    const map = new Map();
+    txs.forEach((t) => {
+      const key = t.category_id || 'none';
+      const cur = map.get(key) || { total: 0, count: 0 };
+      cur.total += Number(t.amount); cur.count++;
+      map.set(key, cur);
+    });
+    return Array.from(map.entries()).map(([id, v]) => {
+      const c = MJ.state.categories.find((x) => x.id === id);
+      return {
+        id, total: v.total, count: v.count,
+        name: c?.name || 'ไม่ระบุหมวด', icon: c?.icon || '❓', color: c?.color || '#9AA0A6',
+        budget: c?.budget_limit ? Number(c.budget_limit) : null,
+      };
+    }).sort((a, b) => b.total - a.total);
+  },
+
+  dailySeries(type) {
+    const days = MJ.endOfMonth(MJ.state.month).getDate();
+    const arr = new Array(days).fill(0);
+    MJ.state.transactions.filter((t) => t.type === type).forEach((t) => {
+      const d = new Date(t.transaction_date);
+      if (d.getMonth() === MJ.state.month.getMonth()) arr[d.getDate() - 1] += Number(t.amount);
+    });
+    return arr;
+  },
+
+  catById(id) { return MJ.state.categories.find((c) => c.id === id) || null; },
+};
+
+</script>
+<script>
+/* ===== 30-nlp.js ===== */
+/* ===================================================================
+   30-nlp.js — ตัวแยกข้อความภาษาไทยแบบ rule-based (ทำงานในเครื่อง ไม่ต้องมี API key)
+   ตัวอย่างที่รองรับ:
+     "กินกาแฟ 80"                  -> จ่าย 80 หมวดอาหาร
+     "รับค่าขนม 100"                -> รับ 100 หมวดได้รับโอน
+     "เมื่อวาน ค่าไฟ 1,250 บาท"      -> จ่าย 1250 เมื่อวาน หมวดบิล
+     "เงินเดือนเข้า 25000"           -> รับ 25000 หมวดเงินเดือน
+     "ค่าแท็กซี่ สองร้อยห้าสิบ"       -> จ่าย 250 หมวดเดินทาง
+   =================================================================== */
+MJ.nlp = (() => {
+  const INCOME_WORDS = ['รับ','ได้รับ','ได้','เงินเข้า','โอนเข้า','เข้าบัญชี','เงินเดือน','salary','โบนัส','ขายได้','ขาย','รายรับ','คืนเงิน','refund','ดอกเบี้ย','ปันผล','อั่งเปา','ค่าจ้าง','ค่าคอม'];
+  const EXPENSE_WORDS = ['จ่าย','ซื้อ','กิน','ค่า','เสีย','โอนให้','ผ่อน','เติม','ชอป','ช้อป','รายจ่าย','หมดไป','เติมเงิน'];
+
+  const THAI_NUM = { 'ศูนย์':0,'หนึ่ง':1,'เอ็ด':1,'สอง':2,'ยี่':2,'สาม':3,'สี่':4,'ห้า':5,'หก':6,'เจ็ด':7,'แปด':8,'เก้า':9 };
+  const THAI_UNIT = { 'สิบ':10,'ร้อย':100,'พัน':1000,'หมื่น':10000,'แสน':100000,'ล้าน':1000000 };
+
+  /** แปลงเลขไทยเป็นตัวเลข เช่น "สองร้อยห้าสิบ" -> 250 */
+  function thaiWordsToNumber(text) {
+    const re = /(?:ศูนย์|หนึ่ง|เอ็ด|สอง|ยี่|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบ|ร้อย|พัน|หมื่น|แสน|ล้าน)+/g;
+    const m = text.match(re);
+    if (!m) return null;
+    const chunk = m.sort((a, b) => b.length - a.length)[0];
+    if (chunk.length < 3) return null;
+    let total = 0, current = 0, i = 0;
+    while (i < chunk.length) {
+      let matched = false;
+      for (const w of Object.keys(THAI_UNIT).sort((a, b) => b.length - a.length)) {
+        if (chunk.startsWith(w, i)) {
+          const u = THAI_UNIT[w];
+          if (u === 1000000) { total = (total + (current || 1)) * u; current = 0; }
+          else { current = (current || 1) * u; total += current; current = 0; }
+          i += w.length; matched = true; break;
+        }
+      }
+      if (matched) continue;
+      for (const w of Object.keys(THAI_NUM).sort((a, b) => b.length - a.length)) {
+        if (chunk.startsWith(w, i)) { current = THAI_NUM[w]; i += w.length; matched = true; break; }
+      }
+      if (!matched) { i++; continue; }
+      // ถ้าตัวถัดไปไม่ใช่หน่วย ให้บวกทันที
+      const rest = chunk.slice(i);
+      const nextIsUnit = Object.keys(THAI_UNIT).some((u) => rest.startsWith(u));
+      if (!nextIsUnit) { total += current; current = 0; }
+    }
+    total += current;
+    return total > 0 ? total : null;
+  }
+
+  /** ดึงจำนวนเงิน */
+  function extractAmount(text) {
+    let t = text.replace(/,/g, '');
+    // "50 บาท 25 สตางค์" / "1.5k" / "2พัน"
+    const kMatch = t.match(/(\d+(?:\.\d+)?)\s*(k|K|พัน)\b/);
+    if (kMatch) return { amount: parseFloat(kMatch[1]) * 1000, matched: kMatch[0] };
+    const mMatch = t.match(/(\d+(?:\.\d+)?)\s*(หมื่น)/);
+    if (mMatch) return { amount: parseFloat(mMatch[1]) * 10000, matched: mMatch[0] };
+    const numbers = [...t.matchAll(/(\d+(?:\.\d{1,2})?)/g)];
+    if (numbers.length) {
+      // เลือกตัวที่ติดคำว่า "บาท" ก่อน ไม่งั้นเอาตัวที่ใหญ่สุด
+      const withBaht = numbers.find((n) => /^\s*(บาท|฿|thb)/i.test(t.slice(n.index + n[0].length)));
+      const pick = withBaht || numbers.sort((a, b) => parseFloat(b[1]) - parseFloat(a[1]))[0];
+      return { amount: parseFloat(pick[1]), matched: pick[0] };
+    }
+    const th = thaiWordsToNumber(t);
+    if (th) return { amount: th, matched: null };
+    return { amount: null, matched: null };
+  }
+
+  /** เดาว่าเป็นรายรับหรือรายจ่าย */
+  function detectType(text) {
+    const t = text.toLowerCase();
+    let score = 0;
+    INCOME_WORDS.forEach((w) => { if (t.includes(w)) score += (w.length > 2 ? 2 : 1); });
+    EXPENSE_WORDS.forEach((w) => { if (t.includes(w)) score -= (w.length > 2 ? 2 : 1); });
+    // "รับ" นำหน้าประโยคน้ำหนักมาก, "ค่า..." มักเป็นรายจ่าย
+    if (/^(รับ|ได้)/.test(text.trim())) score += 2;
+    if (/^ค่า/.test(text.trim())) score -= 2;
+    return score > 0 ? 'income' : 'expense';
+  }
+
+  /** เดาวันที่จากคำบอกเวลา */
+  function detectDate(text) {
+    const now = new Date();
+    let d = new Date(now);
+    let matched = null;
+
+    if (/เมื่อวานซืน|วานซืน/.test(text)) { d.setDate(now.getDate() - 2); matched = 'เมื่อวานซืน'; }
+    else if (/เมื่อวาน|มื้อวาน/.test(text)) { d.setDate(now.getDate() - 1); matched = 'เมื่อวาน'; }
+    else if (/วันนี้/.test(text)) { matched = 'วันนี้'; }
+    else if (/พรุ่งนี้/.test(text)) { d.setDate(now.getDate() + 1); matched = 'พรุ่งนี้'; }
+    else {
+      const ago = text.match(/(\d+)\s*วันก่อน/);
+      if (ago) { d.setDate(now.getDate() - parseInt(ago[1], 10)); matched = ago[0]; }
+      else {
+        const dm = text.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);
+        if (dm) {
+          let year = dm[3] ? parseInt(dm[3], 10) : now.getFullYear();
+          if (year > 2400) year -= 543;
+          if (year < 100) year += 2000;
+          d = new Date(year, parseInt(dm[2], 10) - 1, parseInt(dm[1], 10), now.getHours(), now.getMinutes());
+          matched = dm[0];
+        }
+      }
+    }
+    // เวลา เช่น "ตอน 18:30"
+    const tm = text.match(/\b(\d{1,2})[:.](\d{2})\s*(น\.?)?/);
+    if (tm && Number(tm[1]) < 24) { d.setHours(Number(tm[1]), Number(tm[2]), 0, 0); matched = (matched || '') + ' ' + tm[0]; }
+    return { date: d, matched };
+  }
+
+  /** เดาหมวดจาก keywords ของหมวด + ชื่อหมวด */
+  function detectCategory(text, type) {
+    const t = text.toLowerCase();
+    const cats = MJ.state.categories.filter((c) => c.type === type);
+    let best = null, bestScore = 0;
+    cats.forEach((c) => {
+      let score = 0;
+      if (t.includes(String(c.name).toLowerCase())) score += 5;
+      (c.keywords || []).forEach((k) => {
+        const kw = String(k).toLowerCase();
+        if (kw && t.includes(kw)) score = Math.max(score, kw.length >= 4 ? 4 : 3);
+      });
+      if (score > bestScore) { bestScore = score; best = c; }
+    });
+    if (best) return best;
+    return cats.find((c) => c.name === 'อื่น ๆ') || cats[0] || null;
+  }
+
+  /** ตัดคำที่ใช้แล้วออก เหลือเป็นโน้ต */
+  function extractNote(text, amountMatched, dateMatched) {
+    let s = ' ' + text + ' ';
+    if (amountMatched) s = s.replace(amountMatched, ' ');
+    if (dateMatched) dateMatched.split(' ').filter(Boolean).forEach((m) => { s = s.replace(m, ' '); });
+    s = s.replace(/[\d,]+(\.\d+)?/g, ' ')
+         .replace(/บาท|฿|thb|ตอน|เมื่อ|จำนวน|ราคา|ทั้งหมด|รวม/gi, ' ')
+         .replace(/\s+/g, ' ').trim();
+    return s || null;
+  }
+
+  return {
+    /** วิเคราะห์ข้อความ -> ร่างรายการ */
+    parse(text) {
+      const raw = String(text || '').trim();
+      if (!raw) return null;
+      const { amount, matched } = extractAmount(raw);
+      const type = detectType(raw);
+      const { date, matched: dateMatched } = detectDate(raw);
+      const cat = detectCategory(raw, type);
+      const note = extractNote(raw, matched, dateMatched);
+      return {
+        amount,
+        type,
+        category_id: cat?.id || null,
+        category: cat,
+        note: note || (cat ? cat.name : null),
+        transaction_date: date,
+        source: 'text',
+        raw_input: raw,
+        confidence: amount ? (cat ? 'high' : 'medium') : 'low',
+      };
+    },
+
+    /** สรุปเป็นประโยคให้ผู้ใช้ยืนยัน */
+    describe(d) {
+      if (!d) return '';
+      const kind = d.type === 'income' ? 'รายรับ' : 'รายจ่าย';
+      const when = MJ.sameDay(new Date(d.transaction_date), new Date())
+        ? 'วันนี้' : MJ.dayLabel(d.transaction_date);
+      return `${kind} ${MJ.fmtBaht(d.amount)} • ${d.category?.icon || ''} ${d.category?.name || 'ไม่ระบุหมวด'} • ${when}\n"${d.note || '-'}"`;
+    },
+    thaiWordsToNumber,
+  };
+})();
+
+</script>
+<script>
+/* ===== 40-slip.js ===== */
+/* ===================================================================
+   40-slip.js — อ่านสลิป: QR ในเครื่อง -> OCR (Tesseract.js / PaddleOCR) -> เดาหมวด
+   ลำดับการทำงาน
+     1) สแกน Mini QR บนสลิป (jsQR) เอา "รหัสอ้างอิง" ไว้กันบันทึกซ้ำ
+     2) OCR ข้อความบนสลิปเพื่อหา ยอดเงิน / วันที่ / ชื่อผู้รับ
+        - ค่าเริ่มต้น: Tesseract.js (ทำงานในเบราว์เซอร์ ฟรี ไม่ต้องมี key)
+        - ถ้าตั้ง PaddleOCR endpoint ไว้ในหน้าตั้งค่า จะเรียกใช้ตัวนั้นแทน (แม่นกว่า)
+     3) รวมผล -> ร่างรายการให้ผู้ใช้ยืนยัน
+   =================================================================== */
+MJ.slip = (() => {
+
+  /* ------------------------- โหลดรูปเข้า canvas ------------------------- */
+  async function toImage(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      img.decoding = 'async';
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      return img;
+    } finally { setTimeout(() => URL.revokeObjectURL(url), 30000); }
+  }
+
+  function drawScaled(img, maxSide) {
+    const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, w, h);
+    return { canvas: cv, ctx, w, h };
+  }
+
+  /* ------------------------- 1) สแกน QR ------------------------- */
+  async function scanQR(img) {
+    const tries = [1400, 900, 2000];
+    for (const size of tries) {
+      const { ctx, w, h } = drawScaled(img, size);
+      const data = ctx.getImageData(0, 0, w, h);
+      const code = window.jsQR ? window.jsQR(data.data, w, h, { inversionAttempts: 'attemptBoth' }) : null;
+      if (code?.data) return code.data;
+
+      // ลองเฉพาะครึ่งล่าง (Mini QR มักอยู่มุมล่าง)
+      const halfH = Math.floor(h / 2);
+      const half = ctx.getImageData(0, halfH, w, h - halfH);
+      const code2 = window.jsQR ? window.jsQR(half.data, w, h - halfH, { inversionAttempts: 'attemptBoth' }) : null;
+      if (code2?.data) return code2.data;
+    }
+    return null;
+  }
+
+  /* ------------------------- ถอด EMVCo TLV ------------------------- */
+  function parseTLV(payload) {
+    const out = {};
+    let i = 0;
+    while (i + 4 <= payload.length) {
+      const tag = payload.slice(i, i + 2);
+      const len = parseInt(payload.slice(i + 2, i + 4), 10);
+      if (!/^\d{2}$/.test(tag) || Number.isNaN(len)) break;
+      const value = payload.slice(i + 4, i + 4 + len);
+      if (value.length < len) break;
+      out[tag] = value;
+      i += 4 + len;
+    }
+    return out;
+  }
+
+  /**
+   * ดึงรหัสอ้างอิงจาก payload ของ Mini QR
+   * ใช้ payload ดิบเป็นกุญแจกันซ้ำเสมอ (ไม่ขึ้นกับว่าถอดโครงสร้างได้ไหม)
+   */
+  function parseSlipPayload(payload) {
+    const res = { raw: payload, reference: payload.trim(), fields: {}, bank: null };
+    if (!/^\d{2}\d{2}/.test(payload)) return res;
+    const tlv = parseTLV(payload);
+    res.fields = tlv;
+    // ฟิลด์ย่อยที่มักเก็บ transaction ref (ตัวอักษร+ตัวเลข ยาว 15-30)
+    const candidates = Object.values(tlv).filter((v) => /^[A-Za-z0-9]{12,40}$/.test(v));
+    if (candidates.length) res.reference = candidates.sort((a, b) => b.length - a.length)[0];
+    // รหัสธนาคาร 3 หลักมักอยู่ในฟิลด์ย่อยของ tag 01
+    const m = payload.match(/\b(002|004|006|011|014|022|025|030|033|034|065|066|067|069|070|071|073)\d{9,}/);
+    if (m) res.bank = BANKS[m[1]] || null;
+    return res;
+  }
+
+  const BANKS = {
+    '002':'ธ.กรุงเทพ','004':'ธ.กสิกรไทย','006':'ธ.กรุงไทย','011':'ธ.ทหารไทยธนชาต','014':'ธ.ไทยพาณิชย์',
+    '022':'ธ.ซีไอเอ็มบี','025':'ธ.กรุงศรีอยุธยา','030':'ธ.ออมสิน','033':'ธ.อาคารสงเคราะห์','034':'ธ.ก.ส.',
+    '065':'ธ.ธนชาต','066':'ธ.อิสลาม','067':'ธ.ทิสโก้','069':'ธ.เกียรตินาคินภัทร','070':'ธ.ไอซีบีซี',
+    '071':'ธ.ไทยเครดิต','073':'ธ.แลนด์ แอนด์ เฮ้าส์',
+  };
+
+  /* ------------------------- 2) OCR ------------------------- */
+  let tesseractWorker = null;
+
+  async function ensureTesseract(onProgress) {
+    if (tesseractWorker) return tesseractWorker;
+    if (!window.Tesseract) {
+      onProgress && onProgress('กำลังโหลดตัวอ่านข้อความ…');
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+        s.onload = res; s.onerror = () => rej(new Error('โหลดตัวอ่านข้อความไม่สำเร็จ'));
+        document.head.appendChild(s);
+      });
+    }
+    onProgress && onProgress('กำลังเตรียมภาษาไทย… (ครั้งแรกใช้เวลาสักครู่)');
+    tesseractWorker = await window.Tesseract.createWorker(['tha', 'eng'], 1, {
+      workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+      corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0',
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+    });
+    return tesseractWorker;
+  }
+
+  async function ocrLocal(img, onProgress) {
+    const worker = await ensureTesseract(onProgress);
+    onProgress && onProgress('กำลังอ่านตัวหนังสือบนสลิป…');
+    const { canvas } = drawScaled(img, 1600);
+    const { data } = await worker.recognize(canvas);
+    return data?.text || '';
+  }
+
+  async function ocrRemote(endpoint, file, onProgress) {
+    onProgress && onProgress('กำลังส่งสลิปให้ PaddleOCR…');
+    const fd = new FormData();
+    fd.append('file', file, file.name || 'slip.jpg');
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/ocr', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('PaddleOCR ตอบกลับผิดพลาด (' + res.status + ')');
+    const json = await res.json();
+    if (typeof json.text === 'string') return json.text;
+    if (Array.isArray(json.lines)) return json.lines.map((l) => (typeof l === 'string' ? l : l.text)).join('\n');
+    return JSON.stringify(json);
+  }
+
+  /* ------------------------- แกะข้อมูลจากข้อความ OCR ------------------------- */
+  const THAI_MONTH_MAP = { 'ม.ค':0,'มค':0,'ก.พ':1,'กพ':1,'มี.ค':2,'มีค':2,'เม.ย':3,'เมย':3,'พ.ค':4,'พค':4,'มิ.ย':5,'มิย':5,
+    'ก.ค':6,'กค':6,'ส.ค':7,'สค':7,'ก.ย':8,'กย':8,'ต.ค':9,'ตค':9,'พ.ย':10,'พย':10,'ธ.ค':11,'ธค':11 };
+
+  function extractFromText(text) {
+    const out = { amount: null, date: null, payee: null, reference: null, lines: [] };
+    if (!text) return out;
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    out.lines = lines;
+    const flat = lines.join(' ');
+
+    // ---- ยอดเงิน: ตัวเลขที่มีทศนิยม 2 ตำแหน่ง หรืออยู่หลังคำว่า "จำนวน/ยอด"
+    const labeled = flat.match(/(?:จำนวน(?:เงิน)?|ยอดเงิน|ยอด|amount|total)\s*:?\s*([\d,]+\.?\d{0,2})/i);
+    if (labeled) out.amount = parseFloat(labeled[1].replace(/,/g, ''));
+    if (!out.amount) {
+      const cands = [...flat.matchAll(/([\d]{1,3}(?:,[\d]{3})*|\d+)\.(\d{2})(?!\d)/g)]
+        .map((m) => parseFloat((m[1] + '.' + m[2]).replace(/,/g, '')))
+        .filter((n) => n > 0 && n < 10000000);
+      if (cands.length) out.amount = Math.max(...cands);
+    }
+    if (!out.amount) {
+      const baht = flat.match(/([\d,]+)\s*(?:บาท|THB|฿)/i);
+      if (baht) out.amount = parseFloat(baht[1].replace(/,/g, ''));
+    }
+
+    // ---- วันที่
+    const dmy = flat.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+    const thai = flat.match(/(\d{1,2})\s*(ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค)\.?\s*(\d{2,4})?/);
+    let d = null;
+    if (thai) {
+      const mon = THAI_MONTH_MAP[thai[2].replace(/\./g, '')] ?? THAI_MONTH_MAP[thai[2]];
+      let y = thai[3] ? parseInt(thai[3], 10) : new Date().getFullYear() + 543;
+      if (y < 100) y += 2500;
+      if (y > 2400) y -= 543;
+      if (mon != null) d = new Date(y, mon, parseInt(thai[1], 10));
+    } else if (dmy) {
+      let y = parseInt(dmy[3], 10);
+      if (y < 100) y += (y > 50 ? 2400 : 2000);
+      if (y > 2400) y -= 543;
+      d = new Date(y, parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+    }
+    const tm = flat.match(/(\d{1,2})[:.](\d{2})(?::(\d{2}))?\s*(?:น\.?)?/);
+    if (d && tm && Number(tm[1]) < 24) d.setHours(Number(tm[1]), Number(tm[2]));
+    if (d && !isNaN(d.getTime())) out.date = d;
+
+    // ---- ชื่อผู้รับเงิน: บรรทัดหลังคำว่า "ไปยัง/ถึง/ผู้รับ" หรือบรรทัดที่มี บจก./บมจ./ร้าน
+    const idxTo = lines.findIndex((l) => /(ไปยัง|ถึง|ผู้รับ|to\b|received)/i.test(l));
+    if (idxTo > -1) {
+      const same = lines[idxTo].replace(/.*(ไปยัง|ถึง|ผู้รับ|to|received)\s*:?\s*/i, '').trim();
+      out.payee = same.length > 2 ? same : (lines[idxTo + 1] || null);
+    }
+    if (!out.payee) {
+      const biz = lines.find((l) => /(บจก|บมจ|บริษัท|ห้างหุ้นส่วน|ร้าน|จำกัด|co\.,?\s*ltd)/i.test(l));
+      if (biz) out.payee = biz.trim();
+    }
+    if (out.payee) out.payee = out.payee.replace(/\s{2,}/g, ' ').replace(/^[:\-–]\s*/, '').slice(0, 80);
+
+    // ---- เลขอ้างอิงในข้อความ
+    const ref = flat.match(/(?:เลขที่รายการ|รหัสอ้างอิง|อ้างอิง|ref(?:erence)?(?:\s*no)?)\s*:?\s*([A-Za-z0-9]{8,40})/i);
+    if (ref) out.reference = ref[1];
+    return out;
+  }
+
+  /* ------------------------- 3) รวมผลเป็นร่างรายการ ------------------------- */
+  async function analyze(file, onProgress) {
+    const img = await toImage(file);
+
+    onProgress && onProgress('กำลังสแกน QR บนสลิป…');
+    let qr = null, slipInfo = null;
+    try { qr = await scanQR(img); } catch (e) { /* ไม่มี QR ก็ไม่เป็นไร */ }
+    if (qr) slipInfo = parseSlipPayload(qr);
+
+    let text = '';
+    const endpoint = MJ.state.profile?.ocr_endpoint;
+    try {
+      if (endpoint) text = await ocrRemote(endpoint, file, onProgress);
+      else text = await ocrLocal(img, onProgress);
+    } catch (err) {
+      if (endpoint) {
+        MJ.toast('PaddleOCR ใช้ไม่ได้ สลับไปอ่านในเครื่อง', 'err');
+        try { text = await ocrLocal(img, onProgress); } catch (e2) { text = ''; }
+      }
+    }
+
+    const info = extractFromText(text);
+    const payee = info.payee || slipInfo?.bank || null;
+
+    // เดาหมวดจากชื่อร้าน + ข้อความทั้งหมด
+    let categoryId = payee ? await MJ.data.matchMerchant(payee) : null;
+    let category = categoryId ? MJ.data.catById(categoryId) : null;
+    if (!category) {
+      const guess = MJ.nlp.parse(((payee || '') + ' ' + (info.lines.slice(0, 6).join(' ') || '')) + ' ' + (info.amount || ''));
+      category = guess?.category || null;
+    }
+
+    return {
+      amount: info.amount,
+      type: 'expense',
+      category_id: category?.id || null,
+      category,
+      note: payee ? `โอนให้ ${payee}` : 'จ่ายผ่านสลิป',
+      payee_name: payee,
+      transaction_date: info.date || new Date(),
+      slip_reference: slipInfo?.reference || info.reference || null,
+      source: 'slip',
+      raw_input: (qr ? 'QR: ' + qr + '\n' : '') + text.slice(0, 2000),
+      hasQR: !!qr,
+      ocrText: text,
+    };
+  }
+
+  return { analyze, scanQR, parseSlipPayload, extractFromText, parseTLV, ensureTesseract };
+})();
+
+</script>
+<script>
+/* ===== 50-charts.js ===== */
+/* ===================================================================
+   50-charts.js — กราฟ SVG เขียนเอง (ไม่พึ่งไลบรารีภายนอก)
+   =================================================================== */
+MJ.charts = {
+  /** โดนัทสัดส่วนตามหมวด */
+  donut(items, opts) {
+    const o = Object.assign({ size: 190, thickness: 26, centerTop: '', centerMain: '' }, opts || {});
+    const total = items.reduce((s, i) => s + i.total, 0);
+    const r = (o.size - o.thickness) / 2, cx = o.size / 2, cy = o.size / 2;
+    const C = 2 * Math.PI * r;
+    if (!total) {
+      return `<svg viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
+        <text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="var(--ink-3)" font-size="13">ยังไม่มีข้อมูล</text></svg>`;
+    }
+    let offset = 0;
+    const arcs = items.map((i) => {
+      const frac = i.total / total;
+      const dash = `${(frac * C).toFixed(2)} ${(C - frac * C).toFixed(2)}`;
+      const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${i.color}"
+        stroke-width="${o.thickness}" stroke-dasharray="${dash}" stroke-dashoffset="${(-offset * C).toFixed(2)}"
+        transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"><title>${MJ.esc(i.name)} ${MJ.fmtBaht(i.total)}</title></circle>`;
+      offset += frac;
+      return seg;
+    }).join('');
+    return `<svg viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px;display:block;margin:0 auto">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
+      ${arcs}
+      <text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="var(--ink-3)" font-size="12">${MJ.esc(o.centerTop)}</text>
+      <text x="${cx}" y="${cy + 16}" text-anchor="middle" fill="var(--ink)" font-size="19" font-weight="700">${MJ.esc(o.centerMain)}</text>
+    </svg>`;
+  },
+
+  /** แท่งรายวัน (รายจ่าย/รายรับซ้อนกัน) */
+  bars(expense, income, opts) {
+    const o = Object.assign({ h: 130 }, opts || {});
+    const n = expense.length;
+    const max = Math.max(1, ...expense, ...(income || []));
+    const w = 100 / n;
+    const today = new Date();
+    const isThisMonth = today.getMonth() === MJ.state.month.getMonth() && today.getFullYear() === MJ.state.month.getFullYear();
+    let bars = '';
+    for (let i = 0; i < n; i++) {
+      const eh = (expense[i] / max) * 100;
+      const ih = income ? (income[i] / max) * 100 : 0;
+      const x = i * w;
+      const isToday = isThisMonth && today.getDate() === i + 1;
+      if (ih > 0) bars += `<rect x="${x + w * 0.12}" y="${100 - ih}" width="${w * 0.34}" height="${ih}"
+        rx="1.2" fill="var(--in)" opacity=".85"><title>${i + 1}: รับ ${MJ.fmtBaht(income[i])}</title></rect>`;
+      if (eh > 0) bars += `<rect x="${x + w * (ih > 0 ? 0.52 : 0.22)}" y="${100 - eh}" width="${w * (ih > 0 ? 0.34 : 0.56)}" height="${eh}"
+        rx="1.2" fill="${isToday ? 'var(--honey)' : 'var(--out)'}"><title>${i + 1}: จ่าย ${MJ.fmtBaht(expense[i])}</title></rect>`;
+    }
+    const labels = [1, Math.ceil(n / 2), n].map((d) =>
+      `<text x="${((d - 0.5) / n) * 100}" y="118" text-anchor="middle" fill="var(--ink-3)" font-size="7">${d}</text>`).join('');
+    return `<svg viewBox="0 0 100 122" width="100%" height="${o.h}" preserveAspectRatio="none"
+      style="overflow:visible">${bars}
+      <line x1="0" y1="100" x2="100" y2="100" stroke="var(--line)" stroke-width=".6"/>${labels}</svg>`;
+  },
+
+  /** เส้นแนวโน้มยอดสะสม */
+  line(values, color) {
+    const n = values.length;
+    if (!n) return '';
+    let acc = 0;
+    const cum = values.map((v) => (acc += v));
+    const max = Math.max(1, ...cum);
+    const pts = cum.map((v, i) => `${(i / (n - 1 || 1)) * 100},${100 - (v / max) * 92}`).join(' ');
+    const area = `0,100 ${pts} 100,100`;
+    const c = color || 'var(--honey)';
+    return `<svg viewBox="0 0 100 100" width="100%" height="120" preserveAspectRatio="none">
+      <polygon points="${area}" fill="${c}" opacity=".14"/>
+      <polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`;
+  },
+
+  legend(items, total) {
+    if (!items.length) return '<p class="empty tiny">ยังไม่มีรายการในเดือนนี้</p>';
+    return `<div class="legend">${items.map((i) => `
+      <div class="legend-row">
+        <span class="legend-dot" style="background:${i.color}"></span>
+        <span class="nm">${i.icon || ''} ${MJ.esc(i.name)}</span>
+        <span class="vl">${MJ.fmtBaht(i.total)}</span>
+        <span class="pc">${total ? Math.round((i.total / total) * 100) : 0}%</span>
+      </div>`).join('')}</div>`;
+  },
+
+  /** แถบงบประมาณ */
+  budgetBar(item) {
+    const used = item.total, limit = item.budget;
+    const pct = limit ? Math.min(100, (used / limit) * 100) : 0;
+    const over = limit && used > limit;
+    const color = over ? 'var(--out)' : (pct > 80 ? 'var(--warn)' : item.color);
+    return `<div class="bud">
+      <div class="bud-top">
+        <span class="bud-name">${item.icon || ''} ${MJ.esc(item.name)}</span>
+        <span class="${over ? 'tx-amt out' : ''}">${MJ.fmtBaht(used)}${limit ? ` <span class="muted tiny">/ ${MJ.fmtMoney(limit)}</span>` : ''}</span>
+      </div>
+      <div class="bar"><i style="width:${limit ? pct : 0}%;background:${color}"></i></div>
+      <div class="bud-foot">
+        <span>${limit ? (over ? `เกินงบ ${MJ.fmtBaht(used - limit)} 🐻💦` : `เหลือ ${MJ.fmtBaht(limit - used)}`) : 'ยังไม่ตั้งงบ'}</span>
+        <span>${item.count} รายการ</span>
+      </div>
+    </div>`;
+  },
+};
+
+</script>
+<script>
+/* ===== 60-dashboard.js ===== */
+/* ===================================================================
+   60-dashboard.js — หน้าภาพรวม
+   =================================================================== */
+MJ.routes.dashboard = (view) => {
+  const s = MJ.data.summary();
+  const expenseCats = MJ.data.byCategory('expense');
+  const withBudget = expenseCats.filter((c) => c.budget);
+  const budgetTotal = withBudget.reduce((a, c) => a + c.budget, 0);
+  const budgetUsed = withBudget.reduce((a, c) => a + c.total, 0);
+  const recent = MJ.state.transactions.slice(0, 6);
+  const now = new Date();
+  const isCurrentMonth = now.getMonth() === MJ.state.month.getMonth() && now.getFullYear() === MJ.state.month.getFullYear();
+  const daysLeft = isCurrentMonth ? MJ.endOfMonth(now).getDate() - now.getDate() : 0;
+  const avgPerDay = s.expense / (isCurrentMonth ? now.getDate() : MJ.endOfMonth(MJ.state.month).getDate());
+
+  const upcoming = MJ.state.recurring
+    .filter((r) => r.is_active)
+    .sort((a, b) => new Date(a.next_run_date) - new Date(b.next_run_date))
+    .slice(0, 2);
+
+  view.innerHTML = `
+    <div class="balance">
+      <div class="lbl">คงเหลือใน ${MJ.monthLabelFull(MJ.state.month)}</div>
+      <div class="amt">${MJ.fmtBaht(s.balance)}</div>
+      <div class="grid">
+        <div class="box in"><span class="tiny">รายรับ</span><b>${MJ.fmtBaht(s.income)}</b></div>
+        <div class="box out"><span class="tiny">รายจ่าย</span><b>${MJ.fmtBaht(s.expense)}</b></div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <button class="chip" data-quick="พิมพ์">✏️ พิมพ์จด</button>
+      <button class="chip" data-quick="เสียง">🎤 พูดจด</button>
+      <button class="chip" data-quick="สลิป">🧾 ถ่ายสลิป</button>
+      <button class="chip" data-quick="ฟอร์ม">⌨️ กรอกเอง</button>
+    </div>
+
+    ${isCurrentMonth ? `
+    <div class="stat-grid mb">
+      <div class="stat"><div class="k">จ่ายเฉลี่ยต่อวัน</div><div class="v">${MJ.fmtBaht(avgPerDay)}</div></div>
+      <div class="stat"><div class="k">เหลืออีก</div><div class="v">${daysLeft} วัน</div></div>
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-head">
+        <h3>งบประมาณเดือนนี้</h3>
+        <button class="link" data-go="budget">ตั้งงบ ›</button>
+      </div>
+      ${budgetTotal ? `
+        <div class="bud">
+          <div class="bud-top"><span class="bud-name">🍯 งบรวม</span>
+            <span>${MJ.fmtBaht(budgetUsed)} <span class="muted tiny">/ ${MJ.fmtMoney(budgetTotal)}</span></span></div>
+          <div class="bar"><i style="width:${Math.min(100, (budgetUsed / budgetTotal) * 100)}%;
+            background:${budgetUsed > budgetTotal ? 'var(--out)' : 'linear-gradient(90deg,var(--honey),var(--honey-d))'}"></i></div>
+          <div class="bud-foot"><span>${budgetUsed > budgetTotal
+            ? `เกินงบ ${MJ.fmtBaht(budgetUsed - budgetTotal)}`
+            : `ใช้ได้อีก ${MJ.fmtBaht(budgetTotal - budgetUsed)}`}</span>
+            <span>${Math.round((budgetUsed / budgetTotal) * 100)}%</span></div>
+        </div>
+        <div class="hr"></div>
+        ${withBudget.slice(0, 4).map((c) => MJ.charts.budgetBar(c)).join('')}
+      ` : `<div class="empty"><span class="big">🍯</span>ยังไม่ได้ตั้งงบเลย<br>
+            <button class="btn btn-soft btn-sm mt" data-go="budget">ตั้งงบรายหมวด</button></div>`}
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>รายจ่ายตามหมวด</h3>
+        <button class="link" data-go="analysis">ดูกราฟ ›</button>
+      </div>
+      ${expenseCats.length ? `
+        ${MJ.charts.donut(expenseCats.slice(0, 8), {
+          centerTop: 'จ่ายไป', centerMain: MJ.fmtBaht(s.expense),
+        })}
+        ${MJ.charts.legend(expenseCats.slice(0, 5), s.expense)}
+      ` : `<div class="empty"><span class="big">🐻</span>เดือนนี้ยังไม่มีรายจ่าย</div>`}
+    </div>
+
+    ${upcoming.length ? `
+    <div class="card">
+      <div class="card-head"><h3>รายการประจำที่จะถึง</h3><button class="link" data-go="settings">จัดการ ›</button></div>
+      ${upcoming.map((r) => {
+        const c = MJ.data.catById(r.category_id);
+        return `<div class="list-item">
+          <span class="ic">${c?.icon || '🔁'}</span>
+          <span class="tx2"><b>${MJ.esc(r.note || c?.name || 'รายการประจำ')}</b>
+            <small>ครั้งถัดไป ${MJ.dayLabel(r.next_run_date)}</small></span>
+          <span class="tx-amt ${r.type === 'income' ? 'in' : 'out'}">${r.type === 'income' ? '+' : '−'}${MJ.fmtMoney(r.amount)}</span>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-head"><h3>รายการล่าสุด</h3><button class="link" data-go="transactions">ดูทั้งหมด ›</button></div>
+      ${recent.length ? recent.map((t) => MJ.tx.row(t)).join('')
+        : `<div class="empty"><span class="big">📒</span>ยังไม่มีรายการในเดือนนี้<br>
+           <button class="btn btn-primary btn-sm mt" data-go="add">เริ่มจดเลย</button></div>`}
+    </div>
+  `;
+
+  view.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => MJ.go(b.dataset.go));
+  view.querySelectorAll('[data-quick]').forEach((b) => b.onclick = () => {
+    const map = { 'พิมพ์': 'text', 'เสียง': 'voice', 'สลิป': 'slip', 'ฟอร์ม': 'form' };
+    MJ.go('add', { tab: map[b.dataset.quick] });
+  });
+  MJ.tx.bindRows(view);
+};
+
+</script>
+<script>
+/* ===== 61-add.js ===== */
+/* ===================================================================
+   61-add.js — หน้าจดรายการ: พิมพ์ / พูด / สลิป / กรอกเอง
+   =================================================================== */
+MJ.add = {
+  tab: 'text',
+  chat: [],          // {who:'bot'|'me', text}
+  recognizer: null,
+  recording: false,
+  form: { amount: '', type: 'expense', category_id: null, date: null, note: '' },
+};
+
+MJ.routes.add = (view) => {
+  const p = MJ.state.routeParams || {};
+  if (p.tab) { MJ.add.tab = p.tab; MJ.state.routeParams = {}; }
+  if (!MJ.add.chat.length) {
+    MJ.add.chat = [{ who: 'bot', text: 'สวัสดี! พิมพ์บอกหมีได้เลย เช่น "กินกาแฟ 80" หรือ "รับค่าขนม 100" 🐻' }];
+  }
+
+  view.innerHTML = `
+    <div class="seg" id="addTabs">
+      <button class="seg-btn" data-tab="text">✏️ พิมพ์</button>
+      <button class="seg-btn" data-tab="voice">🎤 พูด</button>
+      <button class="seg-btn" data-tab="slip">🧾 สลิป</button>
+      <button class="seg-btn" data-tab="form">⌨️ กรอกเอง</button>
+    </div>
+    <div id="addBody"></div>`;
+
+  view.querySelectorAll('#addTabs .seg-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.tab === MJ.add.tab);
+    b.onclick = () => { MJ.add.tab = b.dataset.tab; MJ.render(); };
+  });
+
+  const body = MJ.$('#addBody', view);
+  ({ text: renderChat, voice: renderVoice, slip: renderSlip, form: renderForm }[MJ.add.tab] || renderChat)(body);
+};
+
+/* ============================ โหมดพิมพ์ (แชท) ============================ */
+function renderChat(body, opts) {
+  const voiceMode = opts?.voice;
+  body.innerHTML = `
+    <div class="chat" id="chatBox">
+      ${MJ.add.chat.map((m) => `<div class="bubble ${m.who}">${MJ.esc(m.text)}</div>`).join('')}
+    </div>
+    <div class="chips" id="samples">
+      <button class="chip" data-s="กินข้าวเที่ยง 60">กินข้าวเที่ยง 60</button>
+      <button class="chip" data-s="ค่าแท็กซี่ 120">ค่าแท็กซี่ 120</button>
+      <button class="chip" data-s="รับเงินเดือน 25000">รับเงินเดือน 25000</button>
+      <button class="chip" data-s="เมื่อวาน ค่าไฟ 850">เมื่อวาน ค่าไฟ 850</button>
+    </div>
+    <div class="composer">
+      <textarea id="chatInput" rows="1" placeholder="${voiceMode ? 'กดไมค์แล้วพูดได้เลย…' : 'เช่น กินกาแฟ 80'}"></textarea>
+      <button class="rnd" id="btnMic" title="พูด">🎤</button>
+      <button class="rnd send" id="btnSend" title="ส่ง">➤</button>
+    </div>`;
+
+  const input = MJ.$('#chatInput', body);
+  input.oninput = () => { input.style.height = 'auto'; input.style.height = Math.min(110, input.scrollHeight) + 'px'; };
+  input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } };
+  MJ.$('#btnSend', body).onclick = submit;
+  MJ.$('#btnMic', body).onclick = () => MJ.add.toggleVoice(input);
+  body.querySelectorAll('#samples .chip').forEach((c) => c.onclick = () => { input.value = c.dataset.s; submit(); });
+
+  const box = MJ.$('#chatBox', body);
+  box.scrollTop = box.scrollHeight;
+  if (voiceMode) setTimeout(() => MJ.add.toggleVoice(input), 300);
+
+  function push(who, text) {
+    MJ.add.chat.push({ who, text });
+    const el = document.createElement('div');
+    el.className = 'bubble ' + who;
+    el.textContent = text;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function submit() {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = ''; input.style.height = 'auto';
+    push('me', text);
+    const draft = MJ.nlp.parse(text);
+    if (!draft || !draft.amount) {
+      push('bot', 'หมีหาจำนวนเงินไม่เจอ ลองใส่ตัวเลขด้วยนะ เช่น "กินข้าว 80" 🐻');
+      return;
+    }
+    push('bot', 'เข้าใจแล้ว!\n' + MJ.nlp.describe(draft));
+    MJ.add.openDraftSheet(draft, { quickSave: true });
+  }
+}
+
+/* ============================ โหมดพูด ============================ */
+function renderVoice(body) {
+  const supported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+  if (!supported) {
+    body.innerHTML = `<div class="card"><div class="empty"><span class="big">🎤</span>
+      เบราว์เซอร์นี้ยังไม่รองรับการพูดจด<br><span class="tiny">ลองใช้ Safari บน iPhone หรือ Chrome บน Android</span><br>
+      <button class="btn btn-soft btn-sm mt" id="toText">พิมพ์แทน</button></div></div>`;
+    MJ.$('#toText', body).onclick = () => { MJ.add.tab = 'text'; MJ.render(); };
+    return;
+  }
+  body.innerHTML = `<div class="card center">
+      <p class="muted tiny mb">กดปุ่มแล้วพูด เช่น “กินข้าวเที่ยงหกสิบบาท”</p>
+      <button class="fab" id="bigMic" style="margin:6px auto 12px;width:88px;height:88px;border-radius:32px;font-size:38px">🎤</button>
+      <div class="muted tiny" id="voiceHint">แตะเพื่อเริ่มพูด</div>
+    </div>
+    <div id="voiceChat"></div>`;
+  renderChat(MJ.$('#voiceChat', body), { voice: false });
+  const input = MJ.$('#chatInput', body);
+  MJ.$('#bigMic', body).onclick = () => MJ.add.toggleVoice(input, MJ.$('#voiceHint', body), MJ.$('#bigMic', body));
+}
+
+MJ.add.toggleVoice = function (input, hintEl, micEl) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { MJ.toast('เบราว์เซอร์นี้ไม่รองรับการพูด', 'err'); return; }
+  if (MJ.add.recording) { try { MJ.add.recognizer.stop(); } catch (e) {} return; }
+
+  const rec = new SR();
+  rec.lang = 'th-TH';
+  rec.interimResults = true;
+  rec.continuous = false;
+  MJ.add.recognizer = rec;
+  MJ.add.recording = true;
+  MJ.buzz(20);
+  if (hintEl) hintEl.textContent = 'กำลังฟัง… พูดได้เลย';
+  if (micEl) micEl.classList.add('rec');
+  MJ.$$('#btnMic').forEach((b) => b.classList.add('rec'));
+
+  rec.onresult = (e) => {
+    const txt = Array.from(e.results).map((r) => r[0].transcript).join('');
+    if (input) { input.value = txt; input.dispatchEvent(new Event('input')); }
+    if (hintEl) hintEl.textContent = '“' + txt + '”';
+  };
+  rec.onerror = (e) => {
+    MJ.toast(e.error === 'not-allowed' ? 'ไม่ได้รับอนุญาตให้ใช้ไมค์' : 'ฟังไม่ชัด ลองใหม่อีกที', 'err');
+  };
+  rec.onend = () => {
+    MJ.add.recording = false;
+    if (micEl) micEl.classList.remove('rec');
+    MJ.$$('#btnMic').forEach((b) => b.classList.remove('rec'));
+    if (hintEl) hintEl.textContent = 'แตะเพื่อพูดอีกครั้ง';
+    const txt = input?.value.trim();
+    if (txt) {
+      const draft = MJ.nlp.parse(txt);
+      draft && (draft.source = 'voice');
+      if (draft?.amount) { input.value = ''; MJ.add.openDraftSheet(draft, { quickSave: true }); }
+      else MJ.toast('ไม่เจอจำนวนเงิน ลองพูดใหม่พร้อมตัวเลข', 'err');
+    }
+  };
+  try { rec.start(); } catch (e) { MJ.add.recording = false; }
+};
+
+/* ============================ โหมดสลิป ============================ */
+function renderSlip(body) {
+  body.innerHTML = `
+    <div class="card">
+      <div class="card-head"><h3>อ่านสลิปอัตโนมัติ</h3>
+        <span class="badge">${MJ.state.profile?.ocr_endpoint ? 'PaddleOCR' : 'อ่านในเครื่อง'}</span></div>
+      <p class="muted tiny mb">สแกน QR บนสลิปเพื่อกันบันทึกซ้ำ แล้วอ่านยอดเงิน/วันที่/ชื่อร้านให้อัตโนมัติ</p>
+      <div class="row">
+        <button class="btn btn-primary" id="btnCam">📸 ถ่ายสลิป</button>
+        <button class="btn btn-soft" id="btnPick">🖼️ เลือกรูป</button>
+      </div>
+      <input type="file" id="slipCam" accept="image/*" capture="environment" hidden>
+      <input type="file" id="slipPick" accept="image/*" hidden multiple>
+      <div id="slipResult" class="mt"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>สลิปที่บันทึกไว้เดือนนี้</h3></div>
+      ${(() => {
+        const withSlip = MJ.state.transactions.filter((t) => t.slip_reference || t.receipt_image_url);
+        return withSlip.length ? withSlip.slice(0, 8).map((t) => MJ.tx.row(t)).join('')
+          : '<div class="empty tiny">ยังไม่มีสลิปที่บันทึก</div>';
+      })()}
+    </div>`;
+
+  MJ.$('#btnCam', body).onclick = () => MJ.$('#slipCam', body).click();
+  MJ.$('#btnPick', body).onclick = () => MJ.$('#slipPick', body).click();
+  const handle = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    files.forEach((f, i) => setTimeout(() => MJ.add.processSlip(f), i * 200));
+  };
+  MJ.$('#slipCam', body).onchange = handle;
+  MJ.$('#slipPick', body).onchange = handle;
+  MJ.tx.bindRows(body);
+}
+
+MJ.add.processSlip = async function (file) {
+  MJ.loading(true, 'กำลังเปิดสลิป…');
+  try {
+    const draft = await MJ.slip.analyze(file, (msg) => MJ.loading(true, msg));
+    draft.file = file;
+    MJ.loading(false);
+
+    if (draft.slip_reference) {
+      const { data: dup } = await MJ.sb.from('transactions').select('id, amount, transaction_date')
+        .eq('slip_reference', draft.slip_reference).maybeSingle();
+      if (dup) {
+        MJ.toast('สลิปนี้บันทึกไปแล้วเมื่อ ' + MJ.dayLabel(dup.transaction_date), 'err');
+        return;
+      }
+    }
+    if (!draft.amount) MJ.toast('อ่านยอดเงินไม่ชัด ใส่เองได้เลยนะ', 'err');
+    MJ.add.openDraftSheet(draft, { slip: true });
+  } catch (err) {
+    MJ.loading(false);
+    MJ.toast('อ่านสลิปไม่สำเร็จ: ' + (err.message || err), 'err');
+  }
+};
+
+/* ============================ โหมดกรอกเอง (แป้นตัวเลข) ============================ */
+function renderForm(body) {
+  const f = MJ.add.form;
+  if (!f.date) f.date = new Date();
+  if (!f.category_id) {
+    const first = MJ.state.categories.find((c) => c.type === f.type);
+    f.category_id = first?.id || null;
+  }
+  const cats = MJ.state.categories.filter((c) => c.type === f.type);
+
+  body.innerHTML = `
+    <div class="seg" id="typeSeg">
+      <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
+      <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+    </div>
+    <div class="card">
+      <div class="amount-display"><b id="amtView">${f.amount || '0'}</b><span>บาท</span></div>
+      <div class="keypad" id="keypad">
+        ${['1','2','3','4','5','6','7','8','9','.','0','⌫'].map((k) => `<button data-k="${k}">${k}</button>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>หมวดหมู่</h3><button class="link" data-go="budget">จัดการ ›</button></div>
+      <div class="cat-grid" id="catGrid">
+        ${cats.map((c) => `<button class="cat-pick ${c.id === f.category_id ? 'active' : ''}" data-cat="${c.id}">
+          <span class="ic" style="background:${MJ.hex2rgba(c.color, .18)}">${c.icon}</span>${MJ.esc(c.name)}</button>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <label class="field"><span>บันทึกช่วยจำ</span>
+        <input type="text" id="fNote" value="${MJ.esc(f.note)}" placeholder="เช่น กาแฟร้านประจำ"></label>
+      <label class="field"><span>วันและเวลา</span>
+        <input type="datetime-local" id="fDate" value="${MJ.isoLocal(f.date)}"></label>
+    </div>
+    <button class="btn btn-primary btn-block" id="fSave">บันทึกรายการ</button>
+    <div style="height:14px"></div>`;
+
+  body.querySelectorAll('#typeSeg .seg-btn').forEach((b) => b.onclick = () => {
+    f.type = b.dataset.type; f.category_id = null; renderForm(body);
+  });
+  body.querySelectorAll('#keypad button').forEach((b) => b.onclick = () => {
+    const k = b.dataset.k;
+    MJ.buzz(8);
+    if (k === '⌫') f.amount = f.amount.slice(0, -1);
+    else if (k === '.') { if (!f.amount.includes('.')) f.amount = (f.amount || '0') + '.'; }
+    else if (/\.\d\d$/.test(f.amount)) return;
+    else f.amount = (f.amount === '0' ? '' : f.amount) + k;
+    MJ.$('#amtView', body).textContent = f.amount || '0';
+  });
+  body.querySelectorAll('#catGrid .cat-pick').forEach((b) => b.onclick = () => {
+    f.category_id = b.dataset.cat;
+    body.querySelectorAll('#catGrid .cat-pick').forEach((x) => x.classList.toggle('active', x === b));
+  });
+  body.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => MJ.go(b.dataset.go));
+
+  MJ.$('#fSave', body).onclick = async () => {
+    const amount = parseFloat(f.amount);
+    if (!amount || amount <= 0) { MJ.toast('ใส่จำนวนเงินก่อนนะ', 'err'); return; }
+    MJ.loading(true, 'กำลังบันทึก…');
+    try {
+      await MJ.data.addTransaction({
+        amount, type: f.type, category_id: f.category_id,
+        note: MJ.$('#fNote', body).value.trim() || null,
+        transaction_date: new Date(MJ.$('#fDate', body).value),
+        source: 'manual',
+      });
+      MJ.add.form = { amount: '', type: f.type, category_id: f.category_id, date: new Date(), note: '' };
+      MJ.buzz(30);
+      MJ.toast('บันทึกแล้ว 🐻', 'ok');
+      MJ.go('dashboard');
+    } catch (err) {
+      MJ.toast('บันทึกไม่สำเร็จ: ' + (err.message || err), 'err');
+    } finally { MJ.loading(false); }
+  };
+}
+
+/* ============================ Sheet ยืนยันร่างรายการ ============================ */
+MJ.add.openDraftSheet = function (draft, opts) {
+  opts = opts || {};
+  const cats = MJ.state.categories;
+  const catOptions = (type) => cats.filter((c) => c.type === type)
+    .map((c) => `<option value="${c.id}" ${c.id === draft.category_id ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('');
+
+  MJ.sheet.open(opts.slip ? 'ตรวจสอบสลิป' : 'ยืนยันรายการ', `
+    ${draft.file ? '<img class="slip-preview" id="slipImg" alt="สลิป">' : ''}
+    ${opts.slip ? `<p class="tiny muted mb">${draft.hasQR ? '✅ อ่าน QR สำเร็จ — กันบันทึกซ้ำให้แล้ว' : '⚠️ ไม่พบ QR บนสลิป ตรวจตัวเลขอีกครั้งนะ'}</p>` : ''}
+    <div class="seg" id="dType">
+      <button class="seg-btn ${draft.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
+      <button class="seg-btn ${draft.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+    </div>
+    <label class="field"><span>จำนวนเงิน (บาท)</span>
+      <input type="number" inputmode="decimal" step="0.01" id="dAmount" value="${draft.amount ?? ''}" placeholder="0.00"></label>
+    <label class="field"><span>หมวดหมู่</span>
+      <select id="dCat">${catOptions(draft.type)}</select></label>
+    <label class="field"><span>บันทึกช่วยจำ</span>
+      <input type="text" id="dNote" value="${MJ.esc(draft.note || '')}"></label>
+    ${draft.payee_name ? `<label class="field"><span>ผู้รับเงิน / ร้านค้า</span>
+      <input type="text" id="dPayee" value="${MJ.esc(draft.payee_name)}"></label>` : ''}
+    <label class="field"><span>วันและเวลา</span>
+      <input type="datetime-local" id="dDate" value="${MJ.isoLocal(new Date(draft.transaction_date))}"></label>
+    ${draft.ocrText ? `<details class="mb"><summary class="tiny muted">ดูข้อความที่อ่านได้จากสลิป</summary>
+      <pre class="tiny muted" style="white-space:pre-wrap;max-height:150px;overflow:auto">${MJ.esc(draft.ocrText.slice(0, 1200))}</pre></details>` : ''}
+    <button class="btn btn-primary btn-block" id="dSave">บันทึกเลย</button>
+    <button class="btn btn-ghost btn-block" id="dCancel">ยกเลิก</button>
+  `, (bodyEl) => {
+    if (draft.file) {
+      const url = URL.createObjectURL(draft.file);
+      MJ.$('#slipImg', bodyEl).src = url;
+    }
+    bodyEl.querySelectorAll('#dType .seg-btn').forEach((b) => b.onclick = () => {
+      draft.type = b.dataset.type;
+      bodyEl.querySelectorAll('#dType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
+      draft.category_id = null;
+      MJ.$('#dCat', bodyEl).innerHTML = cats.filter((c) => c.type === draft.type)
+        .map((c) => `<option value="${c.id}">${c.icon} ${MJ.esc(c.name)}</option>`).join('');
+    });
+
+    MJ.$('#dCancel', bodyEl).onclick = () => MJ.sheet.close();
+    MJ.$('#dSave', bodyEl).onclick = async () => {
+      const amount = parseFloat(MJ.$('#dAmount', bodyEl).value);
+      if (!amount || amount <= 0) { MJ.toast('ใส่จำนวนเงินก่อนนะ', 'err'); return; }
+      MJ.loading(true, 'กำลังบันทึก…');
+      try {
+        let receiptPath = null;
+        if (draft.file) {
+          try { receiptPath = await MJ.data.uploadReceipt(draft.file); }
+          catch (e) { MJ.toast('อัปโหลดรูปสลิปไม่สำเร็จ แต่บันทึกรายการให้แล้ว', 'err'); }
+        }
+        await MJ.data.addTransaction({
+          amount,
+          type: draft.type,
+          category_id: MJ.$('#dCat', bodyEl).value || null,
+          note: MJ.$('#dNote', bodyEl).value.trim() || null,
+          payee_name: MJ.$('#dPayee', bodyEl)?.value.trim() || draft.payee_name || null,
+          transaction_date: new Date(MJ.$('#dDate', bodyEl).value),
+          slip_reference: draft.slip_reference || null,
+          receipt_image_url: receiptPath,
+          source: draft.source || 'text',
+          raw_input: draft.raw_input || null,
+        });
+        MJ.buzz(30);
+        MJ.sheet.close();
+        MJ.toast('บันทึกแล้ว 🐻', 'ok');
+        if (MJ.add.tab === 'text' || MJ.add.tab === 'voice') {
+          MJ.add.chat.push({ who: 'bot', text: 'บันทึกให้แล้วนะ! 🍯 จดต่อได้เลย' });
+        }
+        MJ.render();
+      } catch (err) {
+        MJ.toast(err.duplicate ? 'สลิปนี้ถูกบันทึกไปแล้ว' : ('บันทึกไม่สำเร็จ: ' + (err.message || err)), 'err');
+      } finally { MJ.loading(false); }
+    };
+  });
+};
+
+</script>
+<script>
+/* ===== 62-transactions.js ===== */
+/* ===================================================================
+   62-transactions.js — รายการย้อนหลัง ค้นหา แก้ไข ลบ และส่งออก Excel
+   =================================================================== */
+MJ.tx = {
+  filter: { type: 'all', q: '', category: 'all' },
+
+  /** แถวรายการหนึ่งบรรทัด */
+  row(t) {
+    const c = MJ.data.catById(t.category_id);
+    const color = c?.color || '#9AA0A6';
+    const badges = [
+      t.source === 'slip' ? '🧾' : '', t.source === 'voice' ? '🎤' : '',
+      t.source === 'recurring' ? '🔁' : '', t.receipt_image_url ? '📎' : '',
+    ].filter(Boolean).join(' ');
+    return `<div class="tx" data-tx="${t.id}">
+      <span class="tx-ico" style="background:${MJ.hex2rgba(color, .18)}">${c?.icon || '❓'}</span>
+      <span class="tx-main">
+        <span class="tx-title">${MJ.esc(t.note || c?.name || 'รายการ')}</span>
+        <span class="tx-sub">${MJ.esc(c?.name || 'ไม่ระบุหมวด')} • ${MJ.timeLabel(t.transaction_date)} ${badges}</span>
+      </span>
+      <span class="tx-amt ${t.type === 'income' ? 'in' : 'out'}">${t.type === 'income' ? '+' : '−'}${MJ.fmtMoney(t.amount)}</span>
+    </div>`;
+  },
+
+  bindRows(root) {
+    root.querySelectorAll('[data-tx]').forEach((el) => {
+      el.onclick = () => {
+        const t = MJ.state.transactions.find((x) => x.id === el.dataset.tx);
+        if (t) MJ.tx.openDetail(t);
+      };
+    });
+  },
+
+  /** จัดกลุ่มตามวัน */
+  groupByDay(list) {
+    const groups = new Map();
+    list.forEach((t) => {
+      const key = MJ.isoDate(new Date(t.transaction_date));
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(t);
+    });
+    return Array.from(groups.entries());
+  },
+
+  filtered() {
+    const f = MJ.tx.filter;
+    const q = f.q.trim().toLowerCase();
+    return MJ.state.transactions.filter((t) => {
+      if (f.type !== 'all' && t.type !== f.type) return false;
+      if (f.category !== 'all' && t.category_id !== f.category) return false;
+      if (q) {
+        const c = MJ.data.catById(t.category_id);
+        const hay = `${t.note || ''} ${t.payee_name || ''} ${c?.name || ''} ${t.amount}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  },
+
+  /* ---------------------- Sheet รายละเอียด/แก้ไข ---------------------- */
+  openDetail(t) {
+    const c = MJ.data.catById(t.category_id);
+    MJ.sheet.open('รายละเอียด', `
+      <div class="center mb">
+        <div class="tx-ico" style="margin:0 auto 8px;width:56px;height:56px;font-size:26px;border-radius:20px;background:${MJ.hex2rgba(c?.color || '#9AA0A6', .18)}">${c?.icon || '❓'}</div>
+        <div class="tx-amt ${t.type === 'income' ? 'in' : 'out'}" style="font-size:30px">
+          ${t.type === 'income' ? '+' : '−'}${MJ.fmtBaht(t.amount)}</div>
+        <div class="muted tiny">${MJ.dayLabel(t.transaction_date)} ${MJ.timeLabel(t.transaction_date)}</div>
+      </div>
+      <div id="receiptBox"></div>
+      <div class="card">
+        <div class="list-item"><span class="ic">🏷️</span><span class="tx2"><b>${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</b><small>หมวดหมู่</small></span></div>
+        <div class="list-item"><span class="ic">📝</span><span class="tx2"><b>${MJ.esc(t.note || '-')}</b><small>บันทึกช่วยจำ</small></span></div>
+        ${t.payee_name ? `<div class="list-item"><span class="ic">🏪</span><span class="tx2"><b>${MJ.esc(t.payee_name)}</b><small>ผู้รับเงิน</small></span></div>` : ''}
+        ${t.slip_reference ? `<div class="list-item"><span class="ic">🔖</span><span class="tx2"><b style="word-break:break-all;font-size:12px">${MJ.esc(t.slip_reference.slice(0, 60))}</b><small>รหัสอ้างอิงสลิป</small></span></div>` : ''}
+        <div class="list-item"><span class="ic">📥</span><span class="tx2"><b>${({ manual:'กรอกเอง', text:'พิมพ์จด', voice:'พูดจด', slip:'สลิป', recurring:'รายการประจำ', import:'นำเข้า' })[t.source] || t.source}</b><small>ที่มา</small></span></div>
+      </div>
+      <button class="btn btn-soft btn-block" id="txEdit">แก้ไขรายการ</button>
+      <button class="btn btn-danger btn-block mt" id="txDel">ลบรายการนี้</button>
+    `, async (body) => {
+      MJ.$('#txEdit', body).onclick = () => MJ.tx.openEdit(t);
+      MJ.$('#txDel', body).onclick = async () => {
+        if (!(await MJ.confirm('ลบรายการ', 'ลบรายการนี้ถาวรใช่ไหม?', 'ลบเลย'))) return;
+        MJ.loading(true, 'กำลังลบ…');
+        try { await MJ.data.deleteTransaction(t.id); MJ.toast('ลบแล้ว', 'ok'); MJ.sheet.close(); MJ.render(); }
+        catch (e) { MJ.toast('ลบไม่สำเร็จ', 'err'); }
+        finally { MJ.loading(false); }
+      };
+      if (t.receipt_image_url) {
+        const url = await MJ.data.receiptUrl(t.receipt_image_url);
+        if (url) MJ.$('#receiptBox', body).innerHTML = `<img class="slip-preview" src="${url}" alt="สลิป">`;
+      }
+    });
+  },
+
+  openEdit(t) {
+    const cats = MJ.state.categories;
+    MJ.sheet.open('แก้ไขรายการ', `
+      <div class="seg" id="eType">
+        <button class="seg-btn ${t.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
+        <button class="seg-btn ${t.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      </div>
+      <label class="field"><span>จำนวนเงิน</span>
+        <input type="number" step="0.01" inputmode="decimal" id="eAmount" value="${t.amount}"></label>
+      <label class="field"><span>หมวดหมู่</span><select id="eCat">
+        ${cats.filter((c) => c.type === t.type).map((c) => `<option value="${c.id}" ${c.id === t.category_id ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('')}
+      </select></label>
+      <label class="field"><span>บันทึกช่วยจำ</span><input type="text" id="eNote" value="${MJ.esc(t.note || '')}"></label>
+      <label class="field"><span>วันและเวลา</span><input type="datetime-local" id="eDate" value="${MJ.isoLocal(new Date(t.transaction_date))}"></label>
+      <button class="btn btn-primary btn-block" id="eSave">บันทึกการแก้ไข</button>
+    `, (body) => {
+      let type = t.type;
+      body.querySelectorAll('#eType .seg-btn').forEach((b) => b.onclick = () => {
+        type = b.dataset.type;
+        body.querySelectorAll('#eType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
+        MJ.$('#eCat', body).innerHTML = cats.filter((c) => c.type === type)
+          .map((c) => `<option value="${c.id}">${c.icon} ${MJ.esc(c.name)}</option>`).join('');
+      });
+      MJ.$('#eSave', body).onclick = async () => {
+        MJ.loading(true, 'กำลังบันทึก…');
+        try {
+          await MJ.data.updateTransaction(t.id, {
+            amount: parseFloat(MJ.$('#eAmount', body).value),
+            type,
+            category_id: MJ.$('#eCat', body).value || null,
+            note: MJ.$('#eNote', body).value.trim() || null,
+            transaction_date: new Date(MJ.$('#eDate', body).value).toISOString(),
+          });
+          MJ.sheet.close(); MJ.toast('แก้ไขแล้ว', 'ok'); MJ.render();
+        } catch (e) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
+        finally { MJ.loading(false); }
+      };
+    });
+  },
+
+  /* ---------------------- ส่งออก Excel ---------------------- */
+  exportExcel(list, filename) {
+    const rows = list.map((t) => {
+      const c = MJ.data.catById(t.category_id);
+      const d = new Date(t.transaction_date);
+      return {
+        'วันที่': MJ.isoDate(d),
+        'เวลา': MJ.timeLabel(d).replace(' น.', ''),
+        'ประเภท': t.type === 'income' ? 'รายรับ' : 'รายจ่าย',
+        'หมวดหมู่': c?.name || 'ไม่ระบุ',
+        'รายละเอียด': t.note || '',
+        'ผู้รับเงิน/ร้านค้า': t.payee_name || '',
+        'จำนวนเงิน': Number(t.amount),
+        'ที่มา': ({ manual:'กรอกเอง', text:'พิมพ์', voice:'เสียง', slip:'สลิป', recurring:'รายการประจำ' })[t.source] || t.source,
+        'รหัสอ้างอิงสลิป': t.slip_reference || '',
+      };
+    });
+    const s = MJ.data.summary(list);
+    rows.push({}, {
+      'วันที่': 'สรุป', 'ประเภท': 'รายรับรวม', 'จำนวนเงิน': s.income,
+    }, { 'ประเภท': 'รายจ่ายรวม', 'จำนวนเงิน': s.expense },
+       { 'ประเภท': 'คงเหลือ', 'จำนวนเงิน': s.balance });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 12 }, { wch: 8 }, { wch: 9 }, { wch: 18 }, { wch: 30 }, { wch: 24 }, { wch: 13 }, { wch: 12 }, { wch: 26 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'รายการ');
+    XLSX.writeFile(wb, filename || `หมีจด-${MJ.isoDate(MJ.state.month).slice(0, 7)}.xlsx`);
+    MJ.toast('ดาวน์โหลดไฟล์แล้ว 📄', 'ok');
+  },
+};
+
+/* ============================ หน้าแสดงรายการ ============================ */
+MJ.routes.transactions = (view) => {
+  const f = MJ.tx.filter;
+  const list = MJ.tx.filtered();
+  const s = MJ.data.summary(list);
+  const groups = MJ.tx.groupByDay(list);
+
+  view.innerHTML = `
+    <div class="search">
+      <span>🔍</span>
+      <input id="txSearch" placeholder="ค้นหารายการ ร้านค้า หรือจำนวนเงิน" value="${MJ.esc(f.q)}">
+      ${f.q ? '<button class="icon-btn" id="clearQ">✕</button>' : ''}
+    </div>
+    <div class="chips">
+      <button class="chip ${f.type === 'all' ? 'active' : ''}" data-f="all">ทั้งหมด</button>
+      <button class="chip ${f.type === 'expense' ? 'active' : ''}" data-f="expense">รายจ่าย</button>
+      <button class="chip ${f.type === 'income' ? 'active' : ''}" data-f="income">รายรับ</button>
+      <button class="chip" id="btnExport">📄 Excel</button>
+    </div>
+    <div class="stat-grid mb">
+      <div class="stat"><div class="k">รายรับ</div><div class="v" style="color:var(--in)">${MJ.fmtBaht(s.income)}</div></div>
+      <div class="stat"><div class="k">รายจ่าย</div><div class="v" style="color:var(--out)">${MJ.fmtBaht(s.expense)}</div></div>
+    </div>
+    <div class="card">
+      ${groups.length ? groups.map(([day, items]) => {
+        const dsum = items.reduce((a, t) => a + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+        return `<div class="day-head"><span>${MJ.dayLabel(day)}</span>
+          <span class="${dsum >= 0 ? 'tx-amt in' : 'tx-amt out'}">${dsum >= 0 ? '+' : '−'}${MJ.fmtMoney(Math.abs(dsum))}</span></div>
+          ${items.map((t) => MJ.tx.row(t)).join('')}`;
+      }).join('') : `<div class="empty"><span class="big">🔍</span>ไม่พบรายการที่ค้นหา</div>`}
+    </div>
+    <p class="center tiny muted">ทั้งหมด ${list.length} รายการใน ${MJ.monthLabelFull(MJ.state.month)}</p>
+    <div style="height:10px"></div>`;
+
+  const input = MJ.$('#txSearch', view);
+  let t0;
+  input.oninput = () => { clearTimeout(t0); t0 = setTimeout(() => { MJ.tx.filter.q = input.value; MJ.render(); MJ.$('#txSearch').focus(); }, 350); };
+  if (MJ.$('#clearQ', view)) MJ.$('#clearQ', view).onclick = () => { MJ.tx.filter.q = ''; MJ.render(); };
+  view.querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { MJ.tx.filter.type = b.dataset.f; MJ.render(); });
+  MJ.$('#btnExport', view).onclick = () => MJ.tx.exportExcel(list);
+  MJ.tx.bindRows(view);
+};
+
+</script>
+<script>
+/* ===== 63-analysis.js ===== */
+/* ===================================================================
+   63-analysis.js — หน้าวิเคราะห์: กราฟหมวด รายวัน แนวโน้ม เทียบเดือนก่อน
+   =================================================================== */
+MJ.analysis = { type: 'expense', prevCache: {} };
+
+MJ.routes.analysis = (view) => {
+  const type = MJ.analysis.type;
+  const s = MJ.data.summary();
+  const cats = MJ.data.byCategory(type);
+  const total = type === 'expense' ? s.expense : s.income;
+  const expSeries = MJ.data.dailySeries('expense');
+  const incSeries = MJ.data.dailySeries('income');
+  const days = expSeries.length;
+
+  // วันที่ใช้จ่ายหนักสุด
+  let maxDay = 0, maxVal = 0;
+  expSeries.forEach((v, i) => { if (v > maxVal) { maxVal = v; maxDay = i + 1; } });
+
+  // แยกตามวันในสัปดาห์
+  const weekday = new Array(7).fill(0);
+  MJ.state.transactions.filter((t) => t.type === 'expense')
+    .forEach((t) => { weekday[new Date(t.transaction_date).getDay()] += Number(t.amount); });
+  const wkMax = Math.max(1, ...weekday);
+
+  // ร้าน/ผู้รับเงินยอดฮิต
+  const payees = new Map();
+  MJ.state.transactions.filter((t) => t.type === 'expense' && t.payee_name).forEach((t) => {
+    const k = t.payee_name.trim();
+    payees.set(k, (payees.get(k) || 0) + Number(t.amount));
+  });
+  const topPayees = Array.from(payees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  view.innerHTML = `
+    <div class="seg" id="anType">
+      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
+      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>สัดส่วนตามหมวด</h3><span class="badge">${cats.length} หมวด</span></div>
+      ${MJ.charts.donut(cats, { centerTop: type === 'expense' ? 'จ่ายไป' : 'รับมา', centerMain: MJ.fmtBaht(total) })}
+      ${MJ.charts.legend(cats, total)}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>รายวันตลอดเดือน</h3>
+        <span class="tiny muted">🟥 จ่าย 🟩 รับ</span></div>
+      ${MJ.charts.bars(expSeries, incSeries, { h: 140 })}
+      <div class="stat-grid mt">
+        <div class="stat"><div class="k">จ่ายหนักสุดวันที่</div><div class="v">${maxVal ? `${maxDay} (${MJ.fmtBaht(maxVal)})` : '-'}</div></div>
+        <div class="stat"><div class="k">วันที่ไม่ได้ใช้เงิน</div><div class="v">${expSeries.filter((v) => v === 0).length} วัน</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>ยอดสะสมทั้งเดือน</h3></div>
+      ${MJ.charts.line(type === 'expense' ? expSeries : incSeries, type === 'expense' ? 'var(--out)' : 'var(--in)')}
+      <div class="bud-foot"><span>วันที่ 1</span><span>วันที่ ${days}</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>ใช้เงินวันไหนมากสุด</h3></div>
+      ${['อา','จ','อ','พ','พฤ','ศ','ส'].map((d, i) => `
+        <div class="bud">
+          <div class="bud-top"><span class="bud-name">${d}</span><span>${MJ.fmtBaht(weekday[i])}</span></div>
+          <div class="bar"><i style="width:${(weekday[i] / wkMax) * 100}%;background:var(--honey)"></i></div>
+        </div>`).join('')}
+    </div>
+
+    ${topPayees.length ? `<div class="card">
+      <div class="card-head"><h3>จ่ายให้ใครบ่อยสุด</h3></div>
+      ${topPayees.map(([n, v]) => `<div class="list-item"><span class="ic">🏪</span>
+        <span class="tx2"><b>${MJ.esc(n)}</b></span>
+        <span class="tx-amt out">${MJ.fmtBaht(v)}</span></div>`).join('')}
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-head"><h3>เทียบกับเดือนก่อน</h3></div>
+      <div id="cmpBox"><div class="empty tiny">กำลังคำนวณ…</div></div>
+    </div>
+    <div style="height:10px"></div>`;
+
+  view.querySelectorAll('#anType .seg-btn').forEach((b) => b.onclick = () => {
+    MJ.analysis.type = b.dataset.type; MJ.render();
+  });
+
+  renderCompare(MJ.$('#cmpBox', view));
+};
+
+async function renderCompare(box) {
+  const cur = MJ.data.summary();
+  const prevMonth = new Date(MJ.state.month.getFullYear(), MJ.state.month.getMonth() - 1, 1);
+  const key = MJ.isoDate(prevMonth).slice(0, 7);
+  let prev = MJ.analysis.prevCache[key];
+
+  if (!prev) {
+    const { data } = await MJ.sb.from('transactions').select('amount, type')
+      .gte('transaction_date', MJ.startOfMonth(prevMonth).toISOString())
+      .lte('transaction_date', MJ.endOfMonth(prevMonth).toISOString());
+    prev = { income: 0, expense: 0 };
+    (data || []).forEach((t) => { prev[t.type] += Number(t.amount); });
+    MJ.analysis.prevCache[key] = prev;
+  }
+
+  const diff = cur.expense - prev.expense;
+  const pct = prev.expense ? Math.round((diff / prev.expense) * 100) : null;
+  box.innerHTML = `
+    <div class="stat-grid mb">
+      <div class="stat"><div class="k">${MJ.monthLabel(prevMonth)} จ่าย</div><div class="v">${MJ.fmtBaht(prev.expense)}</div></div>
+      <div class="stat"><div class="k">${MJ.monthLabel(MJ.state.month)} จ่าย</div><div class="v">${MJ.fmtBaht(cur.expense)}</div></div>
+    </div>
+    <p class="center ${diff > 0 ? 'tx-amt out' : 'tx-amt in'}" style="font-size:15px">
+      ${prev.expense === 0 ? 'เดือนก่อนยังไม่มีข้อมูลให้เทียบ 🐻'
+        : (diff > 0 ? `ใช้มากขึ้น ${MJ.fmtBaht(diff)}${pct !== null ? ` (+${pct}%)` : ''} 🫣`
+                    : `ประหยัดขึ้น ${MJ.fmtBaht(-diff)}${pct !== null ? ` (${pct}%)` : ''} เก่งมาก! 🎉`)}
+    </p>`;
+}
+
+</script>
+<script>
+/* ===== 64-budget.js ===== */
+/* ===================================================================
+   64-budget.js — จัดการหมวดหมู่และงบประมาณ
+   =================================================================== */
+MJ.budget = { type: 'expense' };
+
+const ICON_CHOICES = ['🍜','☕','🍔','🛒','🚕','⛽','🚌','🏠','💡','💧','📱','💊','🏥','👕','🎮','🎬','✈️','🐶','🎁','📚','💰','💼','🏦','🍯','🐻','🧾','🎓','💇','🏋️','🍺'];
+const COLOR_CHOICES = ['#F2724A','#F2B23E','#3EA96B','#4A9DF2','#B36AE2','#E2607A','#5BC0A5','#8B5E3C','#2E8B9E','#C6A15B','#7FB93E','#9AA0A6'];
+
+MJ.routes.budget = (view) => {
+  const type = MJ.budget.type;
+  const stats = MJ.data.byCategory(type);
+  const cats = MJ.state.categories.filter((c) => c.type === type);
+  const statOf = (id) => stats.find((s) => s.id === id) || { total: 0, count: 0 };
+  const totalBudget = cats.reduce((a, c) => a + (Number(c.budget_limit) || 0), 0);
+  const totalUsed = stats.reduce((a, s) => a + s.total, 0);
+
+  view.innerHTML = `
+    <div class="seg" id="budType">
+      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">💸 หมวดรายจ่าย</button>
+      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">💰 หมวดรายรับ</button>
+    </div>
+
+    ${type === 'expense' ? `<div class="card">
+      <div class="card-head"><h3>งบรวมเดือนนี้</h3><span class="badge">${MJ.monthLabel(MJ.state.month)}</span></div>
+      <div class="bud">
+        <div class="bud-top"><span class="bud-name">🍯 ทั้งหมด</span>
+          <span>${MJ.fmtBaht(totalUsed)} <span class="muted tiny">/ ${MJ.fmtMoney(totalBudget)}</span></span></div>
+        <div class="bar"><i style="width:${totalBudget ? Math.min(100, (totalUsed / totalBudget) * 100) : 0}%;
+          background:${totalUsed > totalBudget && totalBudget ? 'var(--out)' : 'linear-gradient(90deg,var(--honey),var(--honey-d))'}"></i></div>
+        <div class="bud-foot"><span>${totalBudget ? (totalUsed > totalBudget
+          ? `เกินงบ ${MJ.fmtBaht(totalUsed - totalBudget)}` : `เหลือ ${MJ.fmtBaht(totalBudget - totalUsed)}`) : 'ยังไม่ตั้งงบ'}</span>
+          <span>${cats.length} หมวด</span></div>
+      </div>
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-head"><h3>หมวดหมู่</h3><button class="link" id="addCat">+ เพิ่มหมวด</button></div>
+      ${cats.length ? cats.map((c) => {
+        const st = statOf(c.id);
+        return `<div class="list-item" data-cat="${c.id}">
+          <span class="ic" style="background:${MJ.hex2rgba(c.color, .18)}">${c.icon}</span>
+          <span class="tx2"><b>${MJ.esc(c.name)}</b>
+            <small>${c.budget_limit ? `งบ ${MJ.fmtBaht(c.budget_limit)} • ใช้ไป ${MJ.fmtBaht(st.total)}` : `ใช้ไป ${MJ.fmtBaht(st.total)} • ยังไม่ตั้งงบ`}</small></span>
+          <span class="tiny muted">แก้ไข ›</span>
+        </div>`;
+      }).join('') : '<div class="empty tiny">ยังไม่มีหมวดในกลุ่มนี้</div>'}
+    </div>
+
+    ${type === 'expense' && stats.some((s) => s.budget) ? `<div class="card">
+      <div class="card-head"><h3>ความคืบหน้ารายหมวด</h3></div>
+      ${stats.filter((s) => s.budget).map((s) => MJ.charts.budgetBar(s)).join('')}
+    </div>` : ''}
+    <div style="height:10px"></div>`;
+
+  view.querySelectorAll('#budType .seg-btn').forEach((b) => b.onclick = () => { MJ.budget.type = b.dataset.type; MJ.render(); });
+  MJ.$('#addCat', view).onclick = () => MJ.budget.openEditor(null);
+  view.querySelectorAll('[data-cat]').forEach((el) => el.onclick = () => {
+    MJ.budget.openEditor(MJ.data.catById(el.dataset.cat));
+  });
+};
+
+MJ.budget.openEditor = function (cat) {
+  const isNew = !cat;
+  const c = cat || { name: '', type: MJ.budget.type, icon: '🐻', color: '#F2B23E', budget_limit: '', keywords: [] };
+
+  MJ.sheet.open(isNew ? 'เพิ่มหมวดใหม่' : 'แก้ไขหมวด', `
+    <label class="field"><span>ชื่อหมวด</span>
+      <input type="text" id="cName" value="${MJ.esc(c.name)}" placeholder="เช่น ค่ากาแฟ"></label>
+    <div class="seg" id="cType">
+      <button class="seg-btn ${c.type === 'expense' ? 'active' : ''}" data-type="expense">รายจ่าย</button>
+      <button class="seg-btn ${c.type === 'income' ? 'active' : ''}" data-type="income">รายรับ</button>
+    </div>
+    <div class="field"><span>ไอคอน</span>
+      <div class="chips" id="cIcons">${ICON_CHOICES.map((i) => `
+        <button class="chip ${i === c.icon ? 'active' : ''}" data-icon="${i}" style="font-size:19px;padding:7px 11px">${i}</button>`).join('')}</div>
+    </div>
+    <div class="field"><span>สี</span>
+      <div class="chips" id="cColors">${COLOR_CHOICES.map((col) => `
+        <button class="chip" data-color="${col}" style="background:${col};width:34px;height:34px;padding:0;border-radius:12px;
+          ${col === c.color ? 'outline:3px solid var(--ink);outline-offset:2px' : ''}"></button>`).join('')}</div>
+    </div>
+    <label class="field"><span>งบต่อเดือน (บาท) — เว้นว่างถ้าไม่ตั้ง</span>
+      <input type="number" step="1" inputmode="decimal" id="cBudget" value="${c.budget_limit ?? ''}" placeholder="เช่น 3000"></label>
+    <label class="field"><span>คำที่ใช้จับหมวดอัตโนมัติ (คั่นด้วยจุลภาค)</span>
+      <input type="text" id="cKeywords" value="${MJ.esc((c.keywords || []).join(', '))}" placeholder="กาแฟ, cafe, ลาเต้"></label>
+    <button class="btn btn-primary btn-block" id="cSave">${isNew ? 'เพิ่มหมวด' : 'บันทึก'}</button>
+    ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="cDel">ลบหมวดนี้</button>'}
+  `, (body) => {
+    let type = c.type, icon = c.icon, color = c.color;
+    body.querySelectorAll('#cType .seg-btn').forEach((b) => b.onclick = () => {
+      type = b.dataset.type;
+      body.querySelectorAll('#cType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
+    });
+    body.querySelectorAll('#cIcons .chip').forEach((b) => b.onclick = () => {
+      icon = b.dataset.icon;
+      body.querySelectorAll('#cIcons .chip').forEach((x) => x.classList.toggle('active', x === b));
+    });
+    body.querySelectorAll('#cColors .chip').forEach((b) => b.onclick = () => {
+      color = b.dataset.color;
+      body.querySelectorAll('#cColors .chip').forEach((x) => x.style.outline = x === b ? '3px solid var(--ink)' : '');
+    });
+
+    MJ.$('#cSave', body).onclick = async () => {
+      const name = MJ.$('#cName', body).value.trim();
+      if (!name) { MJ.toast('ตั้งชื่อหมวดก่อนนะ', 'err'); return; }
+      MJ.loading(true, 'กำลังบันทึก…');
+      try {
+        await MJ.data.saveCategory({
+          id: c.id, name, type, icon, color,
+          budget_limit: MJ.$('#cBudget', body).value,
+          keywords: MJ.$('#cKeywords', body).value.split(',').map((s) => s.trim()).filter(Boolean),
+        });
+        MJ.sheet.close(); MJ.toast('บันทึกแล้ว 🐻', 'ok'); MJ.render();
+      } catch (e) {
+        MJ.toast(/duplicate/i.test(e.message) ? 'มีหมวดชื่อนี้อยู่แล้ว' : 'บันทึกไม่สำเร็จ', 'err');
+      } finally { MJ.loading(false); }
+    };
+
+    if (MJ.$('#cDel', body)) MJ.$('#cDel', body).onclick = async () => {
+      if (!(await MJ.confirm('ลบหมวด', 'รายการเดิมจะยังอยู่แต่จะไม่มีหมวด ยืนยันไหม?', 'ลบหมวด'))) return;
+      MJ.loading(true, 'กำลังลบ…');
+      try { await MJ.data.archiveCategory(c.id); MJ.sheet.close(); MJ.toast('ลบแล้ว', 'ok'); MJ.render(); }
+      catch (e) { MJ.toast('ลบไม่สำเร็จ', 'err'); }
+      finally { MJ.loading(false); }
+    };
+  });
+};
+
+</script>
+<script>
+/* ===== 65-settings.js ===== */
+/* ===================================================================
+   65-settings.js — โปรไฟล์ ธีม แจ้งเตือน รายการประจำ OCR ส่งออกข้อมูล
+   =================================================================== */
+MJ.routes.settings = (view) => {
+  const p = MJ.state.profile || {};
+  const notifState = ('Notification' in window) ? Notification.permission : 'unsupported';
+
+  view.innerHTML = `
+    <div class="card">
+      <div class="list-item">
+        <span class="ic" style="font-size:22px">🐻</span>
+        <span class="tx2"><b>${MJ.esc(p.display_name || 'หมีน้อย')}</b><small>${MJ.esc(MJ.state.user.email || '')}</small></span>
+        <button class="btn btn-soft btn-sm" id="editProfile">แก้ไข</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>การแสดงผล</h3></div>
+      <div class="list-item"><span class="ic">🎨</span>
+        <span class="tx2"><b>ธีม</b><small>เลือกโหมดสว่าง/มืด</small></span>
+        <select id="themeSel" style="width:auto;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)">
+          <option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>ตามเครื่อง</option>
+          <option value="light" ${p.theme === 'light' ? 'selected' : ''}>สว่าง</option>
+          <option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>มืด</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>แจ้งเตือนให้จด</h3></div>
+      <div class="list-item"><span class="ic">⏰</span>
+        <span class="tx2"><b>เวลาเตือนประจำวัน</b><small>${notifState === 'granted' ? 'เปิดใช้งานแล้ว' : 'ต้องอนุญาตการแจ้งเตือนก่อน'}</small></span>
+        <input type="time" id="reminderTime" value="${p.reminder_time ? String(p.reminder_time).slice(0, 5) : ''}"
+          style="width:auto;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)">
+      </div>
+      ${notifState !== 'granted' ? '<button class="btn btn-soft btn-block btn-sm mt" id="askNotif">อนุญาตการแจ้งเตือน</button>' : ''}
+      <p class="tiny muted mt">บน iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน แล้วเปิดจากไอคอนแอปถึงจะแจ้งเตือนได้</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>รายการประจำ (Subscription)</h3><button class="link" id="addRecur">+ เพิ่ม</button></div>
+      ${MJ.state.recurring.length ? MJ.state.recurring.map((r) => {
+        const c = MJ.data.catById(r.category_id);
+        const freq = { daily: 'ทุกวัน', weekly: 'ทุกสัปดาห์', monthly: 'ทุกเดือน', yearly: 'ทุกปี' }[r.frequency];
+        return `<div class="list-item" data-recur="${r.id}">
+          <span class="ic" style="background:${MJ.hex2rgba(c?.color || '#F2B23E', .18)}">${c?.icon || '🔁'}</span>
+          <span class="tx2"><b>${MJ.esc(r.note || c?.name || 'รายการประจำ')}</b>
+            <small>${freq} • ครั้งถัดไป ${MJ.dayLabel(r.next_run_date)}</small></span>
+          <span class="tx-amt ${r.type === 'income' ? 'in' : 'out'}">${MJ.fmtMoney(r.amount)}</span>
+        </div>`;
+      }).join('') : '<div class="empty tiny">ยังไม่มีรายการประจำ เช่น ค่าเน็ต Netflix ค่าเช่าห้อง</div>'}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>อ่านสลิป (OCR)</h3></div>
+      <div class="list-item"><span class="ic">🔍</span>
+        <span class="tx2"><b>${p.ocr_endpoint ? 'PaddleOCR (เซิร์ฟเวอร์ของคุณ)' : 'อ่านในเครื่อง (Tesseract.js)'}</b>
+          <small>${p.ocr_endpoint ? MJ.esc(p.ocr_endpoint) : 'ฟรี ไม่ต้องตั้งค่าอะไร'}</small></span>
+        <button class="btn btn-soft btn-sm" id="editOcr">ตั้งค่า</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>ข้อมูลของฉัน</h3></div>
+      <div class="list-item" id="expMonth"><span class="ic">📄</span>
+        <span class="tx2"><b>ส่งออกเดือนนี้เป็น Excel</b><small>${MJ.monthLabelFull(MJ.state.month)}</small></span><span class="tiny muted">›</span></div>
+      <div class="list-item" id="expAll"><span class="ic">📦</span>
+        <span class="tx2"><b>ส่งออกทั้งหมด</b><small>ทุกรายการที่เคยบันทึก</small></span><span class="tiny muted">›</span></div>
+      <div class="list-item" id="runRecur"><span class="ic">🔁</span>
+        <span class="tx2"><b>ประมวลผลรายการประจำเดี๋ยวนี้</b><small>เผื่อรายการที่ถึงกำหนดแล้ว</small></span><span class="tiny muted">›</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>เกี่ยวกับ</h3></div>
+      <div class="list-item" id="howInstall"><span class="ic">📲</span>
+        <span class="tx2"><b>ติดตั้งลงหน้าจอโฮม</b><small>ใช้เหมือนแอปจริง</small></span><span class="tiny muted">›</span></div>
+      <div class="list-item"><span class="ic">🍯</span>
+        <span class="tx2"><b>หมีจด MheeJod</b><small>เวอร์ชัน 1.0 • ข้อมูลเก็บใน Supabase ของคุณเอง</small></span></div>
+    </div>
+
+    <button class="btn btn-danger btn-block" id="signOut">ออกจากระบบ</button>
+    <div style="height:16px"></div>`;
+
+  MJ.$('#editProfile', view).onclick = () => openProfileSheet();
+  MJ.$('#themeSel', view).onchange = async (e) => {
+    const v = e.target.value;
+    MJ.applyTheme(v);
+    try { await MJ.data.saveProfile({ theme: v }); } catch (err) { MJ.toast('บันทึกธีมไม่สำเร็จ', 'err'); }
+  };
+  MJ.$('#reminderTime', view).onchange = async (e) => {
+    const v = e.target.value || null;
+    try {
+      await MJ.data.saveProfile({ reminder_time: v });
+      MJ.reminder.schedule();
+      MJ.toast(v ? `จะเตือนทุกวันเวลา ${v} น.` : 'ปิดการเตือนแล้ว', 'ok');
+    } catch (err) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
+  };
+  if (MJ.$('#askNotif', view)) MJ.$('#askNotif', view).onclick = async () => {
+    const res = await Notification.requestPermission();
+    MJ.toast(res === 'granted' ? 'เปิดแจ้งเตือนแล้ว 🔔' : 'ยังไม่ได้รับอนุญาต', res === 'granted' ? 'ok' : 'err');
+    MJ.render();
+  };
+  MJ.$('#addRecur', view).onclick = () => openRecurSheet(null);
+  view.querySelectorAll('[data-recur]').forEach((el) => el.onclick = () =>
+    openRecurSheet(MJ.state.recurring.find((r) => r.id === el.dataset.recur)));
+  MJ.$('#editOcr', view).onclick = () => openOcrSheet();
+  MJ.$('#expMonth', view).onclick = () => MJ.tx.exportExcel(MJ.state.transactions);
+  MJ.$('#expAll', view).onclick = async () => {
+    MJ.loading(true, 'กำลังรวบรวมข้อมูล…');
+    const { data } = await MJ.sb.from('transactions').select('*').order('transaction_date', { ascending: false }).limit(10000);
+    MJ.loading(false);
+    MJ.tx.exportExcel(data || [], 'หมีจด-ทั้งหมด.xlsx');
+  };
+  MJ.$('#runRecur', view).onclick = async () => {
+    MJ.loading(true, 'กำลังประมวลผล…');
+    const n = await MJ.data.runRecurring();
+    MJ.loading(false);
+    if (!n) MJ.toast('ยังไม่มีรายการที่ถึงกำหนด');
+    MJ.render();
+  };
+  MJ.$('#howInstall', view).onclick = () => MJ.sheet.open('ติดตั้งลงหน้าจอโฮม', `
+    <p class="mb"><b>iPhone / iPad (Safari)</b><br>
+      1. แตะปุ่มแชร์ <b>􀈂</b> ด้านล่าง<br>2. เลือก “เพิ่มไปยังหน้าจอโฮม”<br>3. กด “เพิ่ม” แล้วเปิดจากไอคอนหมี 🐻</p>
+    <p class="mb"><b>Android (Chrome)</b><br>1. แตะเมนู ⋮ มุมขวาบน<br>2. เลือก “ติดตั้งแอป” หรือ “เพิ่มไปยังหน้าจอหลัก”</p>
+    <p class="tiny muted">เมื่อติดตั้งแล้วจะเปิดเต็มจอ ใช้ออฟไลน์ได้บางส่วน และแชร์รูปสลิปเข้าแอปได้โดยตรง</p>`);
+  MJ.$('#signOut', view).onclick = () => MJ.auth.signOut();
+};
+
+/* ---------------------- โปรไฟล์ ---------------------- */
+function openProfileSheet() {
+  const p = MJ.state.profile;
+  MJ.sheet.open('แก้ไขโปรไฟล์', `
+    <label class="field"><span>ชื่อที่อยากให้เรียก</span>
+      <input type="text" id="pName" value="${MJ.esc(p.display_name || '')}"></label>
+    <label class="field"><span>อีเมล</span>
+      <input type="text" value="${MJ.esc(MJ.state.user.email || '')}" disabled></label>
+    <button class="btn btn-primary btn-block" id="pSave">บันทึก</button>`, (body) => {
+    MJ.$('#pSave', body).onclick = async () => {
+      MJ.loading(true, 'กำลังบันทึก…');
+      try {
+        await MJ.data.saveProfile({ display_name: MJ.$('#pName', body).value.trim() || 'หมีน้อย' });
+        MJ.sheet.close(); MJ.toast('บันทึกแล้ว', 'ok'); MJ.render();
+      } catch (e) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
+      finally { MJ.loading(false); }
+    };
+  });
+}
+
+/* ---------------------- รายการประจำ ---------------------- */
+function openRecurSheet(r) {
+  const isNew = !r;
+  const v = r || { amount: '', type: 'expense', category_id: null, note: '', frequency: 'monthly',
+                   next_run_date: MJ.isoDate(new Date()), is_active: true };
+  const cats = MJ.state.categories;
+
+  MJ.sheet.open(isNew ? 'เพิ่มรายการประจำ' : 'แก้ไขรายการประจำ', `
+    <div class="seg" id="rType">
+      <button class="seg-btn ${v.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
+      <button class="seg-btn ${v.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+    </div>
+    <label class="field"><span>ชื่อรายการ</span>
+      <input type="text" id="rNote" value="${MJ.esc(v.note || '')}" placeholder="เช่น Netflix, ค่าเช่าห้อง"></label>
+    <label class="field"><span>จำนวนเงิน</span>
+      <input type="number" step="0.01" inputmode="decimal" id="rAmount" value="${v.amount}"></label>
+    <label class="field"><span>หมวดหมู่</span><select id="rCat">
+      ${cats.filter((c) => c.type === v.type).map((c) => `<option value="${c.id}" ${c.id === v.category_id ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('')}
+    </select></label>
+    <div class="row">
+      <label class="field"><span>ความถี่</span><select id="rFreq">
+        <option value="daily" ${v.frequency === 'daily' ? 'selected' : ''}>ทุกวัน</option>
+        <option value="weekly" ${v.frequency === 'weekly' ? 'selected' : ''}>ทุกสัปดาห์</option>
+        <option value="monthly" ${v.frequency === 'monthly' ? 'selected' : ''}>ทุกเดือน</option>
+        <option value="yearly" ${v.frequency === 'yearly' ? 'selected' : ''}>ทุกปี</option>
+      </select></label>
+      <label class="field"><span>ครั้งถัดไป</span>
+        <input type="date" id="rDate" value="${String(v.next_run_date).slice(0, 10)}"></label>
+    </div>
+    <div class="list-item"><span class="ic">▶️</span><span class="tx2"><b>เปิดใช้งาน</b><small>ปิดไว้ถ้ายังไม่อยากให้จดอัตโนมัติ</small></span>
+      <div class="switch ${v.is_active ? 'on' : ''}" id="rActive"><i></i></div></div>
+    <button class="btn btn-primary btn-block mt" id="rSave">${isNew ? 'เพิ่มรายการ' : 'บันทึก'}</button>
+    ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="rDel">ลบรายการประจำ</button>'}
+  `, (body) => {
+    let type = v.type, active = v.is_active !== false;
+    body.querySelectorAll('#rType .seg-btn').forEach((b) => b.onclick = () => {
+      type = b.dataset.type;
+      body.querySelectorAll('#rType .seg-btn').forEach((x) => x.classList.toggle('active', x === b));
+      MJ.$('#rCat', body).innerHTML = cats.filter((c) => c.type === type)
+        .map((c) => `<option value="${c.id}">${c.icon} ${MJ.esc(c.name)}</option>`).join('');
+    });
+    MJ.$('#rActive', body).onclick = (e) => { active = !active; e.currentTarget.classList.toggle('on', active); };
+
+    MJ.$('#rSave', body).onclick = async () => {
+      const amount = parseFloat(MJ.$('#rAmount', body).value);
+      if (!amount || amount <= 0) { MJ.toast('ใส่จำนวนเงินก่อนนะ', 'err'); return; }
+      MJ.loading(true, 'กำลังบันทึก…');
+      try {
+        await MJ.data.saveRecurring({
+          id: v.id, amount, type,
+          category_id: MJ.$('#rCat', body).value || null,
+          note: MJ.$('#rNote', body).value.trim() || null,
+          frequency: MJ.$('#rFreq', body).value,
+          next_run_date: MJ.$('#rDate', body).value,
+          is_active: active,
+        });
+        MJ.sheet.close(); MJ.toast('บันทึกแล้ว 🐻', 'ok'); MJ.render();
+      } catch (e) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
+      finally { MJ.loading(false); }
+    };
+    if (MJ.$('#rDel', body)) MJ.$('#rDel', body).onclick = async () => {
+      if (!(await MJ.confirm('ลบรายการประจำ', 'รายการที่บันทึกไปแล้วจะยังอยู่ ยืนยันไหม?', 'ลบ'))) return;
+      await MJ.data.deleteRecurring(v.id);
+      MJ.sheet.close(); MJ.toast('ลบแล้ว', 'ok'); MJ.render();
+    };
+  });
+}
+
+/* ---------------------- ตั้งค่า OCR ---------------------- */
+function openOcrSheet() {
+  const cur = MJ.state.profile?.ocr_endpoint || '';
+  MJ.sheet.open('ตั้งค่าการอ่านสลิป', `
+    <p class="tiny muted mb">ค่าเริ่มต้นอ่านในเครื่องด้วย Tesseract.js (ฟรี ไม่ต้องตั้งค่า)
+      ถ้าต้องการความแม่นยำสูงขึ้น รัน PaddleOCR เองแล้วใส่ URL ที่นี่
+      (มีไฟล์ Docker ให้ในโฟลเดอร์ <code>ocr-service/</code> ของโปรเจกต์)</p>
+    <label class="field"><span>PaddleOCR endpoint</span>
+      <input type="url" id="oUrl" value="${MJ.esc(cur)}" placeholder="https://ocr.example.com"></label>
+    <button class="btn btn-soft btn-block mb" id="oTest">ทดสอบการเชื่อมต่อ</button>
+    <button class="btn btn-primary btn-block" id="oSave">บันทึก</button>
+    <button class="btn btn-ghost btn-block" id="oClear">กลับไปใช้การอ่านในเครื่อง</button>`, (body) => {
+    MJ.$('#oTest', body).onclick = async () => {
+      const url = MJ.$('#oUrl', body).value.trim();
+      if (!url) { MJ.toast('ใส่ URL ก่อนนะ', 'err'); return; }
+      MJ.loading(true, 'กำลังทดสอบ…');
+      try {
+        const res = await fetch(url.replace(/\/$/, '') + '/health');
+        MJ.toast(res.ok ? 'เชื่อมต่อได้ 👍' : 'เชื่อมต่อไม่ได้ (' + res.status + ')', res.ok ? 'ok' : 'err');
+      } catch (e) { MJ.toast('เชื่อมต่อไม่ได้: ' + e.message, 'err'); }
+      finally { MJ.loading(false); }
+    };
+    MJ.$('#oSave', body).onclick = async () => {
+      await MJ.data.saveProfile({ ocr_endpoint: MJ.$('#oUrl', body).value.trim() || null });
+      MJ.sheet.close(); MJ.toast('บันทึกแล้ว', 'ok'); MJ.render();
+    };
+    MJ.$('#oClear', body).onclick = async () => {
+      await MJ.data.saveProfile({ ocr_endpoint: null });
+      MJ.sheet.close(); MJ.toast('กลับไปใช้การอ่านในเครื่องแล้ว', 'ok'); MJ.render();
+    };
+  });
+}
+
+/* ---------------------- ตัวเตือนประจำวัน (ฝั่งเครื่อง) ---------------------- */
+MJ.reminder = {
+  timer: null,
+  schedule() {
+    clearTimeout(this.timer);
+    const t = MJ.state.profile?.reminder_time;
+    if (!t || !('Notification' in window) || Notification.permission !== 'granted') return;
+    const [h, m] = String(t).split(':').map(Number);
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+    this.timer = setTimeout(() => {
+      const s = MJ.data.summary();
+      new Notification('หมีจดเตือนแล้วนะ 🐻', {
+        body: s.count ? `วันนี้จดไปแล้ว ${s.count} รายการ อย่าลืมจดที่เหลือน้า` : 'วันนี้ยังไม่ได้จดเลย มาจดกัน!',
+        icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'mheejod-daily',
+      });
+      this.schedule();
+    }, next - now);
+  },
+};
+
+</script>
+<script>
+/* ===== 99-boot.js ===== */
+/* ===================================================================
+   99-boot.js — เริ่มระบบ: ธีม, auth, การนำทาง, service worker, share target
+   =================================================================== */
+MJ.applyTheme = (mode) => {
+  const root = document.documentElement;
+  if (mode === 'light' || mode === 'dark') root.setAttribute('data-theme', mode);
+  else root.removeAttribute('data-theme');
+};
+
+MJ.boot = async function () {
+  MJ.applyTheme(localStorage.getItem('mj-theme') || 'auto');
+
+  /* ---------- การนำทาง ---------- */
+  document.querySelectorAll('.tab, .fab').forEach((el) => {
+    el.onclick = () => { MJ.buzz(8); MJ.go(el.dataset.route); };
+  });
+  document.querySelectorAll('#sheet [data-close]').forEach((el) => el.onclick = () => MJ.sheet.close());
+  window.addEventListener('hashchange', () => {
+    const r = location.hash.replace('#', '') || 'dashboard';
+    if (MJ.routes[r] && r !== MJ.state.route) { MJ.state.route = r; MJ.render(); }
+  });
+
+  /* ---------- เปลี่ยนเดือน ---------- */
+  const shiftMonth = async (delta) => {
+    MJ.state.month = new Date(MJ.state.month.getFullYear(), MJ.state.month.getMonth() + delta, 1);
+    MJ.$('#btnMonth').textContent = MJ.monthLabel(MJ.state.month);
+    MJ.loading(true, 'กำลังโหลดเดือน ' + MJ.monthLabel(MJ.state.month));
+    await MJ.data.loadMonth();
+    MJ.loading(false);
+    MJ.render();
+  };
+  MJ.$('#btnMonthPrev').onclick = () => shiftMonth(-1);
+  MJ.$('#btnMonthNext').onclick = () => shiftMonth(1);
+  MJ.$('#btnMonth').onclick = async () => {
+    const now = new Date();
+    MJ.state.month = new Date(now.getFullYear(), now.getMonth(), 1);
+    MJ.$('#btnMonth').textContent = MJ.monthLabel(MJ.state.month);
+    await MJ.data.loadMonth();
+    MJ.render();
+  };
+
+  /* ---------- Service worker + share target ---------- */
+  if ('serviceWorker' in navigator) {
+    try {
+      await navigator.serviceWorker.register('sw.js', { scope: './' });
+    } catch (e) { /* ใช้งานต่อได้แม้ลงทะเบียนไม่สำเร็จ */ }
+  }
+
+  /* ---------- Auth ---------- */
+  const { data: { session } } = await MJ.sb.auth.getSession();
+  MJ.sb.auth.onAuthStateChange((event, sess) => {
+    if (event === 'SIGNED_IN' && !MJ.state.user) MJ.start(sess.user);
+    if (event === 'SIGNED_OUT') location.reload();
+  });
+
+  if (session?.user) await MJ.start(session.user);
+  else {
+    MJ.$('#authScreen').classList.remove('hidden');
+    MJ.auth.mount();
+  }
+};
+
+MJ.start = async function (user) {
+  MJ.state.user = user;
+  MJ.$('#authScreen').classList.add('hidden');
+  MJ.loading(true, 'กำลังเตรียมข้อมูล…');
+  try {
+    await MJ.data.loadAll();
+  } catch (e) {
+    MJ.toast('โหลดข้อมูลไม่สำเร็จ: ' + (e.message || e), 'err');
+  }
+  MJ.loading(false);
+
+  const theme = MJ.state.profile?.theme || 'auto';
+  localStorage.setItem('mj-theme', theme);
+  MJ.applyTheme(theme);
+
+  MJ.$('#app').classList.remove('hidden');
+  MJ.$('#btnMonth').textContent = MJ.monthLabel(MJ.state.month);
+  const hash = location.hash.replace('#', '');
+  MJ.state.route = MJ.routes[hash] ? hash : 'dashboard';
+  MJ.render();
+
+  MJ.reminder.schedule();
+  MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });
+  handleSharedSlip();
+};
+
+/* ---------- รับรูปสลิปที่แชร์เข้ามาจากแอปอื่น (Web Share Target) ---------- */
+async function handleSharedSlip() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('share')) return;
+  history.replaceState({}, '', location.pathname + location.hash);
+  try {
+    const cache = await caches.open('mj-share');
+    const res = await cache.match('shared-slip');
+    if (!res) return;
+    const blob = await res.blob();
+    await cache.delete('shared-slip');
+    const file = new File([blob], 'slip.jpg', { type: blob.type || 'image/jpeg' });
+    MJ.go('add', { tab: 'slip' });
+    MJ.add.processSlip(file);
+  } catch (e) { /* ไม่มีไฟล์ก็ข้ามไป */ }
+}
+
+document.addEventListener('DOMContentLoaded', () => MJ.boot());
+
+</script>
+</body>
+</html>
