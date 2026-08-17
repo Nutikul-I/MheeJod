@@ -80,11 +80,14 @@ npm run dev        # เปิด http://localhost:4173
 ```
 
 ### 4) ขึ้นเว็บจริง (GitHub Pages)
+
+🌐 **เว็บใช้งานจริง: https://nutikul-i.github.io/MheeJod/**
+
+อัปเดตเว็บหลังแก้โค้ดใน `web/`:
 ```bash
-npm run build && cp -r dist/* docs/ && git add -A && git commit -m "build" && git push
+npm run deploy      # build + copy ลง docs/ + commit + push
 ```
-ที่ GitHub → **Settings → Pages → Source: Deploy from a branch → main / docs**
-เว็บจะอยู่ที่ `https://<user>.github.io/MheeJod/`
+GitHub Pages ตั้งไว้ที่ **main / docs** แล้ว (repo ต้องเป็น public เพราะแพลนฟรีไม่รองรับ Pages บน repo private)
 
 มี workflow `.github/workflows/deploy.yml` ให้ด้วย (ถ้าอยากให้ build อัตโนมัติ
 ตั้ง Source เป็น **GitHub Actions** แล้วใส่ secrets `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`)

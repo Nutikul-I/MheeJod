@@ -8,6 +8,8 @@
     "icons": "node scripts/gen-icons.mjs",
     "build": "node scripts/gen-icons.mjs && node scripts/build.mjs",
     "dev": "node scripts/build.mjs && npx --yes http-server dist -p 4173 -c-1",
-    "deploy": "node scripts/build.mjs && npx --yes supabase functions deploy app --no-verify-jwt --project-ref ksfytoazukimilrvxcea"
+    "sql": "node scripts/run-sql.mjs supabase/migrations/20260818000000_init.sql",
+    "deploy": "npm run build && rm -rf docs && mkdir -p docs && cp -r dist/* docs/ && touch docs/.nojekyll && git add -A && git commit -m \"build: อัปเดตเว็บ\" && git push",
+    "deploy:function": "node scripts/build.mjs && npx --yes supabase@latest functions deploy app --no-verify-jwt --project-ref ksfytoazukimilrvxcea"
   }
 }
