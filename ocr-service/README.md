@@ -1,20 +1,37 @@
-# PaddleOCR service (ตัวเลือกเสริม)
+---
+title: MheeJod OCR
+emoji: 🐻
+colorFrom: yellow
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: PaddleOCR PP-OCRv5 อ่านสลิปภาษาไทยให้แอปหมีจด
+---
 
-แอปหมีจดอ่านสลิปได้เองในเบราว์เซอร์อยู่แล้ว (QR + Tesseract.js)
-ตัวนี้ไว้ใช้เมื่ออยากได้ความแม่นยำสูงขึ้นกับภาษาไทย
+# 🐻 MheeJod OCR
 
-## รัน
+PaddleOCR **PP-OCRv5** ภาษาไทย ให้แอป [หมีจด](https://nutikul-i.github.io/MheeJod/) เรียกใช้อ่านสลิป
+
+## API
+
+| เส้นทาง | ทำอะไร |
+|---|---|
+| `GET /health` | เช็กสถานะ |
+| `GET /` | หน้าทดสอบ ลากรูปสลิปมาวางได้ |
+| `POST /ocr` | multipart field `file` → `{"text","lines","ms"}` |
+
 ```bash
-cd ocr-service
-docker compose up -d --build     # ครั้งแรกใช้เวลา 5-10 นาที (ดาวน์โหลดโมเดล)
-curl http://localhost:8000/health
+curl -F "file=@slip.jpg" https://<space>.hf.space/ocr
 ```
 
-จากนั้นในแอป: **ตั้งค่า → อ่านสลิป → ใส่ URL** เช่น `http://localhost:8000`
-(ถ้าเปิดแอปจากมือถือ ต้องใช้ IP ของเครื่องที่รัน เช่น `http://192.168.1.20:8000`
-และเว็บแอปที่เป็น https จะเรียก http ไม่ได้ ต้องทำ https ให้ service ด้วย เช่นผ่าน Cloudflare Tunnel)
+## ใช้กับแอปหมีจด
+เปิดแอป → **ตั้งค่า → อ่านสลิป → ใส่ URL** ของ Space นี้ → กด "ทดสอบการเชื่อมต่อ" → บันทึก
 
-## ทดสอบด้วย curl
+> Space ฟรีจะหลับเมื่อไม่มีคนใช้ ครั้งแรกหลังหลับจะช้าราว 30-60 วินาที แอปหมีจดจะรอและลองใหม่ให้อัตโนมัติ
+
+## รันในเครื่องแทน
 ```bash
-curl -F "file=@slip.jpg" http://localhost:8000/ocr
+docker compose up -d --build     # เปิดที่ http://localhost:8000
 ```

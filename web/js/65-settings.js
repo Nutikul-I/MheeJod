@@ -229,12 +229,22 @@ function openOcrSheet() {
     MJ.$('#oTest', body).onclick = async () => {
       const url = MJ.$('#oUrl', body).value.trim();
       if (!url) { MJ.toast('ใส่ URL ก่อนนะ', 'err'); return; }
-      MJ.loading(true, 'กำลังทดสอบ…');
-      try {
-        const res = await fetch(url.replace(/\/$/, '') + '/health');
-        MJ.toast(res.ok ? 'เชื่อมต่อได้ 👍' : 'เชื่อมต่อไม่ได้ (' + res.status + ')', res.ok ? 'ok' : 'err');
-      } catch (e) { MJ.toast('เชื่อมต่อไม่ได้: ' + e.message, 'err'); }
-      finally { MJ.loading(false); }
+      // เซิร์ฟเวอร์ฟรีอาจหลับอยู่ ให้เวลาปลุกสักหน่อย
+      for (let i = 0; i < 8; i++) {
+        MJ.loading(true, i === 0 ? 'กำลังทดสอบ…' : `กำลังปลุกเซิร์ฟเวอร์… (${i}/7)`);
+        try {
+          const res = await fetch(url.replace(/\/$/, '') + '/health');
+          if (res.ok) {
+            const info = await res.json().catch(() => ({}));
+            MJ.loading(false);
+            MJ.toast(`เชื่อมต่อได้ 👍 ${info.model || ''} ${info.lang ? '(' + info.lang + ')' : ''}`.trim(), 'ok');
+            return;
+          }
+        } catch (e) { /* ยังไม่ตื่น ลองใหม่ */ }
+        await new Promise((r) => setTimeout(r, 6000));
+      }
+      MJ.loading(false);
+      MJ.toast('เชื่อมต่อไม่ได้ ลองเช็ก URL อีกครั้ง', 'err');
     };
     MJ.$('#oSave', body).onclick = async () => {
       await MJ.data.saveProfile({ ocr_endpoint: MJ.$('#oUrl', body).value.trim() || null });

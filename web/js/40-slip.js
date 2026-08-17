@@ -120,16 +120,41 @@ MJ.slip = (() => {
     return data?.text || '';
   }
 
+  /**
+   * ส่งรูปให้ PaddleOCR service
+   * เซิร์ฟเวอร์ฟรี (เช่น Hugging Face Space) จะหลับเมื่อไม่มีคนใช้
+   * ถ้าเจอ 502/503/504 จะรอแล้วลองใหม่ ระหว่างนั้นบอกผู้ใช้ว่ากำลังปลุกเซิร์ฟเวอร์
+   */
   async function ocrRemote(endpoint, file, onProgress) {
-    onProgress && onProgress('กำลังส่งสลิปให้ PaddleOCR…');
-    const fd = new FormData();
-    fd.append('file', file, file.name || 'slip.jpg');
-    const res = await fetch(endpoint.replace(/\/$/, '') + '/ocr', { method: 'POST', body: fd });
-    if (!res.ok) throw new Error('PaddleOCR ตอบกลับผิดพลาด (' + res.status + ')');
-    const json = await res.json();
-    if (typeof json.text === 'string') return json.text;
-    if (Array.isArray(json.lines)) return json.lines.map((l) => (typeof l === 'string' ? l : l.text)).join('\n');
-    return JSON.stringify(json);
+    const url = endpoint.replace(/\/$/, '') + '/ocr';
+    const attempts = 8;
+    for (let i = 0; i < attempts; i++) {
+      onProgress && onProgress(i === 0 ? 'กำลังส่งสลิปให้ PaddleOCR…'
+        : `กำลังปลุกเซิร์ฟเวอร์ OCR… (${i}/${attempts - 1})`);
+      let res;
+      try {
+        const fd = new FormData();
+        fd.append('file', file, file.name || 'slip.jpg');
+        res = await fetch(url, { method: 'POST', body: fd });
+      } catch (err) {
+        if (i === attempts - 1) throw new Error('ต่อเซิร์ฟเวอร์ OCR ไม่ได้');
+        await new Promise((r) => setTimeout(r, 8000));
+        continue;
+      }
+      if (res.ok) {
+        const json = await res.json();
+        if (typeof json.text === 'string') return json.text;
+        if (Array.isArray(json.lines)) return json.lines.map((l) => (typeof l === 'string' ? l : l.text)).join('\n');
+        return JSON.stringify(json);
+      }
+      // กำลังตื่น/บูตอยู่ — รอแล้วลองใหม่
+      if ([408, 429, 500, 502, 503, 504].includes(res.status) && i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 8000));
+        continue;
+      }
+      throw new Error('PaddleOCR ตอบกลับผิดพลาด (' + res.status + ')');
+    }
+    throw new Error('เซิร์ฟเวอร์ OCR ไม่ตอบสนอง');
   }
 
   /* ------------------------- แกะข้อมูลจากข้อความ OCR ------------------------- */
