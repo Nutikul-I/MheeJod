@@ -329,7 +329,18 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   background:linear-gradient(135deg,var(--honey-l),var(--honey-d));color:#3A2A10;
   border-bottom-right-radius:7px;align-self:flex-end;box-shadow:var(--sh-honey)
 }
-.bubble img{display:block;border-radius:14px}
+.bubble img{display:block;border-radius:14px;max-width:100%}
+.bubble.has-img{max-width:74%;padding:7px}
+/* อัลบั้มรูปในบับเบิลเดียว (ส่งสลิปทีละหลายใบ) */
+.img-grid{display:grid;gap:4px}
+.img-grid img{
+  width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;background:var(--cream-2);
+  animation:popIn .3s var(--spring) both
+}
+.img-grid img:nth-child(2){animation-delay:.04s}
+.img-grid img:nth-child(3){animation-delay:.08s}
+.img-grid img:nth-child(n+4){animation-delay:.12s}
+.bubble.has-img .img-grid+*{margin-top:7px}
 .typing{display:inline-flex;gap:4px;align-items:center;padding:2px 0}
 .typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-3);animation:floaty .9s infinite}
 .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
@@ -483,6 +494,25 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+/* ============================ ตรวจสลิปหลายใบ ============================ */
+.batch-row{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px;margin-bottom:12px;box-shadow:var(--sh-sm);
+  transition:opacity .25s,filter .25s,transform .2s var(--ease)
+}
+.batch-row.off{opacity:.5;filter:grayscale(.7)}
+.batch-row.off .batch-fields{display:none}
+.batch-head{display:flex;align-items:center;gap:12px}
+.batch-head img{
+  width:52px;height:66px;object-fit:cover;border-radius:12px;flex:none;background:var(--cream-2)
+}
+.batch-sum{flex:1;min-width:0}
+.batch-sum b{display:block;font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.batch-sum small{color:var(--ink-3);font-size:11.5px}
+.batch-fields{margin-top:12px;animation:fadeUp .25s var(--ease)}
+.batch-fields .field{margin-bottom:10px}
+.batch-total{position:sticky;bottom:0;margin-bottom:12px}
+
 .slip-preview{
   width:100%;border-radius:var(--r-sm);margin-bottom:14px;max-height:320px;
   object-fit:contain;background:var(--cream-2);animation:popIn .4s var(--spring)

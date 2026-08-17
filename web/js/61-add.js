@@ -81,7 +81,7 @@ function renderChat(body, action) {
   fileInput.onchange = (e) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
-    files.forEach((f, i) => setTimeout(() => MJ.add.processSlip(f), i * 250));
+    if (files.length) MJ.add.processSlips(files);
   };
   body.querySelectorAll('#samples .chip').forEach((c) => c.onclick = () => { input.value = c.dataset.s; submitText(); });
 
@@ -91,8 +91,8 @@ function renderChat(body, action) {
   if (action === 'voice') setTimeout(() => MJ.add.toggleVoice(input), 350);
   if (action === 'slip') setTimeout(() => fileInput.click(), 250);
 
-  function pushBubble(who, text, img) {
-    const msg = { who, text, img: img || null };
+  function pushBubble(who, text, img, imgs) {
+    const msg = { who, text, img: img || null, imgs: imgs || null };
     MJ.add.chat.push(msg);
     if (MJ.add.chat.length > 40) MJ.add.chat.splice(0, MJ.add.chat.length - 40);
     box.insertAdjacentHTML('beforeend', bubbleHTML(msg));
@@ -116,8 +116,15 @@ function renderChat(body, action) {
 }
 
 function bubbleHTML(m) {
-  const img = m.img ? `<img src="${m.img}" alt="สลิป" style="width:100%;border-radius:12px;margin-bottom:${m.text ? '6px' : '0'}">` : '';
-  return `<div class="bubble ${m.who}" ${m.img ? 'style="max-width:66%"' : ''}>${img}${m.text ? MJ.esc(m.text) : ''}</div>`;
+  // รูปหลายใบ -> เรียงเป็นตารางในบับเบิลเดียว เหมือนส่งอัลบั้มในแชท
+  if (m.imgs && m.imgs.length) {
+    const cols = m.imgs.length === 1 ? 1 : (m.imgs.length === 2 ? 2 : 3);
+    const grid = `<div class="img-grid" style="grid-template-columns:repeat(${cols},1fr)">
+      ${m.imgs.map((u, i) => `<img src="${u}" alt="สลิปใบที่ ${i + 1}" loading="lazy">`).join('')}</div>`;
+    return `<div class="bubble ${m.who} has-img">${grid}${m.text ? MJ.esc(m.text) : ''}</div>`;
+  }
+  const img = m.img ? `<img src="${m.img}" alt="สลิป" style="width:100%;border-radius:14px;margin-bottom:${m.text ? '7px' : '0'}">` : '';
+  return `<div class="bubble ${m.who} ${m.img ? 'has-img' : ''}">${img}${m.text ? MJ.esc(m.text) : ''}</div>`;
 }
 
 function scrollChat(box) {
@@ -168,7 +175,165 @@ MJ.add.toggleVoice = function (input) {
   try { rec.start(); } catch (e) { MJ.add.recording = false; }
 };
 
-/* ============================ สลิป (ใช้ในแท็บแชท) ============================ */
+/* ============================ สลิปหลายใบพร้อมกัน ============================ */
+/**
+ * เลือกรูปได้ทีละหลายใบเหมือนแชท:
+ *   - รูปขึ้นในแชททันทีทุกใบ
+ *   - อ่านทีละใบพร้อมบอกความคืบหน้า
+ *   - ใบเดียว -> เปิดหน้ายืนยันแบบเดิม, หลายใบ -> เปิดหน้ารวมให้ตรวจทีเดียวแล้วบันทึกรวด
+ */
+MJ.add.processSlips = async function (files) {
+  if (files.length === 1) return MJ.add.processSlip(files[0]);
+
+  const items = files.map((file) => ({ file, url: URL.createObjectURL(file) }));
+  MJ.add.pushBubble && MJ.add.pushBubble('me', '', null, items.map((it) => it.url));
+  MJ.add.pushBubble && MJ.add.pushBubble('bot', `ได้รับสลิป ${files.length} ใบ กำลังอ่านให้นะ… 🐻`);
+
+  const drafts = [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    MJ.loading(true, `กำลังอ่านสลิปใบที่ ${i + 1}/${items.length}…`);
+    try {
+      const draft = await MJ.slip.analyze(it.file, (msg) => MJ.loading(true, `(${i + 1}/${items.length}) ${msg}`));
+      draft.file = it.file;
+      draft.previewUrl = it.url;
+      drafts.push(draft);
+    } catch (err) {
+      drafts.push({ file: it.file, previewUrl: it.url, error: err.message || String(err),
+        amount: null, type: 'expense', transaction_date: new Date(), source: 'slip' });
+    }
+  }
+  MJ.loading(false);
+
+  // เช็กสลิปซ้ำทีเดียวทั้งชุด (รวมทั้งซ้ำกันเองในชุดนี้)
+  const refs = drafts.map((d) => d.slip_reference).filter(Boolean);
+  let existing = new Set();
+  if (refs.length) {
+    const { data } = await MJ.sb.from('transactions').select('slip_reference').in('slip_reference', refs);
+    existing = new Set((data || []).map((r) => r.slip_reference));
+  }
+  const seen = new Set();
+  drafts.forEach((d) => {
+    d.duplicate = !!(d.slip_reference && (existing.has(d.slip_reference) || seen.has(d.slip_reference)));
+    if (d.slip_reference) seen.add(d.slip_reference);
+    d.include = !d.duplicate;
+  });
+
+  const dupCount = drafts.filter((d) => d.duplicate).length;
+  const readOk = drafts.filter((d) => d.amount).length;
+  MJ.add.pushBubble && MJ.add.pushBubble('bot',
+    `อ่านเสร็จแล้ว! อ่านยอดได้ ${readOk}/${drafts.length} ใบ`
+    + (dupCount ? `\n⚠️ มี ${dupCount} ใบที่เคยบันทึกแล้ว หมีติ๊กออกให้` : '')
+    + '\nตรวจดูแล้วกดบันทึกรวดเดียวได้เลย');
+
+  MJ.add.openBatchSheet(drafts);
+};
+
+MJ.add.openBatchSheet = function (drafts) {
+  const cats = MJ.state.categories;
+  const catOptions = (type, selected) => cats.filter((c) => c.type === type)
+    .map((c) => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('');
+
+  const rows = drafts.map((d, i) => `
+    <div class="batch-row ${d.include ? '' : 'off'}" data-i="${i}">
+      <div class="batch-head">
+        <img src="${d.previewUrl}" alt="สลิป ${i + 1}">
+        <div class="batch-sum">
+          <b>ใบที่ ${i + 1}${d.payee_name ? ' • ' + MJ.esc(d.payee_name) : ''}</b>
+          <small>${d.duplicate ? '⚠️ เคยบันทึกแล้ว'
+            : (d.error ? '⚠️ อ่านไม่สำเร็จ'
+            : `${d.hasQR ? '✅ มี QR' : '⚠️ ไม่พบ QR'} • ${d.dateFromSlip ? 'วันที่จากสลิป' : 'ใช้วันนี้'}`)}</small>
+        </div>
+        <div class="switch ${d.include ? 'on' : ''}" data-toggle="${i}"><i></i></div>
+      </div>
+      <div class="batch-fields">
+        <div class="row">
+          <label class="field"><span>จำนวนเงิน</span>
+            <input type="number" step="0.01" inputmode="decimal" data-f="amount" value="${d.amount ?? ''}" placeholder="0.00"></label>
+          <label class="field"><span>หมวดหมู่</span>
+            <select data-f="category">${catOptions(d.type || 'expense', d.category_id)}</select></label>
+        </div>
+        <label class="field"><span>วันและเวลา</span>
+          <input type="datetime-local" data-f="date" value="${MJ.isoLocal(new Date(d.transaction_date))}"></label>
+      </div>
+    </div>`).join('');
+
+  MJ.sheet.open(`ตรวจสลิป ${drafts.length} ใบ`, `
+    <div id="batchList">${rows}</div>
+    <div class="batch-total card">
+      <div class="card-head" style="margin:0">
+        <h3>รวมที่จะบันทึก</h3>
+        <span class="tx-amt out" id="batchTotal">฿0</span>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="batchSave">บันทึกทั้งหมด</button>
+    <button class="btn btn-ghost btn-block" id="batchCancel">ยกเลิก</button>
+  `, (body) => {
+    const recalc = () => {
+      let sum = 0, n = 0;
+      drafts.forEach((d, i) => {
+        const row = body.querySelector(`.batch-row[data-i="${i}"]`);
+        const amt = parseFloat(MJ.$('[data-f="amount"]', row).value);
+        if (d.include && amt > 0) { sum += amt; n++; }
+      });
+      MJ.$('#batchTotal', body).textContent = MJ.fmtBaht(sum);
+      MJ.$('#batchSave', body).textContent = n ? `บันทึก ${n} รายการ • ${MJ.fmtBaht(sum)}` : 'ยังไม่ได้เลือกรายการ';
+      MJ.$('#batchSave', body).disabled = !n;
+      MJ.$('#batchSave', body).style.opacity = n ? '1' : '.5';
+    };
+
+    body.querySelectorAll('[data-toggle]').forEach((sw) => sw.onclick = () => {
+      const i = +sw.dataset.toggle;
+      drafts[i].include = !drafts[i].include;
+      sw.classList.toggle('on', drafts[i].include);
+      body.querySelector(`.batch-row[data-i="${i}"]`).classList.toggle('off', !drafts[i].include);
+      MJ.buzz(8);
+      recalc();
+    });
+    body.querySelectorAll('[data-f="amount"]').forEach((el) => el.oninput = recalc);
+    recalc();
+
+    MJ.$('#batchCancel', body).onclick = () => MJ.sheet.close();
+    MJ.$('#batchSave', body).onclick = async () => {
+      const chosen = drafts.map((d, i) => ({ d, i })).filter(({ d }) => d.include);
+      let saved = 0, failed = 0, total = 0;
+      for (let k = 0; k < chosen.length; k++) {
+        const { d, i } = chosen[k];
+        const row = body.querySelector(`.batch-row[data-i="${i}"]`);
+        const amount = parseFloat(MJ.$('[data-f="amount"]', row).value);
+        if (!amount || amount <= 0) { failed++; continue; }
+        MJ.loading(true, `กำลังบันทึก ${k + 1}/${chosen.length}…`);
+        try {
+          let receiptPath = null;
+          try { receiptPath = await MJ.data.uploadReceipt(d.file); } catch (e) { /* ไม่มีรูปก็ยังบันทึกได้ */ }
+          await MJ.data.addTransaction({
+            amount,
+            type: d.type || 'expense',
+            category_id: MJ.$('[data-f="category"]', row).value || null,
+            note: d.note || (d.payee_name ? `โอนให้ ${d.payee_name}` : 'จ่ายผ่านสลิป'),
+            payee_name: d.payee_name || null,
+            transaction_date: new Date(MJ.$('[data-f="date"]', row).value),
+            slip_reference: d.slip_reference || null,
+            receipt_image_url: receiptPath,
+            source: 'slip',
+            raw_input: d.raw_input || null,
+          });
+          saved++; total += amount;
+        } catch (err) { failed++; }
+      }
+      MJ.loading(false);
+      MJ.sheet.close();
+      MJ.buzz(30);
+      drafts.forEach((d) => { try { URL.revokeObjectURL(d.previewUrl); } catch (e) {} });
+      MJ.toast(`บันทึกแล้ว ${saved} รายการ 🐻`, saved ? 'ok' : 'err');
+      MJ.add.chat.push({ who: 'bot',
+        text: `บันทึกให้แล้ว ${saved} รายการ รวม ${MJ.fmtBaht(total)} 🍯` + (failed ? `\n(ข้าม ${failed} ใบที่ยอดยังว่างหรือบันทึกไม่สำเร็จ)` : '') });
+      MJ.render();
+    };
+  });
+};
+
+/* ============================ สลิปใบเดียว ============================ */
 MJ.add.processSlip = async function (file) {
   const url = URL.createObjectURL(file);
   if (MJ.add.pushBubble) MJ.add.pushBubble('me', '', url);
