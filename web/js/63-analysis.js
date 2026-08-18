@@ -44,13 +44,14 @@ function renderMonth(view) {
   const topPayees = Array.from(payees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   view.innerHTML = `
-    <div class="seg" id="anType">
-      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
-      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
-    </div>
-
     <div class="card">
-      <div class="card-head"><h3>สัดส่วนตามหมวด</h3><span class="badge">${cats.length} หมวด</span></div>
+      <div class="card-head">
+        <h3>สัดส่วนตาม${type === 'expense' ? 'รายจ่าย' : 'รายรับ'}</h3>
+        <div class="seg mini" id="anType">
+          <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">จ่าย</button>
+          <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">รับ</button>
+        </div>
+      </div>
       ${MJ.charts.donut(cats, { centerTop: type === 'expense' ? 'จ่ายไป' : 'รับมา', centerMain: MJ.fmtBaht(total) })}
       ${MJ.charts.legend(cats, total)}
     </div>
@@ -66,7 +67,8 @@ function renderMonth(view) {
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>ยอดสะสมทั้งเดือน</h3></div>
+      <div class="card-head"><h3>ยอดสะสม${type === 'expense' ? 'รายจ่าย' : 'รายรับ'}ทั้งเดือน</h3>
+        <span class="badge">${cats.length} หมวด</span></div>
       ${MJ.charts.line(type === 'expense' ? expSeries : incSeries, type === 'expense' ? 'var(--out)' : 'var(--in)')}
       <div class="bud-foot"><span>วันที่ 1</span><span>วันที่ ${days}</span></div>
     </div>

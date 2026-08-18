@@ -634,6 +634,11 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
 .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+/* แถบสลับขนาดเล็กที่ฝังในหัวการ์ด (คุมเฉพาะการ์ดนั้น) */
+.seg.mini{width:auto;flex:none;padding:3px;margin:0;border-radius:999px}
+.seg.mini::before{border-radius:999px;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/var(--seg-n))}
+.seg.mini .seg-btn{padding:5px 13px;font-size:11.5px;border-radius:999px}
+
 /* ============================ แถบเครื่องมือรายการ ============================ */
 /* ปุ่มตัวกรองในช่องค้นหา มีตัวเลขบอกว่ากรองอยู่กี่เงื่อนไข */
 .filter-btn{position:relative;color:var(--ink-2)}
@@ -4004,13 +4009,14 @@ function renderMonth(view) {
   const topPayees = Array.from(payees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   view.innerHTML = `
-    <div class="seg" id="anType">
-      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
-      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
-    </div>
-
     <div class="card">
-      <div class="card-head"><h3>สัดส่วนตามหมวด</h3><span class="badge">${cats.length} หมวด</span></div>
+      <div class="card-head">
+        <h3>สัดส่วนตาม${type === 'expense' ? 'รายจ่าย' : 'รายรับ'}</h3>
+        <div class="seg mini" id="anType">
+          <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">จ่าย</button>
+          <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">รับ</button>
+        </div>
+      </div>
       ${MJ.charts.donut(cats, { centerTop: type === 'expense' ? 'จ่ายไป' : 'รับมา', centerMain: MJ.fmtBaht(total) })}
       ${MJ.charts.legend(cats, total)}
     </div>
@@ -4026,7 +4032,8 @@ function renderMonth(view) {
     </div>
 
     <div class="card">
-      <div class="card-head"><h3>ยอดสะสมทั้งเดือน</h3></div>
+      <div class="card-head"><h3>ยอดสะสม${type === 'expense' ? 'รายจ่าย' : 'รายรับ'}ทั้งเดือน</h3>
+        <span class="badge">${cats.length} หมวด</span></div>
       ${MJ.charts.line(type === 'expense' ? expSeries : incSeries, type === 'expense' ? 'var(--out)' : 'var(--in)')}
       <div class="bud-foot"><span>วันที่ 1</span><span>วันที่ ${days}</span></div>
     </div>
