@@ -5,26 +5,23 @@ MJ.tx = {
   filter: { type: 'all', q: '', category: 'all' },
 
   /** แถวรายการ — 2 บรรทัดเสมอ
-   *  บรรทัดบน: ชื่อรายการ + เวลา (ตัวเล็ก)
-   *  บรรทัดล่าง: หมวดหมู่ + ไอคอนที่มา/ไฟล์แนบ  */
+   *  บรรทัดบน: ชื่อรายการ
+   *  บรรทัดล่าง: เวลา + ป้ายหมวดหมู่ + ไอคอนสลิป (เฉพาะที่มีไฟล์แนบ)  */
   row(t) {
     const c = MJ.data.catById(t.category_id);
     const color = c?.color || '#9AA0A6';
     const marks = [
-      t.source === 'slip' ? '<i class="fa fa-receipt" title="จากสลิป"></i>' : '',
+      t.receipt_image_url ? '<i class="fa fa-receipt" title="มีรูปสลิปแนบ"></i>' : '',
       t.source === 'voice' ? '<i class="fa fa-mic" title="จดด้วยเสียง"></i>' : '',
       t.source === 'recurring' ? '<i class="fa fa-repeat" title="รายการประจำ"></i>' : '',
-      t.receipt_image_url ? '<i class="fa fa-paperclip" title="มีรูปแนบ"></i>' : '',
     ].filter(Boolean).join('');
     return `<div class="tx" data-tx="${t.id}">
       <span class="tx-ico" style="background:${MJ.hex2rgba(color, .18)}">${c?.icon || '❓'}</span>
       <span class="tx-main">
-        <span class="tx-l1">
-          <span class="tx-title">${MJ.esc(MJ.fixThai(t.note || c?.name || 'รายการ'))}</span>
-          <span class="tx-time">${MJ.timeLabel(t.transaction_date)}</span>
-        </span>
+        <span class="tx-title">${MJ.esc(MJ.fixThai(t.note || c?.name || 'รายการ'))}</span>
         <span class="tx-sub">
-          <span class="tx-cat">${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</span>
+          <span class="tx-time">${MJ.timeLabel(t.transaction_date)}</span>
+          <span class="tx-badge" style="background:${MJ.hex2rgba(color, .16)};color:${color}">${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</span>
           ${marks ? `<span class="tx-marks">${marks}</span>` : ''}
         </span>
       </span>
