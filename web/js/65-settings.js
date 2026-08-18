@@ -104,6 +104,9 @@ MJ.routes.settings = (view) => {
         <span class="tx2"><b>ส่งออกเดือนนี้เป็น Excel</b><small>${MJ.monthLabelFull(MJ.state.month)}</small></span><span class="tiny muted">›</span></div>
       <div class="list-item" id="expAll"><span class="ic"><i class="fa fa-boxes"></i></span>
         <span class="tx2"><b>ส่งออกทั้งหมด</b><small>ทุกรายการที่เคยบันทึก</small></span><span class="tiny muted">›</span></div>
+      <div class="list-item" id="clearChat"><span class="ic"><i class="fa fa-comment"></i></span>
+        <span class="tx2"><b>ล้างประวัติแชท</b><small>ลบข้อความในหน้าจดทั้งหมด (รายการที่บันทึกไว้ไม่หาย)</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
       <div class="list-item" id="runRecur"><span class="ic"><i class="fa fa-rotate"></i></span>
         <span class="tx2"><b>ประมวลผลรายการประจำเดี๋ยวนี้</b><small>เผื่อรายการที่ถึงกำหนดแล้ว</small></span><span class="tiny muted">›</span></div>
     </div>
@@ -206,6 +209,14 @@ MJ.routes.settings = (view) => {
     const { data } = await MJ.sb.from('transactions').select('*').order('transaction_date', { ascending: false }).limit(10000);
     MJ.loading(false);
     MJ.tx.exportExcel(data || [], 'หมีจด-ทั้งหมด.xlsx');
+  };
+  MJ.$('#clearChat', view).onclick = async () => {
+    if (!(await MJ.confirm('ล้างประวัติแชท', 'ลบข้อความในหน้าจดทั้งหมดใช่ไหม? รายการที่บันทึกไว้แล้วจะไม่หาย', 'ล้างแชท'))) return;
+    MJ.loading(true, 'กำลังล้าง…');
+    await MJ.add.clearChat();
+    MJ.loading(false);
+    MJ.toast('ล้างประวัติแชทแล้ว', 'ok');
+    MJ.render();
   };
   MJ.$('#runRecur', view).onclick = async () => {
     MJ.loading(true, 'กำลังประมวลผล…');

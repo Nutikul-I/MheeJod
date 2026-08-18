@@ -2868,22 +2868,77 @@ MJ.add = {
   form: { amount: '', type: 'expense', category_id: null, date: null, note: '' },
 };
 
-/* ---------------------- เก็บแชทย้อนหลังไว้ในเครื่อง ---------------------- */
+/* ---------------------- ประวัติแชท: เก็บในฐานข้อมูล + สำรองในเครื่อง ----------------------
+   • บันทึกขึ้น Supabase ทุกข้อความ -> เปิดเครื่องไหนก็เห็นแชทเดิม
+   • เก็บสำเนาในเครื่องไว้ด้วย เผื่อออฟไลน์หรือโหลดยังไม่เสร็จ
+   • รูปสลิปเก็บเป็นภาพย่อ (จำกัดขนาด) ถ้าใหญ่เกินจะเก็บเป็นข้อความแทน
+   ------------------------------------------------------------------- */
 MJ.add.CHAT_KEY = 'mj-chat';
+MJ.add.MAX_IMG_BYTES = 40000;     // ~40KB ต่อรูป
+MJ.add.chatLoaded = false;
+
+MJ.add.localKey = () => MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest');
+
 MJ.add.loadChat = function () {
   try {
-    const raw = localStorage.getItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'));
+    const raw = localStorage.getItem(MJ.add.localKey());
     if (raw) MJ.add.chat = JSON.parse(raw).slice(-60);
   } catch (e) { /* อ่านไม่ได้ก็เริ่มใหม่ */ }
 };
-MJ.add.saveChat = function () {
+
+/** ดึงประวัติแชทจากฐานข้อมูล (เรียกตอนเข้าแอป) */
+MJ.add.syncChat = async function () {
+  if (!MJ.state.user) return;
   try {
-    // รูปเป็น blob: ที่หมดอายุเมื่อปิดหน้า จึงเก็บแค่ข้อความ
-    let imgBudget = 6;                     // เก็บรูปย่อไว้ไม่เกิน 6 รูปล่าสุด
+    const { data, error } = await MJ.sb.from('chat_messages')
+      .select('who, text, imgs, created_at')
+      .order('created_at', { ascending: false })
+      .limit(80);
+    if (error) throw error;
+
+    const fromDb = (data || []).reverse().map((m) => ({
+      who: m.who,
+      text: m.text || '',
+      imgs: (m.imgs && m.imgs.length) ? m.imgs : null,
+      at: new Date(m.created_at).getTime(),
+      saved: true,
+    }));
+
+    if (fromDb.length) {
+      // ข้อความในเครื่องที่ยังไม่ได้ขึ้นฐานข้อมูล ให้ต่อท้ายไว้
+      const pending = MJ.add.chat.filter((m) => !m.saved && m.at && m.at > (fromDb[fromDb.length - 1].at || 0));
+      MJ.add.chat = fromDb.concat(pending);
+      MJ.add.saveLocal();
+      MJ.add.chatLoaded = true;
+      if (MJ.state.route === 'add' && MJ.add.tab === 'chat') MJ.render();
+    }
+  } catch (e) { /* ใช้สำเนาในเครื่องต่อไป */ }
+};
+
+/** บันทึกข้อความหนึ่งข้อความขึ้นฐานข้อมูล */
+MJ.add.persist = async function (msg) {
+  MJ.add.saveLocal();
+  if (!MJ.state.user || !navigator.onLine) return;
+  const imgs = (msg.imgs || (msg.img ? [msg.img] : []))
+    .filter((u) => typeof u === 'string' && u.startsWith('data:') && u.length <= MJ.add.MAX_IMG_BYTES)
+    .slice(0, 4);
+  const text = msg.text || (msg.imgs?.length ? `🧾 ส่งสลิป ${msg.imgs.length} ใบ` : (msg.img ? '🧾 ส่งสลิป' : ''));
+  if (!text && !imgs.length) return;
+  try {
+    const { error } = await MJ.sb.from('chat_messages')
+      .insert({ user_id: MJ.state.user.id, who: msg.who, text, imgs });
+    if (!error) msg.saved = true;
+  } catch (e) { /* ค่อยลองใหม่รอบหน้า */ }
+};
+
+/** สำเนาในเครื่อง (เก็บรูปย่อได้ไม่เกิน 6 รูปล่าสุด) */
+MJ.add.saveLocal = function () {
+  try {
+    let imgBudget = 6;
     const keep = MJ.add.chat.slice(-60).reverse().map((m) => {
       const smallImgs = (m.imgs || []).filter((u) => String(u).startsWith('data:'));
       const smallImg = String(m.img || '').startsWith('data:') ? m.img : null;
-      const item = { who: m.who, text: m.text || '', at: m.at || Date.now() };
+      const item = { who: m.who, text: m.text || '', at: m.at || Date.now(), saved: !!m.saved };
       if (smallImgs.length && imgBudget > 0) {
         item.imgs = smallImgs.slice(0, imgBudget);
         imgBudget -= item.imgs.length;
@@ -2894,8 +2949,24 @@ MJ.add.saveChat = function () {
       }
       return item;
     }).reverse().filter((m) => m.text || m.img || m.imgs);
-    localStorage.setItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'), JSON.stringify(keep));
+    localStorage.setItem(MJ.add.localKey(), JSON.stringify(keep));
   } catch (e) { /* เต็มก็ข้ามไป */ }
+};
+
+// ชื่อเดิมที่โค้ดส่วนอื่นเรียกใช้
+MJ.add.saveChat = function (msg) {
+  if (msg) return MJ.add.persist(msg);
+  MJ.add.saveLocal();
+  // บันทึกข้อความที่ยังไม่ได้ขึ้นฐานข้อมูลย้อนหลัง
+  const unsaved = MJ.add.chat.filter((m) => !m.saved).slice(-5);
+  unsaved.forEach((m) => MJ.add.persist(m));
+};
+
+/** ล้างประวัติแชททั้งหมด */
+MJ.add.clearChat = async function () {
+  MJ.add.chat = [];
+  try { localStorage.removeItem(MJ.add.localKey()); } catch (e) {}
+  try { await MJ.sb.from('chat_messages').delete().eq('user_id', MJ.state.user.id); } catch (e) {}
 };
 
 MJ.routes.add = (view) => {
@@ -3025,7 +3096,7 @@ function renderChat(body, action) {
     if (MJ.add.chat.length > 60) MJ.add.chat.splice(0, MJ.add.chat.length - 60);
     box.insertAdjacentHTML('beforeend', bubbleHTML(msg));
     scrollChat(box);
-    MJ.add.saveChat();
+    MJ.add.persist(msg);
     return msg;
   }
 
@@ -3266,8 +3337,8 @@ MJ.add.openBatchSheet = function (drafts, items) {
       MJ.buzz(30);
       (items || []).forEach((it) => { try { URL.revokeObjectURL(it.url); } catch (e) {} });
       MJ.toast(`บันทึกแล้ว ${saved} รายการ 🐻`, saved ? 'ok' : 'err');
-      MJ.add.chat.push({ who: 'bot',
-        text: `บันทึกให้แล้ว ${saved} รายการ รวม ${MJ.fmtBaht(total)} 🍯` + (failed ? `\n(ข้าม ${failed} ใบที่ยอดยังว่างหรือบันทึกไม่สำเร็จ)` : '') });
+      MJ.add.persist(MJ.add.chat[MJ.add.chat.push({ who: 'bot', at: Date.now(),
+        text: `บันทึกให้แล้ว ${saved} รายการ รวม ${MJ.fmtBaht(total)} 🍯` + (failed ? `\n(ข้าม ${failed} ใบที่ยอดยังว่างหรือบันทึกไม่สำเร็จ)` : '') }) - 1]);
       MJ.render();
     };
   });
@@ -3462,7 +3533,7 @@ MJ.add.openDraftSheet = function (draft, opts) {
         MJ.buzz(30);
         MJ.sheet.close();
         MJ.toast('บันทึกแล้ว 🐻', 'ok');
-        MJ.add.chat.push({ who: 'bot', text: 'บันทึกให้แล้วนะ! 🍯 จดต่อได้เลย' });
+        MJ.add.persist(MJ.add.chat[MJ.add.chat.push({ who: 'bot', text: 'บันทึกให้แล้วนะ! 🍯 จดต่อได้เลย', at: Date.now() }) - 1]);
         MJ.render();
       } catch (err) {
         MJ.toast(err.duplicate ? 'สลิปนี้ถูกบันทึกไปแล้ว' : ('บันทึกไม่สำเร็จ: ' + (err.message || err)), 'err');
@@ -4467,6 +4538,9 @@ MJ.routes.settings = (view) => {
         <span class="tx2"><b>ส่งออกเดือนนี้เป็น Excel</b><small>${MJ.monthLabelFull(MJ.state.month)}</small></span><span class="tiny muted">›</span></div>
       <div class="list-item" id="expAll"><span class="ic"><i class="fa fa-boxes"></i></span>
         <span class="tx2"><b>ส่งออกทั้งหมด</b><small>ทุกรายการที่เคยบันทึก</small></span><span class="tiny muted">›</span></div>
+      <div class="list-item" id="clearChat"><span class="ic"><i class="fa fa-comment"></i></span>
+        <span class="tx2"><b>ล้างประวัติแชท</b><small>ลบข้อความในหน้าจดทั้งหมด (รายการที่บันทึกไว้ไม่หาย)</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
       <div class="list-item" id="runRecur"><span class="ic"><i class="fa fa-rotate"></i></span>
         <span class="tx2"><b>ประมวลผลรายการประจำเดี๋ยวนี้</b><small>เผื่อรายการที่ถึงกำหนดแล้ว</small></span><span class="tiny muted">›</span></div>
     </div>
@@ -4569,6 +4643,14 @@ MJ.routes.settings = (view) => {
     const { data } = await MJ.sb.from('transactions').select('*').order('transaction_date', { ascending: false }).limit(10000);
     MJ.loading(false);
     MJ.tx.exportExcel(data || [], 'หมีจด-ทั้งหมด.xlsx');
+  };
+  MJ.$('#clearChat', view).onclick = async () => {
+    if (!(await MJ.confirm('ล้างประวัติแชท', 'ลบข้อความในหน้าจดทั้งหมดใช่ไหม? รายการที่บันทึกไว้แล้วจะไม่หาย', 'ล้างแชท'))) return;
+    MJ.loading(true, 'กำลังล้าง…');
+    await MJ.add.clearChat();
+    MJ.loading(false);
+    MJ.toast('ล้างประวัติแชทแล้ว', 'ok');
+    MJ.render();
   };
   MJ.$('#runRecur', view).onclick = async () => {
     MJ.loading(true, 'กำลังประมวลผล…');
@@ -4825,8 +4907,9 @@ MJ.plan = {
     // ทักในแชท (เก็บไว้ให้เห็นแม้ยังไม่ได้เปิดหน้าแชท)
     const last = MJ.add.chat[MJ.add.chat.length - 1];
     if (!last || last.text !== text) {
-      MJ.add.chat.push({ who: 'bot', text, at: Date.now() });
-      MJ.add.saveChat();
+      const msg = { who: 'bot', text, at: Date.now() };
+      MJ.add.chat.push(msg);
+      MJ.add.persist(msg);
     }
 
     // เด้งแจ้งเตือนบนเครื่อง (ถ้าอนุญาตไว้)
@@ -6313,6 +6396,8 @@ MJ.start = async function (user) {
   MJ.reminder.schedule();
   MJ.push.sync();
   MJ.queue.flush();
+  MJ.add.loadChat();
+  MJ.add.syncChat();
   Promise.all([MJ.goals.load(), MJ.debts.load()]).then(() => MJ.render()).catch(() => {});
   handleQuickAdd();
   MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });

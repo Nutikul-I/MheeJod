@@ -98,6 +98,8 @@ MJ.start = async function (user) {
   MJ.reminder.schedule();
   MJ.push.sync();
   MJ.queue.flush();
+  MJ.add.loadChat();
+  MJ.add.syncChat();
   Promise.all([MJ.goals.load(), MJ.debts.load()]).then(() => MJ.render()).catch(() => {});
   handleQuickAdd();
   MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });

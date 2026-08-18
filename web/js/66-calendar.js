@@ -82,8 +82,9 @@ MJ.plan = {
     // ทักในแชท (เก็บไว้ให้เห็นแม้ยังไม่ได้เปิดหน้าแชท)
     const last = MJ.add.chat[MJ.add.chat.length - 1];
     if (!last || last.text !== text) {
-      MJ.add.chat.push({ who: 'bot', text, at: Date.now() });
-      MJ.add.saveChat();
+      const msg = { who: 'bot', text, at: Date.now() };
+      MJ.add.chat.push(msg);
+      MJ.add.persist(msg);
     }
 
     // เด้งแจ้งเตือนบนเครื่อง (ถ้าอนุญาตไว้)
