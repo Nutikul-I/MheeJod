@@ -370,7 +370,7 @@ MJ.data = {
 
   /** ย่อรูปเป็น data URL ขนาดเล็กไว้โชว์ในแชท (อยู่รอดแม้ re-render หรือปิดแอป) */
   async thumbnail(file, maxSide, quality) {
-    const side = maxSide || 320, q = quality || 0.62;
+    const W = maxSide || 300, q = quality || 0.62;
     try {
       const url = URL.createObjectURL(file);
       const img = new Image();
@@ -379,18 +379,24 @@ MJ.data = {
       URL.revokeObjectURL(url);
       if (!img.width || !img.height) return null;
 
-      // ครอปเป็นสี่เหลี่ยมจัตุรัสจากส่วนบนของสลิป (ส่วนที่มีข้อมูลสำคัญ)
-      const scale = Math.min(1, side / Math.min(img.width, img.height));
-      const cw = Math.max(1, Math.round(Math.min(img.width, img.height) * scale));
+      // ครอปเป็นสัดส่วน 3:4 จากส่วนบนของสลิป (ที่มีชื่อ/ยอด) ให้เต็มกรอบไม่มีขอบขาว
+      const H = Math.round(W * 4 / 3);
+      const srcRatio = img.width / img.height, dstRatio = 3 / 4;
+      let sw = img.width, sh = img.height, sx = 0, sy = 0;
+      if (srcRatio > dstRatio) {            // ภาพกว้างเกิน -> ตัดด้านข้าง
+        sw = img.height * dstRatio;
+        sx = (img.width - sw) / 2;
+      } else {                              // ภาพสูงเกิน -> ตัดด้านล่าง (เก็บส่วนบนไว้)
+        sh = img.width / dstRatio;
+        sy = Math.min((img.height - sh) / 2, img.height * 0.06);
+      }
+
       const cv = document.createElement('canvas');
-      cv.width = cv.height = cw;
+      cv.width = W; cv.height = H;
       const ctx = cv.getContext('2d');
-      const srcSide = Math.min(img.width, img.height);
-      const sx = (img.width - srcSide) / 2;
-      const sy = Math.min((img.height - srcSide) / 2, img.height * 0.12);
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, cw, cw);
-      ctx.drawImage(img, sx, sy, srcSide, srcSide, 0, 0, cw, cw);
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
       const dataUrl = cv.toDataURL('image/jpeg', q);
       return dataUrl && dataUrl.length > 200 ? dataUrl : null;
     } catch (e) { return null; }

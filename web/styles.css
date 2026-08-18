@@ -432,17 +432,20 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
   border-bottom-right-radius:7px;align-self:flex-end;box-shadow:var(--sh-honey)
 }
 .bubble img{display:block;border-radius:14px;max-width:100%}
-.bubble.has-img{max-width:72%;padding:6px}
-.bubble.has-img .img-grid{max-width:260px}
+.bubble.has-img{
+  max-width:min(74%,268px);width:fit-content;padding:5px
+}
+.bubble.has-img .img-grid{width:100%}
 /* อัลบั้มรูปในบับเบิลเดียว (ส่งสลิปทีละหลายใบ) */
 .img-grid{display:grid;gap:4px}
 .img-grid img{
-  width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:var(--cream-2);
+  width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:9px;background:var(--cream-2);
   animation:popIn .3s var(--spring) both;display:block
 }
+.img-grid{gap:4px}
 /* ช่องที่เหลือรวมเป็น +N */
 .img-cell.more::before{
-  content:"";position:absolute;inset:0;border-radius:10px;background:rgba(28,20,12,.55)
+  content:"";position:absolute;inset:0;border-radius:9px;background:rgba(28,20,12,.55)
 }
 .img-cell.more>b{
   position:absolute;inset:0;display:grid;place-items:center;color:#fff;
@@ -451,7 +454,7 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
 /* รูปที่เคยอัปโหลดแล้ว ติ๊กถูกมุมขวาบน */
 .img-cell{position:relative;display:block}
 .img-cell.done img{filter:brightness(.72) saturate(.85)}
-.img-cell.done::after{content:"";position:absolute;inset:0;border-radius:10px;border:2.5px solid var(--in)}
+.img-cell.done::after{content:"";position:absolute;inset:0;border-radius:9px;border:2.5px solid var(--in)}
 .img-cell>.fa{
   position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;
   background:var(--in);color:#fff;font-size:10px;display:grid;place-items:center;
