@@ -518,6 +518,7 @@ MJ.slip = (() => {
       transaction_date: slipDate || new Date(),
       dateFromSlip: !!slipDate,
       slip_reference: slipInfo?.reference || info.reference || null,
+      bank: slipInfo?.bank || null,
       source: 'slip',
       raw_input: (qr ? 'QR: ' + qr + '\n' : '') + text.slice(0, 2000),
       hasQR: !!qr,

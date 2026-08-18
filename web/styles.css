@@ -432,12 +432,21 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
   border-bottom-right-radius:7px;align-self:flex-end;box-shadow:var(--sh-honey)
 }
 .bubble img{display:block;border-radius:14px;max-width:100%}
-.bubble.has-img{max-width:74%;padding:7px}
+.bubble.has-img{max-width:72%;padding:6px}
+.bubble.has-img .img-grid{max-width:260px}
 /* อัลบั้มรูปในบับเบิลเดียว (ส่งสลิปทีละหลายใบ) */
 .img-grid{display:grid;gap:4px}
 .img-grid img{
-  width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;background:var(--cream-2);
+  width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:var(--cream-2);
   animation:popIn .3s var(--spring) both;display:block
+}
+/* ช่องที่เหลือรวมเป็น +N */
+.img-cell.more::before{
+  content:"";position:absolute;inset:0;border-radius:10px;background:rgba(28,20,12,.55)
+}
+.img-cell.more>b{
+  position:absolute;inset:0;display:grid;place-items:center;color:#fff;
+  font-size:18px;font-weight:750;z-index:2
 }
 /* รูปที่เคยอัปโหลดแล้ว ติ๊กถูกมุมขวาบน */
 .img-cell{position:relative;display:block}

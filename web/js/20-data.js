@@ -71,6 +71,23 @@ MJ.data = {
     return list.find((a) => a.is_default) || list[0] || null;
   },
 
+  /**
+   * กระเป๋าที่ควรใช้กับสลิปโอนเงิน — เงินจากสลิปมาจากบัญชีธนาคาร ไม่ใช่เงินสด
+   * ถ้าอ่านชื่อธนาคารจาก QR ได้ จะจับคู่กับชื่อกระเป๋าให้ก่อน (เช่น "ธ.กสิกรไทย" -> กระเป๋า "กสิกร")
+   */
+  bankAccount(bankHint) {
+    const list = (MJ.state.accounts || []).filter((a) => !a.is_archived);
+    if (!list.length) return null;
+    if (bankHint) {
+      const words = String(bankHint).replace(/^ธ\.?/, '').replace(/ธนาคาร/g, '').trim();
+      const hit = list.find((a) => words && (a.name.includes(words) || words.includes(a.name)));
+      if (hit) return hit;
+    }
+    return list.find((a) => a.type === 'bank')
+      || list.find((a) => a.type === 'credit' || a.type === 'savings' || a.type === 'ewallet')
+      || this.defaultAccount();
+  },
+
   async loadRecurring() {
     const { data } = await MJ.sb.from('recurring_transactions').select('*').order('next_run_date');
     MJ.state.recurring = data || [];
@@ -289,7 +306,7 @@ MJ.data = {
    * คุณภาพ 0.72 พออ่านตัวเลขด้วยตาได้ ไฟล์เล็กลงราว 5-10 เท่า ประหยัดพื้นที่และเน็ต
    */
   async compressImage(file, maxSide, quality) {
-    if (!file || !/^image\//.test(file.type) || /heic|heif/i.test(file.type)) return file;
+    if (!file || !/^image\//.test(file.type)) return file;
     try {
       const url = URL.createObjectURL(file);
       const img = new Image();
@@ -353,14 +370,29 @@ MJ.data = {
 
   /** ย่อรูปเป็น data URL ขนาดเล็กไว้โชว์ในแชท (อยู่รอดแม้ re-render หรือปิดแอป) */
   async thumbnail(file, maxSide, quality) {
+    const side = maxSide || 320, q = quality || 0.62;
     try {
-      const small = await this.compressImage(file, maxSide || 260, quality || 0.6);
-      return await new Promise((res, rej) => {
-        const fr = new FileReader();
-        fr.onload = () => res(fr.result);
-        fr.onerror = rej;
-        fr.readAsDataURL(small);
-      });
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.decoding = 'async';
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      URL.revokeObjectURL(url);
+      if (!img.width || !img.height) return null;
+
+      // ครอปเป็นสี่เหลี่ยมจัตุรัสจากส่วนบนของสลิป (ส่วนที่มีข้อมูลสำคัญ)
+      const scale = Math.min(1, side / Math.min(img.width, img.height));
+      const cw = Math.max(1, Math.round(Math.min(img.width, img.height) * scale));
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = cw;
+      const ctx = cv.getContext('2d');
+      const srcSide = Math.min(img.width, img.height);
+      const sx = (img.width - srcSide) / 2;
+      const sy = Math.min((img.height - srcSide) / 2, img.height * 0.12);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, cw, cw);
+      ctx.drawImage(img, sx, sy, srcSide, srcSide, 0, 0, cw, cw);
+      const dataUrl = cv.toDataURL('image/jpeg', q);
+      return dataUrl && dataUrl.length > 200 ? dataUrl : null;
     } catch (e) { return null; }
   },
 

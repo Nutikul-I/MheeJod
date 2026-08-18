@@ -447,12 +447,21 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
   border-bottom-right-radius:7px;align-self:flex-end;box-shadow:var(--sh-honey)
 }
 .bubble img{display:block;border-radius:14px;max-width:100%}
-.bubble.has-img{max-width:74%;padding:7px}
+.bubble.has-img{max-width:72%;padding:6px}
+.bubble.has-img .img-grid{max-width:260px}
 /* อัลบั้มรูปในบับเบิลเดียว (ส่งสลิปทีละหลายใบ) */
 .img-grid{display:grid;gap:4px}
 .img-grid img{
-  width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;background:var(--cream-2);
+  width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:var(--cream-2);
   animation:popIn .3s var(--spring) both;display:block
+}
+/* ช่องที่เหลือรวมเป็น +N */
+.img-cell.more::before{
+  content:"";position:absolute;inset:0;border-radius:10px;background:rgba(28,20,12,.55)
+}
+.img-cell.more>b{
+  position:absolute;inset:0;display:grid;place-items:center;color:#fff;
+  font-size:18px;font-weight:750;z-index:2
 }
 /* รูปที่เคยอัปโหลดแล้ว ติ๊กถูกมุมขวาบน */
 .img-cell{position:relative;display:block}
@@ -1563,6 +1572,23 @@ MJ.data = {
     return list.find((a) => a.is_default) || list[0] || null;
   },
 
+  /**
+   * กระเป๋าที่ควรใช้กับสลิปโอนเงิน — เงินจากสลิปมาจากบัญชีธนาคาร ไม่ใช่เงินสด
+   * ถ้าอ่านชื่อธนาคารจาก QR ได้ จะจับคู่กับชื่อกระเป๋าให้ก่อน (เช่น "ธ.กสิกรไทย" -> กระเป๋า "กสิกร")
+   */
+  bankAccount(bankHint) {
+    const list = (MJ.state.accounts || []).filter((a) => !a.is_archived);
+    if (!list.length) return null;
+    if (bankHint) {
+      const words = String(bankHint).replace(/^ธ\.?/, '').replace(/ธนาคาร/g, '').trim();
+      const hit = list.find((a) => words && (a.name.includes(words) || words.includes(a.name)));
+      if (hit) return hit;
+    }
+    return list.find((a) => a.type === 'bank')
+      || list.find((a) => a.type === 'credit' || a.type === 'savings' || a.type === 'ewallet')
+      || this.defaultAccount();
+  },
+
   async loadRecurring() {
     const { data } = await MJ.sb.from('recurring_transactions').select('*').order('next_run_date');
     MJ.state.recurring = data || [];
@@ -1781,7 +1807,7 @@ MJ.data = {
    * คุณภาพ 0.72 พออ่านตัวเลขด้วยตาได้ ไฟล์เล็กลงราว 5-10 เท่า ประหยัดพื้นที่และเน็ต
    */
   async compressImage(file, maxSide, quality) {
-    if (!file || !/^image\//.test(file.type) || /heic|heif/i.test(file.type)) return file;
+    if (!file || !/^image\//.test(file.type)) return file;
     try {
       const url = URL.createObjectURL(file);
       const img = new Image();
@@ -1845,14 +1871,29 @@ MJ.data = {
 
   /** ย่อรูปเป็น data URL ขนาดเล็กไว้โชว์ในแชท (อยู่รอดแม้ re-render หรือปิดแอป) */
   async thumbnail(file, maxSide, quality) {
+    const side = maxSide || 320, q = quality || 0.62;
     try {
-      const small = await this.compressImage(file, maxSide || 260, quality || 0.6);
-      return await new Promise((res, rej) => {
-        const fr = new FileReader();
-        fr.onload = () => res(fr.result);
-        fr.onerror = rej;
-        fr.readAsDataURL(small);
-      });
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.decoding = 'async';
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      URL.revokeObjectURL(url);
+      if (!img.width || !img.height) return null;
+
+      // ครอปเป็นสี่เหลี่ยมจัตุรัสจากส่วนบนของสลิป (ส่วนที่มีข้อมูลสำคัญ)
+      const scale = Math.min(1, side / Math.min(img.width, img.height));
+      const cw = Math.max(1, Math.round(Math.min(img.width, img.height) * scale));
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = cw;
+      const ctx = cv.getContext('2d');
+      const srcSide = Math.min(img.width, img.height);
+      const sx = (img.width - srcSide) / 2;
+      const sy = Math.min((img.height - srcSide) / 2, img.height * 0.12);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, cw, cw);
+      ctx.drawImage(img, sx, sy, srcSide, srcSide, 0, 0, cw, cw);
+      const dataUrl = cv.toDataURL('image/jpeg', q);
+      return dataUrl && dataUrl.length > 200 ? dataUrl : null;
     } catch (e) { return null; }
   },
 
@@ -2614,6 +2655,7 @@ MJ.slip = (() => {
       transaction_date: slipDate || new Date(),
       dateFromSlip: !!slipDate,
       slip_reference: slipInfo?.reference || info.reference || null,
+      bank: slipInfo?.bank || null,
       source: 'slip',
       raw_input: (qr ? 'QR: ' + qr + '\n' : '') + text.slice(0, 2000),
       hasQR: !!qr,
@@ -3173,14 +3215,20 @@ function renderChat(body, action) {
 function bubbleHTML(m) {
   // รูปหลายใบ -> เรียงเป็นตารางในบับเบิลเดียว เหมือนส่งอัลบั้มในแชท
   if (m.imgs && m.imgs.length) {
-    const cols = m.imgs.length === 1 ? 1 : (m.imgs.length === 2 ? 2 : 3);
+    const all = m.imgs.filter((im) => (typeof im === 'string' ? im : im?.src));
+    const MAXV = 6;                                  // โชว์ไม่เกิน 6 ช่อง ที่เหลือรวมเป็น +N
+    const shown = all.slice(0, MAXV);
+    const rest = all.length - shown.length;
+    const cols = shown.length === 1 ? 1 : (shown.length <= 4 ? 2 : 3);
     const grid = `<div class="img-grid" style="grid-template-columns:repeat(${cols},1fr)">
-      ${m.imgs.map((im, i) => {
+      ${shown.map((im, i) => {
         const src = typeof im === 'string' ? im : im.src;
         const done = typeof im === 'object' && im.done;
-        return `<span class="img-cell${done ? ' done' : ''}">
-          <img src="${src}" alt="สลิปใบที่ ${i + 1}" loading="lazy">
-          ${done ? '<i class="fa fa-check" title="เคยอัปโหลดแล้ว"></i>' : ''}</span>`;
+        const more = rest && i === shown.length - 1;
+        return `<span class="img-cell${done ? ' done' : ''}${more ? ' more' : ''}">
+          <img src="${src}" alt="สลิปใบที่ ${i + 1}" loading="lazy" onerror="this.closest('.img-cell').remove()">
+          ${done ? '<i class="fa fa-check" title="เคยอัปโหลดแล้ว"></i>' : ''}
+          ${more ? `<b>+${rest}</b>` : ''}</span>`;
       }).join('')}</div>`;
     return `<div class="bubble ${m.who} has-img">${grid}${m.text ? MJ.esc(m.text) : ''}</div>`;
   }
@@ -3348,9 +3396,12 @@ MJ.add.openBatchSheet = function (drafts, items) {
 
   MJ.sheet.open(`ตรวจสลิป ${drafts.length} ใบ`, `
     <div id="batchList">${rows}</div>
-    <label class="field"><span>ลงกระเป๋า (ใช้กับทุกใบ)</span><select id="batchAcc">
-      ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === MJ.data.defaultAccount()?.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
-    </select></label>
+    ${(() => {
+      const pick = MJ.data.bankAccount(drafts.find((d) => d.bank)?.bank)?.id;
+      return `<label class="field"><span>ลงกระเป๋า (ใช้กับทุกใบ)</span><select id="batchAcc">
+        ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === pick ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+      </select></label>`;
+    })()}
     <div class="batch-total card">
       <div class="card-head" style="margin:0">
         <h3>รวมที่จะบันทึก</h3>
@@ -3577,9 +3628,13 @@ MJ.add.openDraftSheet = function (draft, opts) {
       <input type="text" id="dNote" value="${MJ.esc(draft.note || '')}"></label>
     ${draft.payee_name ? `<label class="field"><span>ผู้รับเงิน / ร้านค้า</span>
       <input type="text" id="dPayee" value="${MJ.esc(draft.payee_name)}"></label>` : ''}
-    <label class="field"><span>กระเป๋าเงิน</span><select id="dAcc">
-      ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === MJ.data.defaultAccount()?.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
-    </select></label>
+    ${(() => {
+      // สลิปโอนเงิน = เงินออกจากบัญชีธนาคาร จึงตั้งค่าเริ่มต้นเป็นกระเป๋าธนาคาร
+      const pick = (opts.slip ? MJ.data.bankAccount(draft.bank) : MJ.data.defaultAccount())?.id;
+      return `<label class="field"><span>กระเป๋าเงิน${opts.slip ? ' <span class="badge">จากสลิป</span>' : ''}</span><select id="dAcc">
+        ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === pick ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+      </select></label>`;
+    })()}
     <label class="field"><span>วันและเวลา${opts.slip ? (draft.dateFromSlip ? ' <span class="badge in">อ่านจากสลิป</span>' : ' <span class="badge out">อ่านไม่ได้ ใช้วันนี้</span>') : ''}</span>
       <input type="datetime-local" id="dDate" value="${MJ.isoLocal(new Date(draft.transaction_date))}"></label>
     ${draft.ocrText ? `<details class="mb"><summary class="tiny muted">ดูข้อความที่อ่านได้จากสลิป</summary>

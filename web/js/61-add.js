@@ -263,14 +263,20 @@ function renderChat(body, action) {
 function bubbleHTML(m) {
   // รูปหลายใบ -> เรียงเป็นตารางในบับเบิลเดียว เหมือนส่งอัลบั้มในแชท
   if (m.imgs && m.imgs.length) {
-    const cols = m.imgs.length === 1 ? 1 : (m.imgs.length === 2 ? 2 : 3);
+    const all = m.imgs.filter((im) => (typeof im === 'string' ? im : im?.src));
+    const MAXV = 6;                                  // โชว์ไม่เกิน 6 ช่อง ที่เหลือรวมเป็น +N
+    const shown = all.slice(0, MAXV);
+    const rest = all.length - shown.length;
+    const cols = shown.length === 1 ? 1 : (shown.length <= 4 ? 2 : 3);
     const grid = `<div class="img-grid" style="grid-template-columns:repeat(${cols},1fr)">
-      ${m.imgs.map((im, i) => {
+      ${shown.map((im, i) => {
         const src = typeof im === 'string' ? im : im.src;
         const done = typeof im === 'object' && im.done;
-        return `<span class="img-cell${done ? ' done' : ''}">
-          <img src="${src}" alt="สลิปใบที่ ${i + 1}" loading="lazy">
-          ${done ? '<i class="fa fa-check" title="เคยอัปโหลดแล้ว"></i>' : ''}</span>`;
+        const more = rest && i === shown.length - 1;
+        return `<span class="img-cell${done ? ' done' : ''}${more ? ' more' : ''}">
+          <img src="${src}" alt="สลิปใบที่ ${i + 1}" loading="lazy" onerror="this.closest('.img-cell').remove()">
+          ${done ? '<i class="fa fa-check" title="เคยอัปโหลดแล้ว"></i>' : ''}
+          ${more ? `<b>+${rest}</b>` : ''}</span>`;
       }).join('')}</div>`;
     return `<div class="bubble ${m.who} has-img">${grid}${m.text ? MJ.esc(m.text) : ''}</div>`;
   }
@@ -438,9 +444,12 @@ MJ.add.openBatchSheet = function (drafts, items) {
 
   MJ.sheet.open(`ตรวจสลิป ${drafts.length} ใบ`, `
     <div id="batchList">${rows}</div>
-    <label class="field"><span>ลงกระเป๋า (ใช้กับทุกใบ)</span><select id="batchAcc">
-      ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === MJ.data.defaultAccount()?.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
-    </select></label>
+    ${(() => {
+      const pick = MJ.data.bankAccount(drafts.find((d) => d.bank)?.bank)?.id;
+      return `<label class="field"><span>ลงกระเป๋า (ใช้กับทุกใบ)</span><select id="batchAcc">
+        ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === pick ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+      </select></label>`;
+    })()}
     <div class="batch-total card">
       <div class="card-head" style="margin:0">
         <h3>รวมที่จะบันทึก</h3>
@@ -667,9 +676,13 @@ MJ.add.openDraftSheet = function (draft, opts) {
       <input type="text" id="dNote" value="${MJ.esc(draft.note || '')}"></label>
     ${draft.payee_name ? `<label class="field"><span>ผู้รับเงิน / ร้านค้า</span>
       <input type="text" id="dPayee" value="${MJ.esc(draft.payee_name)}"></label>` : ''}
-    <label class="field"><span>กระเป๋าเงิน</span><select id="dAcc">
-      ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === MJ.data.defaultAccount()?.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
-    </select></label>
+    ${(() => {
+      // สลิปโอนเงิน = เงินออกจากบัญชีธนาคาร จึงตั้งค่าเริ่มต้นเป็นกระเป๋าธนาคาร
+      const pick = (opts.slip ? MJ.data.bankAccount(draft.bank) : MJ.data.defaultAccount())?.id;
+      return `<label class="field"><span>กระเป๋าเงิน${opts.slip ? ' <span class="badge">จากสลิป</span>' : ''}</span><select id="dAcc">
+        ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === pick ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+      </select></label>`;
+    })()}
     <label class="field"><span>วันและเวลา${opts.slip ? (draft.dateFromSlip ? ' <span class="badge in">อ่านจากสลิป</span>' : ' <span class="badge out">อ่านไม่ได้ ใช้วันนี้</span>') : ''}</span>
       <input type="datetime-local" id="dDate" value="${MJ.isoLocal(new Date(draft.transaction_date))}"></label>
     ${draft.ocrText ? `<details class="mb"><summary class="tiny muted">ดูข้อความที่อ่านได้จากสลิป</summary>
