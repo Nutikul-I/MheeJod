@@ -607,6 +607,75 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
 .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+/* ============================ กระเป๋าเงิน ============================ */
+.acc-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.acc-strip::-webkit-scrollbar{display:none}
+.acc-chip{
+  flex:none;min-width:132px;display:flex;flex-direction:column;gap:3px;align-items:flex-start;
+  padding:11px 12px;border-radius:var(--r-sm);background:var(--cream-2);
+  border:1.5px solid transparent;transition:transform .16s var(--spring),border-color .2s
+}
+.acc-chip:active{transform:scale(.95)}
+.acc-chip .ic{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:14px}
+.acc-chip b{font-size:12.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.acc-chip em{font-style:normal;font-size:14px;font-weight:750;font-variant-numeric:tabular-nums}
+.acc-chip em.out{color:var(--out)}
+
+/* ============================ เลือกหลายรายการ ============================ */
+.tx.selectable{padding-left:8px}
+.tx.selectable::before{
+  content:"";width:19px;height:19px;border-radius:7px;border:2px solid var(--line-2);
+  flex:none;margin-right:2px;transition:background .2s,border-color .2s
+}
+.tx.picked::before{background:var(--honey-d);border-color:var(--honey-d);box-shadow:inset 0 0 0 3px var(--card)}
+.tx.picked{background:rgba(242,178,62,.1)}
+.bulk-bar{
+  position:fixed;left:50%;transform:translateX(-50%);z-index:70;
+  bottom:calc(var(--tab-h) + var(--safe-b) + 14px);
+  display:flex;align-items:center;gap:9px;padding:9px 12px;
+  background:var(--bear-d);color:#fff;border-radius:var(--r);box-shadow:var(--sh-lg);
+  font-size:12.5px;font-weight:650;max-width:94vw;animation:popIn .3s var(--spring)
+}
+.bulk-bar .btn{padding:7px 11px;font-size:12px}
+
+/* ============================ Toast มีปุ่ม ============================ */
+.toast.has-action{display:flex;align-items:center;gap:12px}
+.toast.has-action button{
+  background:rgba(255,255,255,.22);color:#fff;padding:5px 11px;border-radius:10px;
+  font-size:12.5px;font-weight:700
+}
+
+/* ============================ กราฟรายปี ============================ */
+.year-chart{display:flex;gap:5px;align-items:flex-end;height:170px;margin-top:6px}
+.year-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
+.year-bars{flex:1;width:100%;display:flex;gap:2px;align-items:flex-end;justify-content:center}
+.year-bars i{width:44%;border-radius:4px 4px 0 0;animation:growBar .6s var(--ease) both;transform-origin:bottom}
+.year-bars i.in{background:var(--in)}
+.year-bars i.out{background:var(--out)}
+.year-col span{font-size:9px;color:var(--ink-3);font-weight:600}
+
+/* ============================ หน้าล็อกด้วย PIN ============================ */
+.lock-screen{
+  position:fixed;inset:0;z-index:120;display:grid;place-items:center;
+  background:radial-gradient(700px 400px at 50% 0%, rgba(242,178,62,.2), transparent 60%), var(--cream);
+  animation:fadeIn .25s
+}
+.lock-screen.unlocked{animation:fadeIn .2s reverse}
+.lock-box{width:min(340px,86vw);text-align:center}
+.lock-box h2{font-size:17px;margin:10px 0 16px;font-weight:650}
+.lock-bear{font-size:56px;animation:bob 3.4s ease-in-out infinite}
+.lock-dots{display:flex;gap:14px;justify-content:center;margin-bottom:22px}
+.lock-dots i{width:14px;height:14px;border-radius:50%;background:var(--line-2);transition:.25s var(--spring)}
+.lock-dots i.on{background:var(--honey-d);transform:scale(1.2)}
+.lock-pad{max-width:280px;margin:0 auto 14px}
+.lock-pad span{visibility:hidden}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* ============================ ตัวคั่นในหน้าเข้าสู่ระบบ ============================ */
+.auth-divider{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--ink-3);font-size:11.5px}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
 /* ============================ ปฏิทิน ============================ */
 .cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
 .cal-week span{text-align:center;font-size:10.5px;font-weight:650;color:var(--ink-3)}

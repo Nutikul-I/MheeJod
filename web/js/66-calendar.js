@@ -25,6 +25,7 @@ MJ.plan = {
       category_id: item.category_id || null,
       due_date: item.due_date,
       note: item.note || null,
+      repeat_freq: item.repeat_freq || 'none',
     };
     const q = item.id
       ? MJ.sb.from('planned_items').update(payload).eq('id', item.id)
@@ -51,6 +52,10 @@ MJ.plan = {
     });
     await MJ.sb.from('planned_items')
       .update({ is_done: true, done_tx_id: tx.id }).eq('id', item.id);
+    // ถ้าเป็นนัดซ้ำ สร้างรอบถัดไปให้อัตโนมัติ
+    if (item.repeat_freq && item.repeat_freq !== 'none') {
+      try { await MJ.sb.rpc('roll_planned', { p_item: item.id }); } catch (e) { /* ไม่สำเร็จก็ข้าม */ }
+    }
     await this.load();
     return tx;
   },
@@ -263,11 +268,15 @@ MJ.calendar.openPlanSheet = function (item, defaultDate) {
       <label class="field"><span>วันครบกำหนด</span>
         <input type="date" id="plDate" value="${String(v.due_date).slice(0, 10)}"></label>
     </div>
+    <label class="field"><span>ทำซ้ำ</span><select id="plRepeat">
+      ${[['none','ครั้งเดียว'],['weekly','ทุกสัปดาห์'],['monthly','ทุกเดือน'],['yearly','ทุกปี']]
+        .map(([val, label]) => `<option value="${val}" ${(v.repeat_freq || 'none') === val ? 'selected' : ''}>${label}</option>`).join('')}
+    </select></label>
     <label class="field"><span>หมวดหมู่</span><select id="plCat">
       ${cats.filter((c) => c.type === v.type).map((c) =>
         `<option value="${c.id}" ${c.id === v.category_id ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('')}
     </select></label>
-    <p class="tiny muted mb">ถึงวันแล้วหมีจะเด้งแจ้งเตือนและทักในแชทให้ 🐻</p>
+    <p class="tiny muted mb">ถึงวันแล้วหมีจะเด้งแจ้งเตือนและทักในแชทให้ 🐻 (นัดซ้ำจะสร้างรอบถัดไปอัตโนมัติเมื่อกดบันทึก)</p>
     <button class="btn btn-primary btn-block" id="plSave">${isNew ? 'เพิ่มนัด' : 'บันทึก'}</button>
     ${isNew ? '' : `<button class="btn btn-soft btn-block mt" id="plDone">บันทึกเป็นรายการจริงเลย</button>
       <button class="btn btn-danger btn-block mt" id="plDel">ลบนัดนี้</button>`}
@@ -289,6 +298,7 @@ MJ.calendar.openPlanSheet = function (item, defaultDate) {
           title: MJ.$('#plTitle', body).value,
           category_id: MJ.$('#plCat', body).value || null,
           due_date: MJ.$('#plDate', body).value,
+          repeat_freq: MJ.$('#plRepeat', body).value,
         });
         MJ.sheet.close(); MJ.toast('บันทึกนัดแล้ว 🗓️', 'ok'); MJ.render();
       } catch (e) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }

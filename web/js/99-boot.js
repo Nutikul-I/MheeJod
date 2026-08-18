@@ -9,6 +9,7 @@ MJ.applyTheme = (mode) => {
 
 MJ.boot = async function () {
   MJ.applyTheme(localStorage.getItem('mj-theme') || 'auto');
+  MJ.queue.init();
 
   /* ---------- การนำทาง ---------- */
   document.querySelectorAll('.tab, .fab').forEach((el) => {
@@ -57,6 +58,12 @@ MJ.boot = async function () {
     if (event === 'SIGNED_OUT') location.reload();
   });
 
+  // กลับมาจากลิงก์ตั้งรหัสผ่านใหม่
+  if (location.hash === '#reset' || location.hash.includes('type=recovery')) {
+    history.replaceState({}, '', location.pathname);
+    setTimeout(() => MJ.auth.promptNewPassword(), 600);
+  }
+
   if (session?.user) await MJ.start(session.user);
   else {
     MJ.$('#authScreen').classList.remove('hidden');
@@ -67,6 +74,9 @@ MJ.boot = async function () {
 MJ.start = async function (user) {
   MJ.state.user = user;
   MJ.$('#authScreen').classList.add('hidden');
+
+  // ล็อกแอปด้วย PIN (ถ้าตั้งไว้)
+  if (MJ.lock.enabled()) await MJ.lock.ask();
   MJ.loading(true, 'กำลังเตรียมข้อมูล…');
   try {
     await MJ.data.loadAll();
@@ -87,10 +97,29 @@ MJ.start = async function (user) {
 
   MJ.reminder.schedule();
   MJ.push.sync();
+  MJ.queue.flush();
+  Promise.all([MJ.goals.load(), MJ.debts.load()]).then(() => MJ.render()).catch(() => {});
+  handleQuickAdd();
   MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });
   MJ.plan.checkDue().catch(() => {});
   handleSharedSlip();
 };
+
+/* ---------- จดเร็วผ่าน URL เช่น ?add=กาแฟ 80 (ใช้กับ iOS Shortcuts ได้) ---------- */
+function handleQuickAdd() {
+  const params = new URLSearchParams(location.search);
+  const text = params.get('add') || params.get('text');
+  if (!text) return;
+  history.replaceState({}, '', location.pathname + location.hash);
+  const draft = MJ.nlp.parse(text);
+  if (!draft?.amount) { MJ.toast('ไม่เจอจำนวนเงินในข้อความที่ส่งมา', 'err'); return; }
+  MJ.go('add', { tab: 'chat' });
+  setTimeout(() => {
+    MJ.add.pushBubble && MJ.add.pushBubble('me', text);
+    MJ.add.pushBubble && MJ.add.pushBubble('bot', 'เข้าใจแล้ว!\n' + MJ.nlp.describe(draft));
+    MJ.add.openDraftSheet(draft);
+  }, 400);
+}
 
 /* ---------- รับรูปสลิปที่แชร์เข้ามาจากแอปอื่น (Web Share Target) ---------- */
 async function handleSharedSlip() {

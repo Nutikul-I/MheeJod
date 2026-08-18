@@ -134,6 +134,68 @@ Deno.serve(async (req) => {
     }
   }
 
+  /* ---------- เตือนใกล้เกินงบ ---------- */
+  if (!testUserId) {
+    const { data: alerts } = await db.rpc("due_budget_alerts");
+    const seen = new Set<string>();
+    for (const a of alerts ?? []) {
+      const key = `${a.user_id}|${a.category_id}|${a.pct}|${a.endpoint}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const over = Number(a.used) > Number(a.budget);
+      const payload = JSON.stringify({
+        title: over ? `เกินงบ ${a.cat_name} แล้ว 🫣` : `ใกล้เต็มงบ ${a.cat_name} 🍯`,
+        body: over
+          ? `ใช้ไป ${money(Number(a.used))} จากงบ ${money(Number(a.budget))} — เกินมา ${money(Number(a.used) - Number(a.budget))}`
+          : `ใช้ไป ${money(Number(a.used))} จากงบ ${money(Number(a.budget))} (${a.pct}%) เหลืออีก ${money(Number(a.budget) - Number(a.used))}`,
+        url: "/MheeJod/#budget",
+        tag: `mheejod-budget-${a.category_id}`,
+      });
+      try {
+        await webpush.sendNotification(
+          { endpoint: a.endpoint, keys: { p256dh: a.p256dh, auth: a.auth } }, payload);
+        sent++;
+        await db.rpc("log_budget_alert", {
+          p_user: a.user_id, p_cat: a.category_id, p_period: a.period, p_pct: a.pct,
+        });
+      } catch (err) {
+        const st = (err as { statusCode?: number })?.statusCode;
+        if (st === 404 || st === 410) { await db.rpc("drop_push_endpoint", { p_endpoint: a.endpoint }); dropped++; }
+        else failed++;
+      }
+    }
+  }
+
+  /* ---------- สรุปประจำสัปดาห์ (เช้าวันจันทร์) ---------- */
+  if (!testUserId) {
+    const { data: weekly } = await db.rpc("due_weekly_summary");
+    const doneUsers = new Set<string>();
+    for (const w of weekly ?? []) {
+      const payload = JSON.stringify({
+        title: "สรุปสัปดาห์ที่ผ่านมา 📊",
+        body: `${w.display_name || "หมีน้อย"} จด ${w.tx_count} รายการ · จ่าย ${money(Number(w.expense))}`
+          + (Number(w.income) ? ` · รับ ${money(Number(w.income))}` : "")
+          + (w.top_cat ? ` · หมวดที่ใช้เยอะสุดคือ ${w.top_cat}` : ""),
+        url: "/MheeJod/#analysis",
+        tag: "mheejod-weekly",
+      });
+      try {
+        await webpush.sendNotification(
+          { endpoint: w.endpoint, keys: { p256dh: w.p256dh, auth: w.auth } }, payload);
+        sent++;
+        doneUsers.add(`${w.user_id}|${w.local_date}`);
+      } catch (err) {
+        const st = (err as { statusCode?: number })?.statusCode;
+        if (st === 404 || st === 410) { await db.rpc("drop_push_endpoint", { p_endpoint: w.endpoint }); dropped++; }
+        else failed++;
+      }
+    }
+    for (const k of doneUsers) {
+      const [uid, date] = k.split("|");
+      await db.rpc("mark_weekly_sent", { p_user: uid, p_date: date });
+    }
+  }
+
   /* ---------- ส่งแจ้งเตือนนัดล่วงหน้า (รวมของแต่ละคนเป็นข้อความเดียว) ---------- */
   const byUser = new Map<string, any[]>();
   for (const r of plannedRows) {

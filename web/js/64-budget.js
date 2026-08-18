@@ -34,7 +34,9 @@ MJ.routes.budget = (view) => {
     </div>` : ''}
 
     <div class="card">
-      <div class="card-head"><h3>หมวดหมู่</h3><button class="link" id="addCat">+ เพิ่มหมวด</button></div>
+      <div class="card-head"><h3>หมวดหมู่</h3>
+        <span><button class="link" id="catTools"><i class="fa fa-ellipsis"></i> จัดการ</button>
+        <button class="link" id="addCat">+ เพิ่มหมวด</button></span></div>
       ${cats.length ? cats.map((c) => {
         const st = statOf(c.id);
         return `<div class="list-item" data-cat="${c.id}">
@@ -54,8 +56,71 @@ MJ.routes.budget = (view) => {
 
   MJ.segInit(MJ.$('#budType', view), (b) => { MJ.budget.type = b.dataset.type; MJ.render(); });
   MJ.$('#addCat', view).onclick = () => MJ.budget.openEditor(null);
+  if (MJ.$('#catTools', view)) MJ.$('#catTools', view).onclick = () => MJ.budget.openTools();
   view.querySelectorAll('[data-cat]').forEach((el) => el.onclick = () => {
     MJ.budget.openEditor(MJ.data.catById(el.dataset.cat));
+  });
+};
+
+/* ---------------------- จัดเรียง / รวมหมวด ---------------------- */
+MJ.budget.openTools = function () {
+  const type = MJ.budget.type;
+  const cats = MJ.state.categories.filter((c) => c.type === type);
+  MJ.sheet.open('จัดการหมวดหมู่', `
+    <p class="tiny muted mb">ลากปุ่มลูกศรเพื่อสลับลำดับ หรือรวมหมวดที่ซ้ำกันให้เหลือหมวดเดียว</p>
+    <div class="card" id="orderList">
+      ${cats.map((c, i) => `<div class="list-item" data-idx="${i}" data-id="${c.id}">
+        <span class="ic" style="background:${MJ.hex2rgba(c.color, .18)}">${c.icon}</span>
+        <span class="tx2"><b>${MJ.esc(c.name)}</b></span>
+        <button class="icon-btn" data-up="${i}" ${i === 0 ? 'style="opacity:.25"' : ''}><i class="fa fa-arrow-up"></i></button>
+        <button class="icon-btn" data-down="${i}" ${i === cats.length - 1 ? 'style="opacity:.25"' : ''}><i class="fa fa-arrow-down"></i></button>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-soft btn-block" id="mergeBtn"><i class="fa fa-rightleft"></i> รวมสองหมวดเข้าด้วยกัน</button>
+  `, (body) => {
+    const order = cats.slice();
+    const swap = async (i, j) => {
+      if (j < 0 || j >= order.length) return;
+      [order[i], order[j]] = [order[j], order[i]];
+      MJ.loading(true, 'กำลังจัดเรียง…');
+      try {
+        for (let k = 0; k < order.length; k++) {
+          await MJ.sb.from('categories').update({ sort_order: k + 1 }).eq('id', order[k].id);
+        }
+        const { data } = await MJ.sb.from('categories').select('*')
+          .eq('user_id', MJ.state.user.id).eq('is_archived', false)
+          .order('type').order('sort_order').order('name');
+        MJ.state.categories = data || [];
+        MJ.sheet.close(); MJ.budget.openTools(); MJ.render();
+      } catch (e) { MJ.toast('จัดเรียงไม่สำเร็จ', 'err'); }
+      finally { MJ.loading(false); }
+    };
+    body.querySelectorAll('[data-up]').forEach((b) => b.onclick = () => swap(+b.dataset.up, +b.dataset.up - 1));
+    body.querySelectorAll('[data-down]').forEach((b) => b.onclick = () => swap(+b.dataset.down, +b.dataset.down + 1));
+
+    MJ.$('#mergeBtn', body).onclick = () => {
+      MJ.sheet.open('รวมหมวดหมู่', `
+        <label class="field"><span>ย้ายรายการจากหมวดนี้</span><select id="mgFrom">
+          ${cats.map((c) => `<option value="${c.id}">${c.icon} ${MJ.esc(c.name)}</option>`).join('')}</select></label>
+        <label class="field"><span>ไปรวมกับหมวดนี้</span><select id="mgTo">
+          ${cats.map((c, i) => `<option value="${c.id}" ${i === 1 ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('')}</select></label>
+        <p class="tiny muted mb">หมวดต้นทางจะถูกเก็บเข้าคลัง รายการทั้งหมดย้ายไปหมวดปลายทาง (ย้อนกลับไม่ได้)</p>
+        <button class="btn btn-danger btn-block" id="mgOk">รวมหมวด</button>`, (b2) => {
+        MJ.$('#mgOk', b2).onclick = async () => {
+          const from = MJ.$('#mgFrom', b2).value, to = MJ.$('#mgTo', b2).value;
+          if (from === to) { MJ.toast('เลือกคนละหมวดนะ', 'err'); return; }
+          MJ.loading(true, 'กำลังรวม…');
+          try {
+            const { data, error } = await MJ.sb.rpc('merge_category', { p_from: from, p_to: to });
+            if (error) throw error;
+            MJ.state.categories = MJ.state.categories.filter((c) => c.id !== from);
+            await MJ.data.loadMonth();
+            MJ.sheet.close(); MJ.toast(`ย้าย ${data} รายการแล้ว`, 'ok'); MJ.render();
+          } catch (e) { MJ.toast('รวมหมวดไม่สำเร็จ', 'err'); }
+          finally { MJ.loading(false); }
+        };
+      });
+    };
   });
 };
 

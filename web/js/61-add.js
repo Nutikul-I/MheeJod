@@ -322,6 +322,9 @@ MJ.add.openBatchSheet = function (drafts) {
 
   MJ.sheet.open(`ตรวจสลิป ${drafts.length} ใบ`, `
     <div id="batchList">${rows}</div>
+    <label class="field"><span>ลงกระเป๋า (ใช้กับทุกใบ)</span><select id="batchAcc">
+      ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === MJ.data.defaultAccount()?.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+    </select></label>
     <div class="batch-total card">
       <div class="card-head" style="margin:0">
         <h3>รวมที่จะบันทึก</h3>
@@ -372,6 +375,7 @@ MJ.add.openBatchSheet = function (drafts) {
             amount,
             type: d.type || 'expense',
             category_id: MJ.$('[data-f="category"]', row).value || null,
+            account_id: MJ.$('#batchAcc', body)?.value || null,
             note: d.note || (d.payee_name ? `โอนให้ ${d.payee_name}` : 'จ่ายผ่านสลิป'),
             payee_name: d.payee_name || null,
             transaction_date: new Date(MJ.$('[data-f="date"]', row).value),
@@ -463,6 +467,9 @@ function renderForm(body) {
       </div>
     </div>
     <div class="card">
+      <label class="field"><span>กระเป๋าเงิน</span><select id="fAcc">
+        ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === (f.account_id || MJ.data.defaultAccount()?.id) ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+      </select></label>
       <label class="field"><span>บันทึกช่วยจำ</span>
         <input type="text" id="fNote" value="${MJ.esc(f.note)}" placeholder="เช่น กาแฟร้านประจำ"></label>
       <label class="field"><span>วันและเวลา</span>
@@ -496,10 +503,12 @@ function renderForm(body) {
     try {
       await MJ.data.addTransaction({
         amount, type: f.type, category_id: f.category_id,
+        account_id: MJ.$('#fAcc', body)?.value || null,
         note: MJ.$('#fNote', body).value.trim() || null,
         transaction_date: new Date(MJ.$('#fDate', body).value),
         source: 'manual',
       });
+      await MJ.data.loadBalances();
       MJ.add.form = { amount: '', type: f.type, category_id: f.category_id, date: new Date(), note: '' };
       MJ.buzz(30);
       MJ.toast('บันทึกแล้ว 🐻', 'ok');
@@ -532,6 +541,9 @@ MJ.add.openDraftSheet = function (draft, opts) {
       <input type="text" id="dNote" value="${MJ.esc(draft.note || '')}"></label>
     ${draft.payee_name ? `<label class="field"><span>ผู้รับเงิน / ร้านค้า</span>
       <input type="text" id="dPayee" value="${MJ.esc(draft.payee_name)}"></label>` : ''}
+    <label class="field"><span>กระเป๋าเงิน</span><select id="dAcc">
+      ${(MJ.state.accounts || []).map((a) => `<option value="${a.id}" ${a.id === MJ.data.defaultAccount()?.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
+    </select></label>
     <label class="field"><span>วันและเวลา${opts.slip ? (draft.dateFromSlip ? ' <span class="badge in">อ่านจากสลิป</span>' : ' <span class="badge out">อ่านไม่ได้ ใช้วันนี้</span>') : ''}</span>
       <input type="datetime-local" id="dDate" value="${MJ.isoLocal(new Date(draft.transaction_date))}"></label>
     ${draft.ocrText ? `<details class="mb"><summary class="tiny muted">ดูข้อความที่อ่านได้จากสลิป</summary>
@@ -564,6 +576,7 @@ MJ.add.openDraftSheet = function (draft, opts) {
           amount,
           type: draft.type,
           category_id: MJ.$('#dCat', bodyEl).value || null,
+          account_id: MJ.$('#dAcc', bodyEl)?.value || null,
           note: MJ.$('#dNote', bodyEl).value.trim() || null,
           payee_name: MJ.$('#dPayee', bodyEl)?.value.trim() || draft.payee_name || null,
           transaction_date: new Date(MJ.$('#dDate', bodyEl).value),

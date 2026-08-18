@@ -37,8 +37,42 @@ MJ.routes.settings = (view) => {
         <span class="tx2"><b>แจ้งเตือนแม้ปิดแอป (Push)</b><small id="pushHint">กำลังตรวจสอบ…</small></span>
         <div class="switch" id="pushSwitch"><i></i></div>
       </div>
+      <div class="list-item"><span class="ic"><i class="fa fa-piggy"></i></span>
+        <span class="tx2"><b>เตือนเมื่อใกล้เกินงบ</b><small>ส่งเตือนเมื่อใช้ถึงเปอร์เซ็นต์ที่ตั้งไว้ และตอนเกินงบ</small></span>
+        <select id="alertPct" style="width:auto;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--card)">
+          ${[50, 70, 80, 90, 100].map((v) => `<option value="${v}" ${(p.budget_alert_pct || 80) === v ? 'selected' : ''}>${v}%</option>`).join('')}
+        </select>
+      </div>
+      <div class="list-item"><span class="ic"><i class="fa fa-chart-bar"></i></span>
+        <span class="tx2"><b>สรุปประจำสัปดาห์</b><small>ส่งสรุปทุกเช้าวันจันทร์</small></span>
+        <div class="switch ${p.weekly_summary !== false ? 'on' : ''}" id="weeklySw"><i></i></div>
+      </div>
       <button class="btn btn-soft btn-block btn-sm mt" id="pushTest"><i class="fa fa-bell"></i> ทดสอบส่งแจ้งเตือน</button>
       <p class="tiny muted mt">บน iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน แล้วเปิดจากไอคอนแอปถึงจะแจ้งเตือนได้ (iOS 16.4+)</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>เงินของฉัน</h3></div>
+      <div class="list-item" id="goAccounts"><span class="ic"><i class="fa fa-wallet"></i></span>
+        <span class="tx2"><b>กระเป๋าเงิน</b><small>${(MJ.state.accounts || []).length} กระเป๋า • โอนระหว่างกระเป๋าได้</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
+      <div class="list-item" id="goPlans"><span class="ic"><i class="fa fa-piggy"></i></span>
+        <span class="tx2"><b>เป้าหมายเก็บเงิน & หนี้</b><small>ตั้งเป้า หยอดกระปุก ทวงหนี้</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
+      <div class="list-item" id="goImport"><span class="ic"><i class="fa fa-download"></i></span>
+        <span class="tx2"><b>นำเข้าจากไฟล์ CSV/Excel</b><small>ย้ายข้อมูลจากแอปเดิมหรือ statement ธนาคาร</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>ความปลอดภัย</h3></div>
+      <div class="list-item"><span class="ic"><i class="fa fa-mobile"></i></span>
+        <span class="tx2"><b>ล็อกแอปด้วย PIN</b><small id="pinHint">${MJ.lock.enabled() ? 'เปิดอยู่ — ถาม PIN ทุกครั้งที่เปิดแอป' : 'ปิดอยู่'}</small></span>
+        <div class="switch ${MJ.lock.enabled() ? 'on' : ''}" id="pinSwitch"><i></i></div>
+      </div>
+      <div class="list-item" id="changePw"><span class="ic"><i class="fa fa-user"></i></span>
+        <span class="tx2"><b>เปลี่ยนรหัสผ่าน</b><small>ตั้งรหัสใหม่สำหรับบัญชีนี้</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
     </div>
 
     <div class="card">
@@ -120,6 +154,48 @@ MJ.routes.settings = (view) => {
     };
   })();
   if (MJ.$('#pushTest', view)) MJ.$('#pushTest', view).onclick = () => MJ.push.test();
+
+  MJ.$('#goAccounts', view).onclick = () => MJ.go('accounts');
+  MJ.$('#goPlans', view).onclick = () => MJ.go('plans');
+  MJ.$('#goImport', view).onclick = () => MJ.importer.open();
+  MJ.$('#changePw', view).onclick = () => MJ.auth.promptNewPassword();
+
+  MJ.$('#alertPct', view).onchange = async (e) => {
+    try {
+      await MJ.data.saveProfile({ budget_alert_pct: Number(e.target.value) });
+      MJ.toast(`จะเตือนเมื่อใช้ถึง ${e.target.value}% ของงบ`, 'ok');
+    } catch (err) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
+  };
+  MJ.$('#weeklySw', view).onclick = async (e) => {
+    const on = !e.currentTarget.classList.contains('on');
+    e.currentTarget.classList.toggle('on', on);
+    try { await MJ.data.saveProfile({ weekly_summary: on }); }
+    catch (err) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
+  };
+
+  MJ.$('#pinSwitch', view).onclick = async () => {
+    if (MJ.lock.enabled()) {
+      if (!(await MJ.confirm('ปิดล็อกแอป', 'ปิดการถาม PIN ตอนเปิดแอปใช่ไหม?', 'ปิดล็อก'))) return;
+      MJ.lock.clear(); MJ.toast('ปิดล็อกแล้ว', 'ok'); MJ.render();
+      return;
+    }
+    MJ.sheet.open('ตั้ง PIN 4 หลัก', `
+      <label class="field"><span>PIN ใหม่</span>
+        <input type="password" inputmode="numeric" maxlength="4" id="pinA" placeholder="••••"></label>
+      <label class="field"><span>ยืนยัน PIN</span>
+        <input type="password" inputmode="numeric" maxlength="4" id="pinB" placeholder="••••"></label>
+      <p class="tiny muted mb">PIN เก็บไว้ในเครื่องนี้เท่านั้น (เก็บเป็นค่าแฮช ไม่ได้ส่งขึ้นเซิร์ฟเวอร์)
+        ถ้าลืมให้ล้างข้อมูลเว็บไซต์แล้วเข้าใหม่</p>
+      <button class="btn btn-primary btn-block" id="pinSave">ตั้ง PIN</button>`, (body) => {
+      MJ.$('#pinSave', body).onclick = async () => {
+        const a = MJ.$('#pinA', body).value, b = MJ.$('#pinB', body).value;
+        if (!/^\d{4}$/.test(a)) { MJ.toast('ใส่ตัวเลข 4 หลัก', 'err'); return; }
+        if (a !== b) { MJ.toast('PIN ไม่ตรงกัน', 'err'); return; }
+        await MJ.lock.set(a);
+        MJ.sheet.close(); MJ.toast('ตั้ง PIN แล้ว 🔒', 'ok'); MJ.render();
+      };
+    });
+  };
   MJ.$('#addRecur', view).onclick = () => openRecurSheet(null);
   view.querySelectorAll('[data-recur]').forEach((el) => el.onclick = () =>
     openRecurSheet(MJ.state.recurring.find((r) => r.id === el.dataset.recur)));

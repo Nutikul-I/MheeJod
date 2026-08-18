@@ -234,6 +234,8 @@ MJ.render = () => {
     dashboard: ['ภาพรวม', 'สรุปเงินเดือนนี้'],
     transactions: ['รายการ', 'ประวัติทั้งหมด'],
     calendar: ['ปฏิทิน', 'ดูทั้งเดือน + นัดล่วงหน้า'],
+    accounts: ['กระเป๋าเงิน', 'ยอดคงเหลือแต่ละกระเป๋า'],
+    plans: ['แผนการเงิน', 'เป้าหมายเก็บเงิน & หนี้'],
     add: ['จดรายการ', 'พิมพ์ พูด หรือถ่ายสลิป'],
     analysis: ['วิเคราะห์', 'เงินหายไปไหนบ้าง'],
     budget: ['หมวดหมู่และงบ', 'ตั้งงบรายเดือน'],
@@ -249,6 +251,12 @@ MJ.render = () => {
   document.body.classList.toggle('chat-open', inChat);
   const dock = MJ.$('#composerDock');
   if (dock && !inChat) { dock.classList.add('hidden'); dock.innerHTML = ''; }
-  r(view);
+  // กันหน้าเดี้ยงทั้งหน้าเพราะพลาดจุดเดียว
+  try {
+    r(view);
+  } catch (err) {
+    console.error('render error', MJ.state.route, err);
+    MJ.toast('หน้านี้มีบางส่วนโหลดไม่สำเร็จ', 'err');
+  }
   if (window.scrollTo) window.scrollTo({ top: 0 });
 };

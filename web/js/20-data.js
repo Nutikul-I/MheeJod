@@ -6,10 +6,12 @@ MJ.data = {
   async loadAll() {
     const uid = MJ.state.user.id;
 
-    const [profile, cats] = await Promise.all([
+    const [profile, cats, accounts] = await Promise.all([
       MJ.sb.from('profiles').select('*').eq('id', uid).maybeSingle(),
       MJ.sb.from('categories').select('*').eq('user_id', uid).eq('is_archived', false)
         .order('type').order('sort_order').order('name'),
+      MJ.sb.from('accounts').select('*').eq('user_id', uid).eq('is_archived', false)
+        .order('sort_order').order('name'),
     ]);
 
     if (profile.data) MJ.state.profile = profile.data;
@@ -21,8 +23,18 @@ MJ.data = {
       MJ.state.profile = data || { id: uid, display_name: 'หมีน้อย', theme: 'auto' };
     }
     MJ.state.categories = cats.data || [];
+    MJ.state.accounts = accounts.data || [];
+    if (!MJ.state.accounts.length) {
+      // ผู้ใช้เก่าที่ยังไม่มีกระเป๋า สร้างให้อัตโนมัติ
+      await MJ.sb.from('accounts').insert([
+        { user_id: uid, name: 'เงินสด', type: 'cash', icon: '👛', color: '#F2B23E', is_default: true, sort_order: 1 },
+        { user_id: uid, name: 'ธนาคาร', type: 'bank', icon: '🏦', color: '#4A9DF2', sort_order: 2 },
+      ]);
+      const { data } = await MJ.sb.from('accounts').select('*').eq('user_id', uid).order('sort_order');
+      MJ.state.accounts = data || [];
+    }
 
-    await Promise.all([this.loadMonth(), this.loadRecurring()]);
+    await Promise.all([this.loadMonth(), this.loadRecurring(), this.loadBalances()]);
   },
 
   async loadMonth() {
@@ -36,6 +48,27 @@ MJ.data = {
     if (error) { MJ.toast('โหลดรายการไม่สำเร็จ', 'err'); return; }
     MJ.state.transactions = data || [];
     if (MJ.plan) await MJ.plan.load();
+  },
+
+  async loadAllAccounts() {
+    const { data } = await MJ.sb.from('accounts').select('*')
+      .eq('user_id', MJ.state.user.id).eq('is_archived', false).order('sort_order').order('name');
+    MJ.state.accounts = data || [];
+    await this.loadBalances();
+    return MJ.state.accounts;
+  },
+
+  async loadBalances() {
+    const { data } = await MJ.sb.rpc('account_balances');
+    MJ.state.balances = {};
+    (data || []).forEach((r) => { MJ.state.balances[r.account_id] = Number(r.balance); });
+    return MJ.state.balances;
+  },
+
+  accountById(id) { return (MJ.state.accounts || []).find((a) => a.id === id) || null; },
+  defaultAccount() {
+    const list = MJ.state.accounts || [];
+    return list.find((a) => a.is_default) || list[0] || null;
   },
 
   async loadRecurring() {
@@ -61,6 +94,10 @@ MJ.data = {
     const payload = {
       user_id: MJ.state.user.id,
       category_id: tx.category_id || null,
+      account_id: tx.account_id !== undefined ? tx.account_id : (this.defaultAccount()?.id || null),
+      to_account_id: tx.to_account_id || null,
+      kind: tx.kind || 'normal',
+      tags: tx.tags || [],
       amount: Number(tx.amount),
       type: tx.type,
       note: tx.note ? MJ.fixThai(tx.note) : null,
@@ -71,12 +108,18 @@ MJ.data = {
       source: tx.source || 'manual',
       raw_input: tx.raw_input || null,
     };
-    const { data, error } = await MJ.sb.from('transactions').insert(payload).select().maybeSingle();
+    let data, error;
+    if (!navigator.onLine) {
+      // ออฟไลน์: เก็บเข้าคิวไว้ก่อน แล้วแสดงผลทันที
+      return MJ.queue.push('insert', payload);
+    }
+    ({ data, error } = await MJ.sb.from('transactions').insert(payload).select().maybeSingle());
     if (error) {
       if (/duplicate key|transactions_user_slip_key/i.test(error.message)) {
         const e = new Error('สลิปนี้ถูกบันทึกไปแล้ว');
         e.duplicate = true; throw e;
       }
+      if (/fetch|network|Failed to send/i.test(error.message || '')) return MJ.queue.push('insert', payload);
       throw error;
     }
     // จำร้าน/ผู้รับโอน เพื่อเดาหมวดครั้งหน้า
@@ -97,10 +140,65 @@ MJ.data = {
     return data;
   },
 
-  async deleteTransaction(id) {
+  async deleteTransaction(id, opts) {
+    const snapshot = MJ.state.transactions.find((t) => t.id === id) || null;
     const { error } = await MJ.sb.from('transactions').delete().eq('id', id);
     if (error) throw error;
     MJ.state.transactions = MJ.state.transactions.filter((t) => t.id !== id);
+
+    // ลบไฟล์สลิปทิ้งด้วย ไม่ให้ค้างกินพื้นที่ (เว้นตอนที่ยังอาจกดเลิกทำ)
+    if (snapshot?.receipt_image_url && !opts?.keepFile) {
+      MJ.sb.storage.from('receipts').remove([snapshot.receipt_image_url]).catch(() => {});
+    }
+    return snapshot;
+  },
+
+  /** เอารายการที่เพิ่งลบกลับคืน (ใช้กับปุ่มเลิกทำ) */
+  async restoreTransaction(snap) {
+    if (!snap) return null;
+    const { id, created_at, updated_at, ...rest } = snap;
+    const { data, error } = await MJ.sb.from('transactions').insert(rest).select().maybeSingle();
+    if (error) throw error;
+    MJ.state.transactions.push(data);
+    MJ.state.transactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+    return data;
+  },
+
+  /** ลบหลายรายการพร้อมกัน */
+  async deleteMany(ids) {
+    const snaps = MJ.state.transactions.filter((t) => ids.includes(t.id));
+    const { error } = await MJ.sb.from('transactions').delete().in('id', ids);
+    if (error) throw error;
+    MJ.state.transactions = MJ.state.transactions.filter((t) => !ids.includes(t.id));
+    const files = snaps.map((t) => t.receipt_image_url).filter(Boolean);
+    if (files.length) MJ.sb.storage.from('receipts').remove(files).catch(() => {});
+    return snaps;
+  },
+
+  /** เปลี่ยนหมวดหลายรายการพร้อมกัน */
+  async setCategoryMany(ids, categoryId) {
+    const { error } = await MJ.sb.from('transactions').update({ category_id: categoryId }).in('id', ids);
+    if (error) throw error;
+    MJ.state.transactions.forEach((t) => { if (ids.includes(t.id)) t.category_id = categoryId; });
+  },
+
+  /** ค้นหาข้ามทุกเดือน */
+  async searchAll(q, opts) {
+    const o = Object.assign({ limit: 200 }, opts || {});
+    let query = MJ.sb.from('transactions').select('*')
+      .order('transaction_date', { ascending: false }).limit(o.limit);
+    if (o.from) query = query.gte('transaction_date', new Date(o.from).toISOString());
+    if (o.to) query = query.lte('transaction_date', new Date(o.to + 'T23:59:59').toISOString());
+    if (o.type && o.type !== 'all') query = query.eq('type', o.type);
+    if (o.category && o.category !== 'all') query = query.eq('category_id', o.category);
+    if (o.account && o.account !== 'all') query = query.eq('account_id', o.account);
+    if (q) {
+      const like = `%${q}%`;
+      query = query.or(`note.ilike.${like},payee_name.ilike.${like}`);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
   },
 
   /* ---------------------- CRUD categories ---------------------- */
@@ -235,14 +333,14 @@ MJ.data = {
 
   /* ---------------------- สรุปยอด ---------------------- */
   summary(list) {
-    const txs = list || MJ.state.transactions;
+    const txs = (list || MJ.state.transactions).filter((t) => t.kind !== 'transfer');
     let income = 0, expense = 0;
     txs.forEach((t) => { if (t.type === 'income') income += Number(t.amount); else expense += Number(t.amount); });
     return { income, expense, balance: income - expense, count: txs.length };
   },
 
   byCategory(type, list) {
-    const txs = (list || MJ.state.transactions).filter((t) => t.type === type);
+    const txs = (list || MJ.state.transactions).filter((t) => t.type === type && t.kind !== 'transfer');
     const map = new Map();
     txs.forEach((t) => {
       const key = t.category_id || 'none';
@@ -263,7 +361,7 @@ MJ.data = {
   dailySeries(type) {
     const days = MJ.endOfMonth(MJ.state.month).getDate();
     const arr = new Array(days).fill(0);
-    MJ.state.transactions.filter((t) => t.type === type).forEach((t) => {
+    MJ.state.transactions.filter((t) => t.type === type && t.kind !== 'transfer').forEach((t) => {
       const d = new Date(t.transaction_date);
       if (d.getMonth() === MJ.state.month.getMonth()) arr[d.getDate() - 1] += Number(t.amount);
     });

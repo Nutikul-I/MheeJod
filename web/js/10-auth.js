@@ -49,6 +49,33 @@ MJ.auth = {
       }
     };
 
+    if (MJ.$('#authForgot')) MJ.$('#authForgot').onclick = async () => {
+      const email = MJ.$('#authEmail').value.trim();
+      if (!email) { note.className = 'auth-note err'; note.textContent = 'ใส่อีเมลก่อนนะ'; return; }
+      MJ.loading(true, 'กำลังส่งลิงก์ตั้งรหัสใหม่…');
+      const { error } = await MJ.sb.auth.resetPasswordForEmail(email, {
+        redirectTo: location.href.split('#')[0] + '#reset',
+      });
+      MJ.loading(false);
+      note.className = 'auth-note ' + (error ? 'err' : 'ok');
+      note.textContent = error ? MJ.auth.thaiError(error)
+        : 'ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลแล้ว เปิดจากเครื่องนี้ได้เลย 🔑';
+    };
+
+    MJ.$$('[data-oauth]').forEach((btn) => btn.onclick = async () => {
+      const provider = btn.dataset.oauth;
+      const { error } = await MJ.sb.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: location.href.split('#')[0] },
+      });
+      if (error) {
+        note.className = 'auth-note err';
+        note.textContent = /provider is not enabled/i.test(error.message)
+          ? `ยังไม่ได้เปิดใช้ ${provider === 'google' ? 'Google' : 'Apple'} ใน Supabase (Authentication → Providers)`
+          : MJ.auth.thaiError(error);
+      }
+    });
+
     MJ.$('#authMagic').onclick = async () => {
       const email = MJ.$('#authEmail').value.trim();
       if (!email) { note.className = 'auth-note err'; note.textContent = 'ใส่อีเมลก่อนนะ'; return; }
@@ -71,6 +98,28 @@ MJ.auth = {
     if (/rate limit|too many/i.test(m)) return 'ลองบ่อยเกินไป พักสักครู่แล้วลองใหม่';
     if (/Failed to fetch|network/i.test(m)) return 'เชื่อมต่อไม่ได้ เช็กอินเทอร์เน็ตก่อนนะ';
     return m || 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง';
+  },
+
+  /** ตั้งรหัสผ่านใหม่ (เข้ามาจากลิงก์ในอีเมล) */
+  async promptNewPassword() {
+    MJ.sheet.open('ตั้งรหัสผ่านใหม่', `
+      <label class="field"><span>รหัสผ่านใหม่</span>
+        <input type="password" id="npPass" minlength="6" placeholder="อย่างน้อย 6 ตัวอักษร"></label>
+      <label class="field"><span>ยืนยันรหัสผ่านใหม่</span>
+        <input type="password" id="npPass2" minlength="6"></label>
+      <button class="btn btn-primary btn-block" id="npSave">บันทึกรหัสผ่านใหม่</button>`, (body) => {
+      MJ.$('#npSave', body).onclick = async () => {
+        const a = MJ.$('#npPass', body).value, b = MJ.$('#npPass2', body).value;
+        if (a.length < 6) { MJ.toast('รหัสผ่านสั้นเกินไป', 'err'); return; }
+        if (a !== b) { MJ.toast('รหัสผ่านสองช่องไม่ตรงกัน', 'err'); return; }
+        MJ.loading(true, 'กำลังบันทึก…');
+        const { error } = await MJ.sb.auth.updateUser({ password: a });
+        MJ.loading(false);
+        if (error) { MJ.toast(MJ.auth.thaiError(error), 'err'); return; }
+        MJ.sheet.close();
+        MJ.toast('เปลี่ยนรหัสผ่านแล้ว 🔑', 'ok');
+      };
+    });
   },
 
   async signOut() {
