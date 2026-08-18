@@ -213,41 +213,29 @@ MJ.routes.transactions = (view) => {
   const cats = MJ.state.categories;
   const accounts = MJ.state.accounts || [];
 
+  // ตัวกรองที่กำลังใช้อยู่ (แสดงเป็นชิปให้กดปิดได้ทีละอัน)
+  const active = [];
+  if (f.scope === 'all') active.push(['scope', 'ทุกเดือน']);
+  if (f.type !== 'all') active.push(['type', f.type === 'expense' ? 'เฉพาะรายจ่าย' : 'เฉพาะรายรับ']);
+  if (f.category !== 'all') active.push(['category', cats.find((c) => c.id === f.category)?.name || 'หมวด']);
+  if (f.account !== 'all') active.push(['account', accounts.find((a) => a.id === f.account)?.name || 'กระเป๋า']);
+  if (f.from) active.push(['from', 'ตั้งแต่ ' + f.from]);
+  if (f.to) active.push(['to', 'ถึง ' + f.to]);
+
   view.innerHTML = `
     ${MJ.listTabs('transactions')}
+
     <div class="search">
       <i class="fa fa-search muted"></i>
       <input id="txSearch" placeholder="ค้นหารายการ ร้านค้า หรือจำนวนเงิน" value="${MJ.esc(f.q)}">
       ${f.q ? '<button class="icon-btn" id="clearQ"><i class="fa fa-xmark"></i></button>' : ''}
-      <button class="icon-btn" id="btnFilter" title="ตัวกรอง"><i class="fa fa-filter"></i></button>
+      <button class="icon-btn filter-btn ${active.length ? 'on' : ''}" id="btnFilter" title="ตัวกรอง">
+        <i class="fa fa-filter"></i>${active.length ? `<em>${active.length}</em>` : ''}</button>
     </div>
 
-    <div class="filter-group">
-      <span class="filter-label">ช่วงเวลา</span>
-      <div class="seg" id="scopeSeg">
-        <button class="seg-btn ${f.scope === 'month' ? 'active' : ''}" data-scope="month">
-          <i class="fa fa-calendar"></i> ${MJ.monthLabel(MJ.state.month)}</button>
-        <button class="seg-btn ${f.scope === 'all' ? 'active' : ''}" data-scope="all">
-          <i class="fa fa-boxes"></i> ทุกเดือน</button>
-      </div>
-    </div>
-
-    <div class="filter-group">
-      <span class="filter-label">ประเภท</span>
-      <div class="seg" id="typeSegTx">
-        <button class="seg-btn ${f.type === 'all' ? 'active' : ''}" data-f="all">ทั้งหมด</button>
-        <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-f="expense">
-          <i class="fa fa-arrow-up"></i> รายจ่าย</button>
-        <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-f="income">
-          <i class="fa fa-arrow-down"></i> รายรับ</button>
-      </div>
-    </div>
-
-    ${(f.category !== 'all' || f.account !== 'all' || f.from || f.to) ? `<div class="chips">
-      ${f.category !== 'all' ? `<button class="chip active" data-clear="category">หมวด: ${MJ.esc(cats.find((c) => c.id === f.category)?.name || '-')} ✕</button>` : ''}
-      ${f.account !== 'all' ? `<button class="chip active" data-clear="account">กระเป๋า: ${MJ.esc(accounts.find((a) => a.id === f.account)?.name || '-')} ✕</button>` : ''}
-      ${f.from ? `<button class="chip active" data-clear="from">ตั้งแต่ ${f.from} ✕</button>` : ''}
-      ${f.to ? `<button class="chip active" data-clear="to">ถึง ${f.to} ✕</button>` : ''}
+    ${active.length ? `<div class="chips">
+      ${active.map(([k, label]) => `<button class="chip mini active" data-clear="${k}">${MJ.esc(label)} ✕</button>`).join('')}
+      <button class="chip mini" data-clear="reset">ล้างทั้งหมด</button>
     </div>` : ''}
 
     <div class="stat-grid">
@@ -256,12 +244,9 @@ MJ.routes.transactions = (view) => {
     </div>
 
     <div class="tx-toolbar">
-      <span class="tx-count">${list.length} รายการ</span>
-      <div class="tx-actions">
-        <button class="tool-btn ${MJ.tx.selectMode ? 'on' : ''}" id="btnSelect">
-          <i class="fa fa-check"></i> ${MJ.tx.selectMode ? 'ยกเลิกเลือก' : 'เลือกหลายรายการ'}</button>
-        <button class="tool-btn" id="btnExport"><i class="fa fa-excel"></i> Excel</button>
-      </div>
+      <span class="tx-count">${searching ? `พบ ${list.length} รายการ (ทุกเดือน)` : `${list.length} รายการ · ${MJ.monthLabel(MJ.state.month)}`}</span>
+      <button class="tool-btn ${MJ.tx.selectMode ? 'on' : ''}" id="btnMenu">
+        ${MJ.tx.selectMode ? '<i class="fa fa-xmark"></i> ออกจากโหมดเลือก' : '<i class="fa fa-ellipsis"></i> เมนู'}</button>
     </div>
 
     <div class="card">
@@ -271,13 +256,12 @@ MJ.routes.transactions = (view) => {
         return `<div class="day-head"><span>${MJ.dayLabel(day)}</span>
           <span class="${dsum >= 0 ? 'tx-amt in' : 'tx-amt out'}">${dsum >= 0 ? '+' : '−'}${MJ.fmtMoney(Math.abs(dsum))}</span></div>
           ${items.map((t) => MJ.tx.row(t)).join('')}`;
-      }).join('') : `<div class="empty"><span class="big">🔍</span>ไม่พบรายการที่ค้นหา</div>`}
+      }).join('') : `<div class="empty"><span class="big">🔍</span>ไม่พบรายการ<br>
+        <span class="tiny">ลองเปลี่ยนเดือนด้านบน หรือกดตัวกรองเพื่อค้นทุกเดือน</span></div>`}
     </div>
 
     ${list.length > MJ.tx.limit ? `<button class="btn btn-soft btn-block" id="btnMore">
       โหลดเพิ่ม (เหลืออีก ${list.length - MJ.tx.limit} รายการ)</button>` : ''}
-    <p class="center tiny muted mt">${searching ? `พบ ${list.length} รายการจากทุกเดือน`
-      : `ทั้งหมด ${list.length} รายการใน ${MJ.monthLabelFull(MJ.state.month)}`}</p>
     <div style="height:10px"></div>`;
 
   MJ.bindListTabs(view);
@@ -302,35 +286,53 @@ MJ.routes.transactions = (view) => {
   };
   MJ.$('#btnFilter', view).onclick = () => MJ.tx.openFilterSheet();
 
-  MJ.segInit(MJ.$('#scopeSeg', view));
-  MJ.segInit(MJ.$('#typeSegTx', view));
-  view.querySelectorAll('[data-scope]').forEach((b) => b.onclick = async () => {
-    MJ.tx.filter.scope = b.dataset.scope;
-    MJ.tx.limit = 50;
-    if (b.dataset.scope === 'all') { MJ.loading(true, 'กำลังค้นทุกเดือน…'); await MJ.tx.runSearch(); MJ.loading(false); }
-    else MJ.tx.searchResults = null;
-    MJ.render();
-  });
-  view.querySelectorAll('[data-f]').forEach((b) => b.onclick = async () => {
-    MJ.tx.filter.type = b.dataset.f;
-    if (MJ.tx.filter.scope === 'all') await MJ.tx.runSearch();
-    MJ.render();
-  });
   view.querySelectorAll('[data-clear]').forEach((b) => b.onclick = async () => {
-    MJ.tx.filter[b.dataset.clear] = b.dataset.clear === 'category' || b.dataset.clear === 'account' ? 'all' : '';
-    if (MJ.tx.filter.scope === 'all') await MJ.tx.runSearch();
+    const k = b.dataset.clear;
+    if (k === 'reset') {
+      Object.assign(f, { type: 'all', q: '', category: 'all', account: 'all', scope: 'month', from: '', to: '' });
+      MJ.tx.searchResults = null;
+    } else if (k === 'scope') {
+      f.scope = 'month'; MJ.tx.searchResults = null;
+    } else if (k === 'type') f.type = 'all';
+    else if (k === 'category' || k === 'account') f[k] = 'all';
+    else f[k] = '';
+    MJ.tx.limit = 50;
+    if (f.scope === 'all') { MJ.loading(true, 'กำลังค้น…'); await MJ.tx.runSearch(); MJ.loading(false); }
     MJ.render();
   });
 
-  MJ.$('#btnExport', view).onclick = () => MJ.tx.exportExcel(list);
   if (MJ.$('#btnMore', view)) MJ.$('#btnMore', view).onclick = () => { MJ.tx.limit += 50; MJ.render(); };
 
-  /* ---------- โหมดเลือกหลายรายการ ---------- */
-  MJ.$('#btnSelect', view).onclick = () => {
-    MJ.tx.selectMode = !MJ.tx.selectMode;
-    MJ.tx.selected.clear();
-    MJ.render();
+  /* ---------- เมนูเครื่องมือ ---------- */
+  MJ.$('#btnMenu', view).onclick = () => {
+    if (MJ.tx.selectMode) {          // อยู่ในโหมดเลือกอยู่แล้ว = กดเพื่อออก
+      MJ.tx.selectMode = false;
+      MJ.tx.selected.clear();
+      const bar = MJ.$('#bulkBar'); if (bar) bar.remove();
+      MJ.render();
+      return;
+    }
+    MJ.sheet.open('เมนูรายการ', `
+      <div class="list-item" id="mnSelect"><span class="ic"><i class="fa fa-check"></i></span>
+        <span class="tx2"><b>เลือกหลายรายการ</b><small>ลบหรือย้ายหมวดทีเดียวหลายอัน</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
+      <div class="list-item" id="mnExport"><span class="ic"><i class="fa fa-excel"></i></span>
+        <span class="tx2"><b>ส่งออกเป็น Excel</b><small>${list.length} รายการที่เห็นอยู่ตอนนี้</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
+      <div class="list-item" id="mnFilter"><span class="ic"><i class="fa fa-filter"></i></span>
+        <span class="tx2"><b>ตัวกรอง</b><small>ประเภท หมวด กระเป๋า ช่วงวันที่</small></span>
+        <span class="tiny muted"><i class="fa fa-angle-r"></i></span></div>
+    `, (body) => {
+      MJ.$('#mnSelect', body).onclick = () => {
+        MJ.sheet.close();
+        MJ.tx.selectMode = true; MJ.tx.selected.clear(); MJ.render();
+        MJ.toast('แตะรายการที่ต้องการเลือก');
+      };
+      MJ.$('#mnExport', body).onclick = () => { MJ.sheet.close(); MJ.tx.exportExcel(list); };
+      MJ.$('#mnFilter', body).onclick = () => { MJ.sheet.close(); MJ.tx.openFilterSheet(); };
+    });
   };
+
   if (MJ.tx.selectMode) MJ.tx.bindSelect(view);
   else MJ.tx.bindRows(view);
 };
@@ -354,35 +356,59 @@ MJ.tx.openFilterSheet = function () {
   const f = MJ.tx.filter;
   const cats = MJ.state.categories, accounts = MJ.state.accounts || [];
   MJ.sheet.open('ตัวกรอง', `
-    <label class="field"><span>หมวดหมู่</span><select id="ftCat">
+    <div class="field"><span>ประเภทรายการ</span>
+      <div class="seg" id="ftType">
+        <button class="seg-btn ${f.type === 'all' ? 'active' : ''}" data-t="all">ทั้งหมด</button>
+        <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-t="expense">รายจ่าย</button>
+        <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-t="income">รายรับ</button>
+      </div>
+    </div>
+
+    <div class="list-item"><span class="ic"><i class="fa fa-boxes"></i></span>
+      <span class="tx2"><b>ค้นทุกเดือน</b><small>ปิดไว้ = ดูเฉพาะ ${MJ.monthLabel(MJ.state.month)}</small></span>
+      <div class="switch ${f.scope === 'all' ? 'on' : ''}" id="ftScope"><i></i></div>
+    </div>
+
+    <label class="field mt"><span>หมวดหมู่</span><select id="ftCat">
       <option value="all">ทุกหมวด</option>
       ${cats.map((c) => `<option value="${c.id}" ${f.category === c.id ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('')}
     </select></label>
+
     <label class="field"><span>กระเป๋าเงิน</span><select id="ftAcc">
       <option value="all">ทุกกระเป๋า</option>
       ${accounts.map((a) => `<option value="${a.id}" ${f.account === a.id ? 'selected' : ''}>${a.icon} ${MJ.esc(a.name)}</option>`).join('')}
     </select></label>
+
     <div class="row">
       <label class="field"><span>ตั้งแต่วันที่</span><input type="date" id="ftFrom" value="${f.from}"></label>
       <label class="field"><span>ถึงวันที่</span><input type="date" id="ftTo" value="${f.to}"></label>
     </div>
-    <p class="tiny muted mb">กำหนดช่วงวันที่แล้วระบบจะค้นทุกเดือนให้อัตโนมัติ</p>
-    <button class="btn btn-primary btn-block" id="ftApply">ใช้ตัวกรอง</button>
-    <button class="btn btn-ghost btn-block" id="ftReset">ล้างตัวกรอง</button>
+    <p class="tiny muted mb">ถ้าเลือกช่วงวันที่ ระบบจะค้นทุกเดือนให้อัตโนมัติ</p>
+
+    <button class="btn btn-primary btn-block" id="ftApply">ดูผลลัพธ์</button>
+    <button class="btn btn-ghost btn-block" id="ftReset">ล้างตัวกรองทั้งหมด</button>
   `, (body) => {
+    let type = f.type, scope = f.scope;
+    MJ.segInit(MJ.$('#ftType', body), (b) => { type = b.dataset.t; });
+    MJ.$('#ftScope', body).onclick = (e) => {
+      scope = scope === 'all' ? 'month' : 'all';
+      e.currentTarget.classList.toggle('on', scope === 'all');
+    };
+
     MJ.$('#ftApply', body).onclick = async () => {
+      f.type = type;
       f.category = MJ.$('#ftCat', body).value;
       f.account = MJ.$('#ftAcc', body).value;
       f.from = MJ.$('#ftFrom', body).value;
       f.to = MJ.$('#ftTo', body).value;
-      if (f.from || f.to) f.scope = 'all';
+      f.scope = (f.from || f.to) ? 'all' : scope;
       MJ.tx.limit = 50;
       MJ.loading(true, 'กำลังกรอง…');
-      if (f.scope === 'all') await MJ.tx.runSearch();
+      if (f.scope === 'all') await MJ.tx.runSearch(); else MJ.tx.searchResults = null;
       MJ.loading(false);
       MJ.sheet.close(); MJ.render();
     };
-    MJ.$('#ftReset', body).onclick = async () => {
+    MJ.$('#ftReset', body).onclick = () => {
       Object.assign(f, { type: 'all', q: '', category: 'all', account: 'all', scope: 'month', from: '', to: '' });
       MJ.tx.searchResults = null;
       MJ.sheet.close(); MJ.render();

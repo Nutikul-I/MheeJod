@@ -619,15 +619,15 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
 .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
-/* ============================ กลุ่มตัวกรอง / แถบเครื่องมือรายการ ============================ */
-.filter-group{margin-bottom:10px}
-.filter-label{
-  display:block;font-size:11px;font-weight:650;color:var(--ink-3);
-  margin:0 0 5px 3px;letter-spacing:.02em
+/* ============================ แถบเครื่องมือรายการ ============================ */
+/* ปุ่มตัวกรองในช่องค้นหา มีตัวเลขบอกว่ากรองอยู่กี่เงื่อนไข */
+.filter-btn{position:relative;color:var(--ink-2)}
+.filter-btn.on{color:var(--bear);background:rgba(242,178,62,.16)}
+.filter-btn em{
+  position:absolute;top:1px;right:1px;min-width:15px;height:15px;padding:0 3px;
+  border-radius:99px;background:var(--honey-d);color:#3A2A10;
+  font-style:normal;font-size:9.5px;font-weight:750;display:grid;place-items:center
 }
-.filter-group .seg{margin-bottom:0}
-.filter-group .seg-btn{font-size:12.5px;padding:8px 4px;display:inline-flex;align-items:center;justify-content:center;gap:5px}
-.filter-group .seg-btn .fa{font-size:11px;opacity:.75}
 
 .tx-toolbar{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
