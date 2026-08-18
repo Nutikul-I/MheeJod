@@ -400,6 +400,16 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 }
 .bud-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
 
+/* แถบสลับแชท/กรอกเอง — ตรึงไว้ใต้แถบบนตลอดเวลาเลื่อน */
+.tabs-dock{
+  position:sticky;top:calc(var(--top-h) + var(--safe-t));z-index:20;
+  margin:-16px -14px 14px;padding:12px 14px 10px;
+  background:color-mix(in srgb,var(--cream) 88%,transparent);
+  backdrop-filter:blur(16px) saturate(1.35);-webkit-backdrop-filter:blur(16px) saturate(1.35);
+  border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);
+}
+.tabs-dock .seg{margin-bottom:0}
+
 /* ============================ แชท ============================ */
 .chat{
   display:flex;flex-direction:column;gap:10px;
@@ -432,7 +442,7 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-3);animation:floaty .9s infinite}
 .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
 
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
 /* แถวปุ่มลัดแบบเลื่อนแนวนอน ไม่มีแถบเลื่อนให้เกะกะ */
 .chips.scroll{
   flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
@@ -2330,9 +2340,11 @@ MJ.routes.add = (view) => {
   }
 
   view.innerHTML = `
-    <div class="seg" id="addTabs">
-      <button class="seg-btn" data-tab="chat"><i class="fa fa-comment"></i> แชท</button>
-      <button class="seg-btn" data-tab="form"><i class="fa fa-keyboard"></i> กรอกเอง</button>
+    <div class="tabs-dock">
+      <div class="seg" id="addTabs">
+        <button class="seg-btn" data-tab="chat"><i class="fa fa-comment"></i> แชท</button>
+        <button class="seg-btn" data-tab="form"><i class="fa fa-keyboard"></i> กรอกเอง</button>
+      </div>
     </div>
     <div id="addBody"></div>`;
 

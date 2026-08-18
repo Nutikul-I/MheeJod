@@ -385,6 +385,16 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 }
 .bud-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
 
+/* แถบสลับแชท/กรอกเอง — ตรึงไว้ใต้แถบบนตลอดเวลาเลื่อน */
+.tabs-dock{
+  position:sticky;top:calc(var(--top-h) + var(--safe-t));z-index:20;
+  margin:-16px -14px 14px;padding:12px 14px 10px;
+  background:color-mix(in srgb,var(--cream) 88%,transparent);
+  backdrop-filter:blur(16px) saturate(1.35);-webkit-backdrop-filter:blur(16px) saturate(1.35);
+  border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent);
+}
+.tabs-dock .seg{margin-bottom:0}
+
 /* ============================ แชท ============================ */
 .chat{
   display:flex;flex-direction:column;gap:10px;

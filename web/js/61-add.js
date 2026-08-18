@@ -43,9 +43,11 @@ MJ.routes.add = (view) => {
   }
 
   view.innerHTML = `
-    <div class="seg" id="addTabs">
-      <button class="seg-btn" data-tab="chat"><i class="fa fa-comment"></i> แชท</button>
-      <button class="seg-btn" data-tab="form"><i class="fa fa-keyboard"></i> กรอกเอง</button>
+    <div class="tabs-dock">
+      <div class="seg" id="addTabs">
+        <button class="seg-btn" data-tab="chat"><i class="fa fa-comment"></i> แชท</button>
+        <button class="seg-btn" data-tab="form"><i class="fa fa-keyboard"></i> กรอกเอง</button>
+      </div>
     </div>
     <div id="addBody"></div>`;
 
