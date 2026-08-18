@@ -35,6 +35,7 @@ MJ.data = {
       .order('created_at', { ascending: false });
     if (error) { MJ.toast('โหลดรายการไม่สำเร็จ', 'err'); return; }
     MJ.state.transactions = data || [];
+    if (MJ.plan) await MJ.plan.load();
   },
 
   async loadRecurring() {

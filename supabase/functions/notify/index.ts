@@ -94,6 +94,13 @@ Deno.serve(async (req) => {
     rows = data ?? [];
   }
 
+  /* ---------- นัดล่วงหน้าที่ถึงกำหนดวันนี้ (ส่งทันทีไม่ต้องรอเวลาเตือน) ---------- */
+  let plannedRows: any[] = [];
+  if (!testUserId) {
+    const { data: planned } = await db.rpc("due_planned");
+    plannedRows = planned ?? [];
+  }
+
   let sent = 0, failed = 0, dropped = 0;
   const remindedUsers = new Map<string, string>();
 
@@ -127,6 +134,49 @@ Deno.serve(async (req) => {
     }
   }
 
+  /* ---------- ส่งแจ้งเตือนนัดล่วงหน้า (รวมของแต่ละคนเป็นข้อความเดียว) ---------- */
+  const byUser = new Map<string, any[]>();
+  for (const r of plannedRows) {
+    if (!byUser.has(r.user_id)) byUser.set(r.user_id, []);
+    byUser.get(r.user_id)!.push(r);
+  }
+  const notifiedItemIds: string[] = [];
+
+  for (const [, items] of byUser) {
+    const uniqueItems = [...new Map(items.map((i) => [i.item_id, i])).values()];
+    const endpoints = [...new Map(items.map((i) => [i.endpoint, i])).values()];
+    const lines = uniqueItems.slice(0, 3)
+      .map((i) => `${i.type === "income" ? "รับ" : "จ่าย"} ${i.title} ${money(Number(i.amount))}`);
+    const more = uniqueItems.length > 3 ? ` และอีก ${uniqueItems.length - 3} รายการ` : "";
+    const payload = JSON.stringify({
+      title: `มีนัดถึงกำหนดวันนี้ ${uniqueItems.length} รายการ 🗓️`,
+      body: lines.join(" · ") + more,
+      url: "/MheeJod/#calendar",
+      tag: "mheejod-planned",
+    });
+
+    let anySent = false;
+    for (const e of endpoints) {
+      try {
+        await webpush.sendNotification(
+          { endpoint: e.endpoint, keys: { p256dh: e.p256dh, auth: e.auth } },
+          payload,
+        );
+        sent++; anySent = true;
+      } catch (err) {
+        const status = (err as { statusCode?: number })?.statusCode;
+        if (status === 404 || status === 410) {
+          await db.rpc("drop_push_endpoint", { p_endpoint: e.endpoint });
+          dropped++;
+        } else failed++;
+      }
+    }
+    if (anySent) notifiedItemIds.push(...uniqueItems.map((i) => i.item_id));
+  }
+  if (notifiedItemIds.length) {
+    await db.rpc("mark_planned_notified", { p_ids: notifiedItemIds });
+  }
+
   // กันเตือนซ้ำในวันเดียวกัน
   if (!testUserId) {
     for (const [userId, date] of remindedUsers) {
@@ -134,5 +184,10 @@ Deno.serve(async (req) => {
     }
   }
 
-  return json({ ok: true, candidates: rows.length, sent, failed, dropped });
+  return json({
+    ok: true,
+    candidates: rows.length,
+    planned: plannedRows.length,
+    sent, failed, dropped,
+  });
 });

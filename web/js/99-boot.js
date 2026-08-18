@@ -88,6 +88,7 @@ MJ.start = async function (user) {
   MJ.reminder.schedule();
   MJ.push.sync();
   MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });
+  MJ.plan.checkDue().catch(() => {});
   handleSharedSlip();
 };
 

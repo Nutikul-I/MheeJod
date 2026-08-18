@@ -607,6 +607,51 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
 .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+/* ============================ ปฏิทิน ============================ */
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-week span{text-align:center;font-size:10.5px;font-weight:650;color:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-cell{
+  position:relative;aspect-ratio:1/1.05;border-radius:11px;background:var(--cream-2);
+  display:flex;align-items:flex-start;justify-content:center;padding-top:5px;overflow:hidden;
+  border:1.5px solid transparent;transition:transform .16s var(--spring),border-color .2s
+}
+.cal-cell:active{transform:scale(.92)}
+.cal-cell.empty{background:transparent;pointer-events:none}
+.cal-cell.today{border-color:var(--honey)}
+.cal-cell.sel{border-color:var(--bear)}
+.cal-num{font-size:12px;font-weight:650;color:var(--ink-2);position:relative;z-index:1}
+.cal-bar{position:absolute;left:0;right:0;bottom:0;height:38%;background:var(--out);border-radius:0 0 9px 9px}
+.cal-dot{position:absolute;bottom:5px;left:6px;width:6px;height:6px;border-radius:50%;background:var(--in);z-index:1}
+.cal-plan{
+  position:absolute;top:3px;right:3px;min-width:15px;height:15px;padding:0 3px;border-radius:99px;
+  background:var(--honey-d);color:#3A2A10;font-size:9.5px;font-weight:750;
+  display:grid;place-items:center;z-index:2
+}
+.cal-plan.in{background:var(--in);color:#fff}
+.cal-legend{display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:10.5px;color:var(--ink-3)}
+.cal-legend span{display:inline-flex;align-items:center;gap:5px}
+.cal-swatch{width:10px;height:10px;border-radius:4px;display:inline-block}
+.cal-swatch.spend{background:var(--out)}
+.cal-swatch.income{background:var(--in)}
+.cal-swatch.plan{background:var(--honey-d)}
+.plan-item{
+  display:flex;align-items:center;gap:10px;padding:10px 3px;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)
+}
+.plan-item:last-child{border-bottom:none}
+.plan-item.done{opacity:.55}
+.plan-item .tx2{flex:1;min-width:0}
+.plan-item .tx2 b{display:block;font-size:13.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plan-item .tx2 small{font-size:10.5px;color:var(--ink-3)}
+
+/* ============================ รูปสรุปไว้แชร์ ============================ */
+.share-preview{
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:12px;
+  background:var(--cream-2);max-height:52dvh;display:grid;place-items:center
+}
+.share-preview canvas{width:100%;height:auto;display:block}
+
 /* ============================ ตัวเลือกเดือน ============================ */
 .mp-year{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .mp-year b{font-size:17px;font-weight:750}

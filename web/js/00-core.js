@@ -233,6 +233,7 @@ MJ.render = () => {
   const titles = {
     dashboard: ['ภาพรวม', 'สรุปเงินเดือนนี้'],
     transactions: ['รายการ', 'ประวัติทั้งหมด'],
+    calendar: ['ปฏิทิน', 'ดูทั้งเดือน + นัดล่วงหน้า'],
     add: ['จดรายการ', 'พิมพ์ พูด หรือถ่ายสลิป'],
     analysis: ['วิเคราะห์', 'เงินหายไปไหนบ้าง'],
     budget: ['หมวดหมู่และงบ', 'ตั้งงบรายเดือน'],
@@ -241,7 +242,8 @@ MJ.render = () => {
   const t = titles[MJ.state.route] || ['หมีจด', ''];
   MJ.$('#topTitle').textContent = t[0];
   MJ.$('#topSub').textContent = t[1];
-  MJ.$$('.tab, .fab').forEach((el) => el.classList.toggle('active', el.dataset.route === MJ.state.route));
+  MJ.$$('.tab, .fab').forEach((el) => el.classList.toggle('active',
+    el.dataset.route === MJ.state.route || (el.dataset.route === 'transactions' && MJ.state.route === 'calendar')));
   // หน้าแชทมีแถบพิมพ์ตรึงล่าง ต้องเผื่อที่ว่างให้เนื้อหา
   const inChat = MJ.state.route === 'add' && MJ.add?.tab === 'chat';
   document.body.classList.toggle('chat-open', inChat);

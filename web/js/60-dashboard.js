@@ -92,6 +92,7 @@ MJ.routes.dashboard = (view) => {
   `;
 
   MJ.countUp(MJ.$('#balAmt', view), s.balance);
+  MJ.$('#chipShare', view).onclick = () => MJ.share.open();
   view.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => MJ.go(b.dataset.go));
   view.querySelectorAll('[data-quick]').forEach((b) => b.onclick = () => {
     const map = {

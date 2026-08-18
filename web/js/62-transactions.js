@@ -172,6 +172,14 @@ MJ.tx = {
   },
 };
 
+/** แท็บสลับ รายการ | ปฏิทิน (ใช้ร่วมกันสองหน้า) */
+MJ.listTabs = (active) => `
+  <div class="seg" id="listTabs">
+    <button class="seg-btn ${active === 'transactions' ? 'active' : ''}" data-route="transactions"><i class="fa fa-list"></i> รายการ</button>
+    <button class="seg-btn ${active === 'calendar' ? 'active' : ''}" data-route="calendar"><i class="fa fa-calendar"></i> ปฏิทิน</button>
+  </div>`;
+MJ.bindListTabs = (view) => MJ.segInit(MJ.$('#listTabs', view), (b) => MJ.go(b.dataset.route));
+
 /* ============================ หน้าแสดงรายการ ============================ */
 MJ.routes.transactions = (view) => {
   const f = MJ.tx.filter;
@@ -180,6 +188,7 @@ MJ.routes.transactions = (view) => {
   const groups = MJ.tx.groupByDay(list);
 
   view.innerHTML = `
+    ${MJ.listTabs('transactions')}
     <div class="search">
       <i class="fa fa-search muted"></i>
       <input id="txSearch" placeholder="ค้นหารายการ ร้านค้า หรือจำนวนเงิน" value="${MJ.esc(f.q)}">
@@ -211,6 +220,7 @@ MJ.routes.transactions = (view) => {
   input.oninput = () => { clearTimeout(t0); t0 = setTimeout(() => { MJ.tx.filter.q = input.value; MJ.render(); MJ.$('#txSearch').focus(); }, 350); };
   if (MJ.$('#clearQ', view)) MJ.$('#clearQ', view).onclick = () => { MJ.tx.filter.q = ''; MJ.render(); };
   view.querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { MJ.tx.filter.type = b.dataset.f; MJ.render(); });
+  MJ.bindListTabs(view);
   MJ.$('#btnExport', view).onclick = () => MJ.tx.exportExcel(list);
   MJ.tx.bindRows(view);
 };

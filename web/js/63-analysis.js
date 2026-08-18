@@ -78,12 +78,16 @@ MJ.routes.analysis = (view) => {
       <div class="card-head"><h3>เทียบกับเดือนก่อน</h3></div>
       <div id="cmpBox"><div class="empty tiny">กำลังคำนวณ…</div></div>
     </div>
+
+    <button class="btn btn-primary btn-block" id="anShare">
+      <i class="fa fa-send"></i> ทำรูปสรุปไว้แชร์อวดเพื่อน</button>
     <div style="height:10px"></div>`;
 
   MJ.segInit(MJ.$('#anType', view), (b) => {
     MJ.analysis.type = b.dataset.type; MJ.render();
   });
 
+  MJ.$('#anShare', view).onclick = () => MJ.share.open();
   renderCompare(MJ.$('#cmpBox', view));
 };
 
