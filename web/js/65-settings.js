@@ -16,7 +16,7 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>การแสดงผล</h3></div>
-      <div class="list-item"><span class="ic">🎨</span>
+      <div class="list-item"><span class="ic"><i class="fa fa-palette"></i></span>
         <span class="tx2"><b>ธีม</b><small>เลือกโหมดสว่าง/มืด</small></span>
         <select id="themeSel" style="width:auto;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)">
           <option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>ตามเครื่อง</option>
@@ -28,13 +28,17 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>แจ้งเตือนให้จด</h3></div>
-      <div class="list-item"><span class="ic">⏰</span>
+      <div class="list-item"><span class="ic"><i class="fa fa-bell"></i></span>
         <span class="tx2"><b>เวลาเตือนประจำวัน</b><small>${notifState === 'granted' ? 'เปิดใช้งานแล้ว' : 'ต้องอนุญาตการแจ้งเตือนก่อน'}</small></span>
         <input type="time" id="reminderTime" value="${p.reminder_time ? String(p.reminder_time).slice(0, 5) : ''}"
           style="width:auto;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)">
       </div>
-      ${notifState !== 'granted' ? '<button class="btn btn-soft btn-block btn-sm mt" id="askNotif">อนุญาตการแจ้งเตือน</button>' : ''}
-      <p class="tiny muted mt">บน iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน แล้วเปิดจากไอคอนแอปถึงจะแจ้งเตือนได้</p>
+      <div class="list-item"><span class="ic"><i class="fa fa-mobile"></i></span>
+        <span class="tx2"><b>แจ้งเตือนแม้ปิดแอป (Push)</b><small id="pushHint">กำลังตรวจสอบ…</small></span>
+        <div class="switch" id="pushSwitch"><i></i></div>
+      </div>
+      <button class="btn btn-soft btn-block btn-sm mt" id="pushTest"><i class="fa fa-bell"></i> ทดสอบส่งแจ้งเตือน</button>
+      <p class="tiny muted mt">บน iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน แล้วเปิดจากไอคอนแอปถึงจะแจ้งเตือนได้ (iOS 16.4+)</p>
     </div>
 
     <div class="card">
@@ -43,7 +47,7 @@ MJ.routes.settings = (view) => {
         const c = MJ.data.catById(r.category_id);
         const freq = { daily: 'ทุกวัน', weekly: 'ทุกสัปดาห์', monthly: 'ทุกเดือน', yearly: 'ทุกปี' }[r.frequency];
         return `<div class="list-item" data-recur="${r.id}">
-          <span class="ic" style="background:${MJ.hex2rgba(c?.color || '#F2B23E', .18)}">${c?.icon || '🔁'}</span>
+          <span class="ic" style="background:${MJ.hex2rgba(c?.color || '#F2B23E', .18)}">${c?.icon || '<i class="fa fa-repeat"></i>'}</span>
           <span class="tx2"><b>${MJ.esc(r.note || c?.name || 'รายการประจำ')}</b>
             <small>${freq} • ครั้งถัดไป ${MJ.dayLabel(r.next_run_date)}</small></span>
           <span class="tx-amt ${r.type === 'income' ? 'in' : 'out'}">${MJ.fmtMoney(r.amount)}</span>
@@ -53,7 +57,7 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>อ่านสลิป (OCR)</h3></div>
-      <div class="list-item"><span class="ic">🔍</span>
+      <div class="list-item"><span class="ic"><i class="fa fa-eye"></i></span>
         <span class="tx2"><b>${p.ocr_endpoint ? 'PaddleOCR (เซิร์ฟเวอร์ของคุณ)' : 'อ่านในเครื่อง (Tesseract.js)'}</b>
           <small>${p.ocr_endpoint ? MJ.esc(p.ocr_endpoint) : 'ฟรี ไม่ต้องตั้งค่าอะไร'}</small></span>
         <button class="btn btn-soft btn-sm" id="editOcr">ตั้งค่า</button>
@@ -62,17 +66,17 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>ข้อมูลของฉัน</h3></div>
-      <div class="list-item" id="expMonth"><span class="ic">📄</span>
+      <div class="list-item" id="expMonth"><span class="ic"><i class="fa fa-excel"></i></span>
         <span class="tx2"><b>ส่งออกเดือนนี้เป็น Excel</b><small>${MJ.monthLabelFull(MJ.state.month)}</small></span><span class="tiny muted">›</span></div>
-      <div class="list-item" id="expAll"><span class="ic">📦</span>
+      <div class="list-item" id="expAll"><span class="ic"><i class="fa fa-boxes"></i></span>
         <span class="tx2"><b>ส่งออกทั้งหมด</b><small>ทุกรายการที่เคยบันทึก</small></span><span class="tiny muted">›</span></div>
-      <div class="list-item" id="runRecur"><span class="ic">🔁</span>
+      <div class="list-item" id="runRecur"><span class="ic"><i class="fa fa-rotate"></i></span>
         <span class="tx2"><b>ประมวลผลรายการประจำเดี๋ยวนี้</b><small>เผื่อรายการที่ถึงกำหนดแล้ว</small></span><span class="tiny muted">›</span></div>
     </div>
 
     <div class="card">
       <div class="card-head"><h3>เกี่ยวกับ</h3></div>
-      <div class="list-item" id="howInstall"><span class="ic">📲</span>
+      <div class="list-item" id="howInstall"><span class="ic"><i class="fa fa-mobile"></i></span>
         <span class="tx2"><b>ติดตั้งลงหน้าจอโฮม</b><small>ใช้เหมือนแอปจริง</small></span><span class="tiny muted">›</span></div>
       <div class="list-item"><span class="ic">🍯</span>
         <span class="tx2"><b>หมีจด MheeJod</b><small>เวอร์ชัน 1.0 • ข้อมูลเก็บใน Supabase ของคุณเอง</small></span></div>
@@ -95,11 +99,27 @@ MJ.routes.settings = (view) => {
       MJ.toast(v ? `จะเตือนทุกวันเวลา ${v} น.` : 'ปิดการเตือนแล้ว', 'ok');
     } catch (err) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
   };
-  if (MJ.$('#askNotif', view)) MJ.$('#askNotif', view).onclick = async () => {
-    const res = await Notification.requestPermission();
-    MJ.toast(res === 'granted' ? 'เปิดแจ้งเตือนแล้ว 🔔' : 'ยังไม่ได้รับอนุญาต', res === 'granted' ? 'ok' : 'err');
-    MJ.render();
-  };
+  /* ---------- สวิตช์ Push ---------- */
+  (async () => {
+    const sw = MJ.$('#pushSwitch', view);
+    const hint = MJ.$('#pushHint', view);
+    if (!sw) return;
+    const st = await MJ.push.status();
+    const texts = {
+      on: 'เปิดอยู่บนเครื่องนี้',
+      off: MJ.push.needsInstall() ? 'ต้องเพิ่มลงหน้าจอโฮมก่อน' : 'ปิดอยู่ — แตะเพื่อเปิด',
+      denied: 'ถูกปิดไว้ในตั้งค่าเบราว์เซอร์',
+      unsupported: 'เบราว์เซอร์นี้ไม่รองรับ',
+    };
+    hint.textContent = texts[st] || '';
+    sw.classList.toggle('on', st === 'on');
+    sw.onclick = async () => {
+      const now = await MJ.push.status();
+      const ok = now === 'on' ? await MJ.push.disable() : await MJ.push.enable();
+      if (ok) MJ.render();
+    };
+  })();
+  if (MJ.$('#pushTest', view)) MJ.$('#pushTest', view).onclick = () => MJ.push.test();
   MJ.$('#addRecur', view).onclick = () => openRecurSheet(null);
   view.querySelectorAll('[data-recur]').forEach((el) => el.onclick = () =>
     openRecurSheet(MJ.state.recurring.find((r) => r.id === el.dataset.recur)));
@@ -155,8 +175,8 @@ function openRecurSheet(r) {
 
   MJ.sheet.open(isNew ? 'เพิ่มรายการประจำ' : 'แก้ไขรายการประจำ', `
     <div class="seg" id="rType">
-      <button class="seg-btn ${v.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${v.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${v.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${v.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
     <label class="field"><span>ชื่อรายการ</span>
       <input type="text" id="rNote" value="${MJ.esc(v.note || '')}" placeholder="เช่น Netflix, ค่าเช่าห้อง"></label>
@@ -175,7 +195,7 @@ function openRecurSheet(r) {
       <label class="field"><span>ครั้งถัดไป</span>
         <input type="date" id="rDate" value="${String(v.next_run_date).slice(0, 10)}"></label>
     </div>
-    <div class="list-item"><span class="ic">▶️</span><span class="tx2"><b>เปิดใช้งาน</b><small>ปิดไว้ถ้ายังไม่อยากให้จดอัตโนมัติ</small></span>
+    <div class="list-item"><span class="ic"><i class="fa fa-check"></i></span><span class="tx2"><b>เปิดใช้งาน</b><small>ปิดไว้ถ้ายังไม่อยากให้จดอัตโนมัติ</small></span>
       <div class="switch ${v.is_active ? 'on' : ''}" id="rActive"><i></i></div></div>
     <button class="btn btn-primary btn-block mt" id="rSave">${isNew ? 'เพิ่มรายการ' : 'บันทึก'}</button>
     ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="rDel">ลบรายการประจำ</button>'}

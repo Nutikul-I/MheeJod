@@ -441,6 +441,7 @@ MJ.slip = (() => {
       .replace(/^(นาย|นาง|นางสาว|น\.ส\.|บจก\.|บมจ\.)\s*/i, (m) => m)   // คงคำนำหน้าไว้
       .replace(/\s{2,}/g, ' ')
       .trim();
+    v = (typeof MJ !== 'undefined' && MJ.fixThai) ? MJ.fixThai(v) : v;
     if (v.length < 3 || v.length > 80) return null;
     if (NOT_PAYEE_RE.test(v) && !/(บจก|บมจ|บริษัท|จำกัด|co\.,?\s*ltd|company)/i.test(v)) return null;
     if (/^[A-F0-9]{12,}$/i.test(v)) return null;   // ดูเป็นรหัส ไม่ใช่ชื่อ

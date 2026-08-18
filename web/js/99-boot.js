@@ -31,13 +31,17 @@ MJ.boot = async function () {
   };
   MJ.$('#btnMonthPrev').onclick = () => shiftMonth(-1);
   MJ.$('#btnMonthNext').onclick = () => shiftMonth(1);
-  MJ.$('#btnMonth').onclick = async () => {
-    const now = new Date();
-    MJ.state.month = new Date(now.getFullYear(), now.getMonth(), 1);
+  MJ.$('#btnMonth').onclick = () => MJ.openMonthPicker(shiftToMonth);
+
+  /** ไปยังเดือนที่เลือกจากตัวเลือกเดือน */
+  async function shiftToMonth(date) {
+    MJ.state.month = new Date(date.getFullYear(), date.getMonth(), 1);
     MJ.$('#btnMonth').textContent = MJ.monthLabel(MJ.state.month);
+    MJ.loading(true, 'กำลังโหลด ' + MJ.monthLabelFull(MJ.state.month));
     await MJ.data.loadMonth();
+    MJ.loading(false);
     MJ.render();
-  };
+  }
 
   /* ---------- Service worker + share target ---------- */
   if ('serviceWorker' in navigator) {
@@ -82,6 +86,7 @@ MJ.start = async function (user) {
   MJ.render();
 
   MJ.reminder.schedule();
+  MJ.push.sync();
   MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });
   handleSharedSlip();
 };

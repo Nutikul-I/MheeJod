@@ -62,11 +62,11 @@ MJ.data = {
       category_id: tx.category_id || null,
       amount: Number(tx.amount),
       type: tx.type,
-      note: tx.note || null,
+      note: tx.note ? MJ.fixThai(tx.note) : null,
       transaction_date: (tx.transaction_date instanceof Date ? tx.transaction_date : new Date(tx.transaction_date || Date.now())).toISOString(),
       receipt_image_url: tx.receipt_image_url || null,
       slip_reference: tx.slip_reference || null,
-      payee_name: tx.payee_name || null,
+      payee_name: tx.payee_name ? MJ.fixThai(tx.payee_name) : null,
       source: tx.source || 'manual',
       raw_input: tx.raw_input || null,
     };
@@ -182,8 +182,41 @@ MJ.data = {
     return hit ? hit.category_id : null;
   },
 
+  /* ---------------------- ย่อรูปก่อนอัปโหลด ---------------------- */
+  /**
+   * อ่านสลิปเสร็จแล้วไม่ต้องเก็บภาพความละเอียดเต็ม — ย่อเหลือด้านยาว 1080px
+   * คุณภาพ 0.72 พออ่านตัวเลขด้วยตาได้ ไฟล์เล็กลงราว 5-10 เท่า ประหยัดพื้นที่และเน็ต
+   */
+  async compressImage(file, maxSide, quality) {
+    if (!file || !/^image\//.test(file.type) || /heic|heif/i.test(file.type)) return file;
+    try {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      URL.revokeObjectURL(url);
+
+      const side = maxSide || 1080;
+      const scale = Math.min(1, side / Math.max(img.width, img.height));
+      if (scale === 1 && file.size < 400 * 1024) return file;   // เล็กอยู่แล้ว
+
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * scale);
+      cv.height = Math.round(img.height * scale);
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+
+      const blob = await new Promise((res) => cv.toBlob(res, 'image/jpeg', quality || 0.72));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], (file.name || 'slip').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } catch (e) {
+      return file;   // ย่อไม่ได้ก็อัปโหลดต้นฉบับ
+    }
+  },
+
   /* ---------------------- อัปโหลดสลิปขึ้น Storage ---------------------- */
-  async uploadReceipt(file) {
+  async uploadReceipt(rawFile) {
+    const file = await this.compressImage(rawFile);
     const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
     const path = `${MJ.state.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await MJ.sb.storage.from('receipts').upload(path, file, {

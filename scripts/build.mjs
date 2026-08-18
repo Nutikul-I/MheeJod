@@ -47,6 +47,7 @@ const bundle = jsFiles
 html = html.replace(/\n<script src="js\/[^"]+"><\/script>/g, '');
 html = html.replace('</body>', () => `${bundle}\n</body>`);
 html = html.replace(/__SUPABASE_URL__/g, () => SUPABASE_URL).replace(/__SUPABASE_KEY__/g, () => SUPABASE_KEY);
+html = html.replace(/__VAPID_PUBLIC_KEY__/g, () => env.VAPID_PUBLIC_KEY || '');
 
 /* ---------------- เขียน dist (ไว้ทดสอบในเครื่อง) ---------------- */
 mkdirSync(DIST, { recursive: true });
@@ -56,6 +57,11 @@ writeFileSync(join(DIST, 'sw.js'), readFileSync(join(WEB, 'sw.js')));
 writeFileSync(join(DIST, 'manifest.webmanifest'), readFileSync(join(WEB, 'manifest.webmanifest')));
 readdirSync(join(WEB, 'icons')).forEach((f) =>
   writeFileSync(join(DIST, 'icons', f), readFileSync(join(WEB, 'icons', f))));
+
+// ฟอนต์ FC Iconic + Font Awesome Light (เสิร์ฟเป็นไฟล์แยก ไม่ฝังใน HTML เพราะไฟล์ใหญ่)
+mkdirSync(join(DIST, 'font'), { recursive: true });
+readdirSync(join(WEB, 'font')).forEach((f) =>
+  writeFileSync(join(DIST, 'font', f), readFileSync(join(WEB, 'font', f))));
 
 /* ---------------- ฝังลง Edge Function ---------------- */
 const icons = {};

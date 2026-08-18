@@ -5,10 +5,30 @@
    =================================================================== */
 MJ.add = {
   tab: 'chat',
-  chat: [],          // {who:'bot'|'me', text, img}
+  chat: [],          // {who:'bot'|'me', text, img, imgs}
   recognizer: null,
   recording: false,
   form: { amount: '', type: 'expense', category_id: null, date: null, note: '' },
+};
+
+/* ---------------------- เก็บแชทย้อนหลังไว้ในเครื่อง ---------------------- */
+MJ.add.CHAT_KEY = 'mj-chat';
+MJ.add.loadChat = function () {
+  try {
+    const raw = localStorage.getItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'));
+    if (raw) MJ.add.chat = JSON.parse(raw).slice(-60);
+  } catch (e) { /* อ่านไม่ได้ก็เริ่มใหม่ */ }
+};
+MJ.add.saveChat = function () {
+  try {
+    // รูปเป็น blob: ที่หมดอายุเมื่อปิดหน้า จึงเก็บแค่ข้อความ
+    const keep = MJ.add.chat.slice(-60).map((m) => ({
+      who: m.who,
+      text: m.text || (m.imgs?.length ? `🧾 ส่งสลิป ${m.imgs.length} ใบ` : (m.img ? '🧾 ส่งสลิป' : '')),
+      at: m.at || Date.now(),
+    })).filter((m) => m.text);
+    localStorage.setItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'), JSON.stringify(keep));
+  } catch (e) { /* เต็มก็ข้ามไป */ }
 };
 
 MJ.routes.add = (view) => {
@@ -17,14 +37,15 @@ MJ.routes.add = (view) => {
   const action = p.action || null;      // 'voice' | 'slip'
   MJ.state.routeParams = {};
 
+  if (!MJ.add.chat.length) MJ.add.loadChat();
   if (!MJ.add.chat.length) {
     MJ.add.chat = [{ who: 'bot', text: 'สวัสดี! บอกหมีได้เลย 🐻\n• พิมพ์ “กินกาแฟ 80”\n• กดไมค์แล้วพูด\n• หรือส่งรูปสลิปมาให้หมีอ่าน' }];
   }
 
   view.innerHTML = `
     <div class="seg" id="addTabs">
-      <button class="seg-btn" data-tab="chat">💬 แชท</button>
-      <button class="seg-btn" data-tab="form">⌨️ กรอกเอง</button>
+      <button class="seg-btn" data-tab="chat"><i class="fa fa-comment"></i> แชท</button>
+      <button class="seg-btn" data-tab="form"><i class="fa fa-keyboard"></i> กรอกเอง</button>
     </div>
     <div id="addBody"></div>`;
 
@@ -43,6 +64,46 @@ MJ.routes.add = (view) => {
   }
 };
 
+/**
+ * ปุ่มลัดในหน้าแชท — สร้างจากรายการที่ผู้ใช้จดบ่อยที่สุด (ชื่อ+ยอดเดิม)
+ * ถ้ายังไม่มีข้อมูลพอ ค่อยเติมตัวอย่างมาตรฐาน
+ */
+MJ.add.quickChips = function () {
+  const freq = new Map();
+  MJ.state.transactions.forEach((t) => {
+    const note = MJ.fixThai(t.note || MJ.data.catById(t.category_id)?.name || '');
+    if (!note || note.length > 22) return;
+    const amt = Math.round(Number(t.amount));
+    if (!amt) return;
+    const key = `${t.type}|${note}|${amt}`;
+    const cur = freq.get(key) || { note, amt, type: t.type, n: 0, last: 0,
+      icon: MJ.data.catById(t.category_id)?.icon || '' };
+    cur.n++;
+    cur.last = Math.max(cur.last, new Date(t.transaction_date).getTime());
+    freq.set(key, cur);
+  });
+
+  const top = Array.from(freq.values())
+    .sort((a, b) => (b.n - a.n) || (b.last - a.last))
+    .slice(0, 8)
+    .map((x) => ({
+      icon: x.icon,
+      label: `${x.note} ${MJ.fmtMoney(x.amt)}`,
+      text: `${x.type === 'income' ? 'รับ ' : ''}${x.note} ${x.amt}`,
+    }));
+
+  if (top.length >= 4) return top;
+  const defaults = [
+    { icon: '🍜', label: 'ข้าวเที่ยง 60', text: 'ข้าวเที่ยง 60' },
+    { icon: '☕', label: 'กาแฟ 60', text: 'กาแฟ 60' },
+    { icon: '🚕', label: 'ค่าแท็กซี่ 120', text: 'ค่าแท็กซี่ 120' },
+    { icon: '🛒', label: 'ของใช้ 200', text: 'ซื้อของใช้ 200' },
+    { icon: '💰', label: 'รับเงินเดือน', text: 'รับเงินเดือน 25000' },
+  ];
+  const firstWord = (x) => x.label.split(' ')[0];
+  return top.concat(defaults.filter((d) => !top.some((t) => firstWord(t) === firstWord(d)))).slice(0, 8);
+};
+
 /* ============================ แท็บแชท ============================ */
 function renderChat(body, action) {
   // ข้อความอยู่ในหน้า ส่วนแถบพิมพ์ตรึงติดด้านล่างเหมือนแอปแชท
@@ -54,17 +115,15 @@ function renderChat(body, action) {
   const dock = MJ.$('#composerDock');
   dock.classList.remove('hidden');
   dock.innerHTML = `
-    <div class="chips" id="samples" style="max-width:var(--wrap);margin:0 auto 8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px">
-      <button class="chip" data-s="กินข้าวเที่ยง 60">กินข้าวเที่ยง 60</button>
-      <button class="chip" data-s="ค่าแท็กซี่ 120">ค่าแท็กซี่ 120</button>
-      <button class="chip" data-s="รับเงินเดือน 25000">รับเงินเดือน 25000</button>
-      <button class="chip" data-s="เมื่อวาน ค่าไฟ 850">เมื่อวาน ค่าไฟ 850</button>
+    <div class="chips scroll" id="samples">
+      ${MJ.add.quickChips().map((c) => `<button class="chip mini" data-s="${MJ.esc(c.text)}">
+        ${c.icon ? `<span class="ic">${c.icon}</span>` : ''}${MJ.esc(c.label)}</button>`).join('')}
     </div>
     <div class="composer">
-      <button class="rnd" id="btnSlip" title="ส่งรูปสลิป">🧾</button>
+      <button class="rnd" id="btnSlip" title="ส่งรูปสลิป"><i class="fa fa-images"></i></button>
       <textarea id="chatInput" rows="1" placeholder="พิมพ์ พูด หรือส่งสลิป…"></textarea>
-      <button class="rnd" id="btnMic" title="พูด">🎤</button>
-      <button class="rnd send" id="btnSend" title="ส่ง">➤</button>
+      <button class="rnd" id="btnMic" title="พูด"><i class="fa fa-mic"></i></button>
+      <button class="rnd send" id="btnSend" title="ส่ง"><i class="fa fa-send"></i></button>
     </div>
     <input type="file" id="slipFile" accept="image/*" hidden multiple>`;
 
@@ -92,11 +151,12 @@ function renderChat(body, action) {
   if (action === 'slip') setTimeout(() => fileInput.click(), 250);
 
   function pushBubble(who, text, img, imgs) {
-    const msg = { who, text, img: img || null, imgs: imgs || null };
+    const msg = { who, text, img: img || null, imgs: imgs || null, at: Date.now() };
     MJ.add.chat.push(msg);
-    if (MJ.add.chat.length > 40) MJ.add.chat.splice(0, MJ.add.chat.length - 40);
+    if (MJ.add.chat.length > 60) MJ.add.chat.splice(0, MJ.add.chat.length - 60);
     box.insertAdjacentHTML('beforeend', bubbleHTML(msg));
     scrollChat(box);
+    MJ.add.saveChat();
     return msg;
   }
 
@@ -384,8 +444,8 @@ function renderForm(body) {
 
   body.innerHTML = `
     <div class="seg" id="typeSeg">
-      <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
     <div class="card">
       <div class="amount-display"><b id="amtView">${f.amount || '0'}</b><span>บาท</span></div>
@@ -459,8 +519,8 @@ MJ.add.openDraftSheet = function (draft, opts) {
     ${draft.file ? '<img class="slip-preview" id="slipImg" alt="สลิป">' : ''}
     ${opts.slip ? `<p class="tiny muted mb">${draft.hasQR ? '✅ อ่าน QR สำเร็จ — กันบันทึกซ้ำให้แล้ว' : '⚠️ ไม่พบ QR บนสลิป ตรวจตัวเลขอีกครั้งนะ'}</p>` : ''}
     <div class="seg" id="dType">
-      <button class="seg-btn ${draft.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${draft.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${draft.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${draft.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
     <label class="field"><span>จำนวนเงิน (บาท)</span>
       <input type="number" inputmode="decimal" step="0.01" id="dAmount" value="${draft.amount ?? ''}" placeholder="0.00"></label>

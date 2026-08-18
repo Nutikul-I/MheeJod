@@ -1,8 +1,13 @@
 /* ===================================================================
    sw.js — Service worker: แคชหน้าแอป + รับไฟล์สลิปที่แชร์เข้ามา
    =================================================================== */
-const VERSION = 'mj-v1';
-const SHELL = ['./', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+const VERSION = 'mj-v2';
+const SHELL = [
+  './', './manifest.webmanifest',
+  './icons/icon-192.png', './icons/icon-512.png',
+  './font/FCIconic-Regular.ttf', './font/FCIconic-Bold.ttf', './font/FCIconic-Light.ttf',
+  './font/fa-light-300.woff',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).catch(() => {}).then(() => self.skipWaiting()));
@@ -72,10 +77,30 @@ self.addEventListener('fetch', (event) => {
   })());
 });
 
+/* ---------- รับข้อความ push จากเซิร์ฟเวอร์ ---------- */
+self.addEventListener('push', (event) => {
+  let data = { title: 'หมีจดเตือนแล้วนะ 🐻', body: 'อย่าลืมจดรายรับรายจ่ายวันนี้', url: './#add' };
+  try { if (event.data) data = Object.assign(data, event.data.json()); }
+  catch (e) { if (event.data) data.body = event.data.text(); }
+
+  event.waitUntil(self.registration.showNotification(data.title, {
+    body: data.body,
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
+    tag: data.tag || 'mheejod',
+    renotify: true,
+    data: { url: data.url || './#add' },
+    actions: [{ action: 'open', title: 'จดเลย' }],
+  }));
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(self.clients.matchAll({ type: 'window' }).then((list) => {
-    for (const c of list) if ('focus' in c) return c.focus();
-    return self.clients.openWindow('./');
+  const target = event.notification.data?.url || './#add';
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) {
+      if ('focus' in c) { c.navigate && c.navigate(target).catch(() => {}); return c.focus(); }
+    }
+    return self.clients.openWindow(target);
   }));
 });

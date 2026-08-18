@@ -16,8 +16,8 @@ MJ.routes.budget = (view) => {
 
   view.innerHTML = `
     <div class="seg" id="budType">
-      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">💸 หมวดรายจ่าย</button>
-      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">💰 หมวดรายรับ</button>
+      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> หมวดรายจ่าย</button>
+      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> หมวดรายรับ</button>
     </div>
 
     ${type === 'expense' ? `<div class="card">

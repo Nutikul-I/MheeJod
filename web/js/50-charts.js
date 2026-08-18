@@ -9,7 +9,8 @@ MJ.charts = {
     const r = (o.size - o.thickness) / 2, cx = o.size / 2, cy = o.size / 2;
     const C = 2 * Math.PI * r;
     if (!total) {
-      return `<svg viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px">
+      return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="${o.size}" height="${o.size}"
+        style="max-width:100%">
         <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
         <text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="var(--ink-3)" font-size="13">ยังไม่มีข้อมูล</text></svg>`;
     }
@@ -24,7 +25,7 @@ MJ.charts = {
       offset += frac;
       return seg;
     }).join('');
-    return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px">
+    return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="${o.size}" height="${o.size}" style="max-width:100%">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
       ${arcs}
       <text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="var(--ink-3)" font-size="12">${MJ.esc(o.centerTop)}</text>
@@ -32,30 +33,41 @@ MJ.charts = {
     </svg>`;
   },
 
-  /** แท่งรายวัน (รายจ่าย/รายรับซ้อนกัน) */
+  /** แท่งรายวัน (จ่าย/รับ) — ใช้พิกัดจริง ไม่ยืดภาพให้เพี้ยน */
   bars(expense, income, opts) {
-    const o = Object.assign({ h: 130 }, opts || {});
+    const o = Object.assign({ h: 150 }, opts || {});
     const n = expense.length;
     const max = Math.max(1, ...expense, ...(income || []));
-    const w = 100 / n;
+    const W = 8, GAP = 2;                       // ความกว้างช่องต่อวัน
+    const vw = n * (W + GAP), vh = 100;         // พื้นที่กราฟ (หน่วยเดียวกันทั้งแกน x/y)
     const today = new Date();
-    const isThisMonth = today.getMonth() === MJ.state.month.getMonth() && today.getFullYear() === MJ.state.month.getFullYear();
+    const isThisMonth = today.getMonth() === MJ.state.month.getMonth()
+      && today.getFullYear() === MJ.state.month.getFullYear();
+
     let bars = '';
     for (let i = 0; i < n; i++) {
-      const eh = (expense[i] / max) * 100;
-      const ih = income ? (income[i] / max) * 100 : 0;
-      const x = i * w;
+      const x = i * (W + GAP);
+      const eh = (expense[i] / max) * (vh - 16);
+      const ih = income ? (income[i] / max) * (vh - 16) : 0;
       const isToday = isThisMonth && today.getDate() === i + 1;
-      if (ih > 0) bars += `<rect style="animation-delay:${(i * .012).toFixed(3)}s" x="${x + w * 0.12}" y="${100 - ih}" width="${w * 0.34}" height="${ih}"
-        rx="1.2" fill="var(--in)" opacity=".85"><title>${i + 1}: รับ ${MJ.fmtBaht(income[i])}</title></rect>`;
-      if (eh > 0) bars += `<rect style="animation-delay:${(i * .012).toFixed(3)}s" x="${x + w * (ih > 0 ? 0.52 : 0.22)}" y="${100 - eh}" width="${w * (ih > 0 ? 0.34 : 0.56)}" height="${eh}"
-        rx="1.2" fill="${isToday ? 'var(--honey)' : 'var(--out)'}"><title>${i + 1}: จ่าย ${MJ.fmtBaht(expense[i])}</title></rect>`;
+      const both = ih > 0 && eh > 0;
+      const delay = `animation-delay:${(i * .012).toFixed(3)}s`;
+      if (ih > 0) bars += `<rect style="${delay}" x="${x}" y="${vh - 16 - ih}" width="${both ? W / 2 - .4 : W}"
+        height="${ih}" rx="1.6" fill="var(--in)" opacity=".9"><title>${i + 1}: รับ ${MJ.fmtBaht(income[i])}</title></rect>`;
+      if (eh > 0) bars += `<rect style="${delay}" x="${both ? x + W / 2 + .4 : x}" y="${vh - 16 - eh}"
+        width="${both ? W / 2 - .4 : W}" height="${eh}" rx="1.6"
+        fill="${isToday ? 'var(--honey-d)' : 'var(--out)'}"><title>${i + 1}: จ่าย ${MJ.fmtBaht(expense[i])}</title></rect>`;
     }
-    const labels = [1, Math.ceil(n / 2), n].map((d) =>
-      `<text x="${((d - 0.5) / n) * 100}" y="118" text-anchor="middle" fill="var(--ink-3)" font-size="7">${d}</text>`).join('');
-    return `<svg class="chart-bars" viewBox="0 0 100 122" width="100%" height="${o.h}" preserveAspectRatio="none"
-      style="overflow:visible">${bars}
-      <line x1="0" y1="100" x2="100" y2="100" stroke="var(--line)" stroke-width=".6"/>${labels}</svg>`;
+    const ticks = [1, Math.ceil(n / 2), n].map((d) =>
+      `<text x="${(d - 1) * (W + GAP) + W / 2}" y="${vh - 3}" text-anchor="middle"
+        fill="var(--ink-3)" font-size="7">${d}</text>`).join('');
+
+    return `<div class="chart-scroll"><svg class="chart-bars" viewBox="0 0 ${vw} ${vh}"
+      width="100%" height="${o.h}" preserveAspectRatio="xMidYMax meet">
+      ${bars}
+      <line x1="0" y1="${vh - 16}" x2="${vw}" y2="${vh - 16}" stroke="var(--line)" stroke-width=".5"/>
+      ${ticks}
+    </svg></div>`;
   },
 
   /** เส้นแนวโน้มยอดสะสม */

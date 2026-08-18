@@ -62,6 +62,16 @@ MJ.timeLabel = (dateStr) => {
 /* ------------------------------ DOM ------------------------------ */
 MJ.$  = (sel, root) => (root || document).querySelector(sel);
 MJ.$$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+/**
+ * แก้ "สระลอย" — OCR มักแทรกช่องว่างหน้าสระ/วรรณยุกต์ ทำให้ตัวไทยแยกออกจากพยัญชนะ
+ * เช่น "ล ิสซ ิ่ง" -> "ลิสซิ่ง"
+ */
+MJ.fixThai = (s) => String(s == null ? '' : s)
+  .replace(/[\s\u200b]+([\u0E31\u0E33-\u0E3A\u0E47-\u0E4E])/g, '$1')
+  .replace(/^[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/, '')
+  .replace(/\s{2,}/g, ' ')
+  .trim();
+
 MJ.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 MJ.hex2rgba = (hex, a) => {
@@ -145,6 +155,45 @@ MJ.confirm = (title, message, okLabel) => new Promise((resolve) => {
     MJ.$('#cfmNo', body).onclick = () => { MJ.sheet.close(); resolve(false); };
   });
 });
+
+/* ---------------------- ตัวเลือกเดือน (แผงปฏิทินย่อ) ---------------------- */
+MJ.openMonthPicker = (onPick) => {
+  let year = MJ.state.month.getFullYear();
+  const now = new Date();
+
+  const draw = (body) => {
+    const grid = MJ.TH_MONTHS.map((m, i) => {
+      const isSel = i === MJ.state.month.getMonth() && year === MJ.state.month.getFullYear();
+      const isNow = i === now.getMonth() && year === now.getFullYear();
+      const future = new Date(year, i, 1) > new Date(now.getFullYear(), now.getMonth(), 1);
+      return `<button class="mp-cell ${isSel ? 'sel' : ''} ${isNow ? 'now' : ''}" data-m="${i}" ${future ? 'disabled' : ''}>
+        ${m.replace('.', '')}</button>`;
+    }).join('');
+    body.innerHTML = `
+      <div class="mp-year">
+        <button class="icon-btn" data-y="-1"><i class="fa fa-chev-l"></i></button>
+        <b>${year + 543}</b>
+        <button class="icon-btn" data-y="1" ${year >= now.getFullYear() ? 'disabled style="opacity:.3"' : ''}>
+          <i class="fa fa-chev-r"></i></button>
+      </div>
+      <div class="mp-grid">${grid}</div>
+      <button class="btn btn-soft btn-block mt" id="mpNow"><i class="fa fa-calendar"></i> เดือนนี้</button>`;
+
+    MJ.$$('[data-y]', body).forEach((b) => b.onclick = () => {
+      const next = year + Number(b.dataset.y);
+      if (next > now.getFullYear()) return;
+      year = next; draw(body);
+    });
+    MJ.$$('.mp-cell', body).forEach((b) => b.onclick = () => {
+      if (b.disabled) return;
+      MJ.sheet.close();
+      onPick(new Date(year, Number(b.dataset.m), 1));
+    });
+    MJ.$('#mpNow', body).onclick = () => { MJ.sheet.close(); onPick(new Date()); };
+  };
+
+  MJ.sheet.open('เลือกเดือน', '<div id="mpBody"></div>', (body) => draw(MJ.$('#mpBody', body)));
+};
 
 /* ------------------------------ Router ------------------------------ */
 MJ.routes = {};

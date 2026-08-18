@@ -1,3 +1,72 @@
+/* ============================ ฟอนต์และไอคอน ============================ */
+@font-face{
+  font-family:"FC Iconic";src:url("font/FCIconic-Light.ttf") format("truetype");
+  font-weight:300;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"FC Iconic";src:url("font/FCIconic-Regular.ttf") format("truetype");
+  font-weight:400 500;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"FC Iconic";src:url("font/FCIconic-Bold.ttf") format("truetype");
+  font-weight:600 800;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"FA Light";src:url("font/fa-light-300.woff") format("woff");
+  font-weight:300;font-style:normal;font-display:block;
+}
+
+/* ไอคอนทั้งเว็บใช้ Font Awesome Light */
+.fa{
+  font-family:"FA Light";font-weight:300;font-style:normal;line-height:1;
+  display:inline-block;text-rendering:auto;-webkit-font-smoothing:antialiased
+}
+.fa-home::before{content:"\f015"}
+.fa-list::before{content:"\f03a"}
+.fa-receipt::before{content:"\f543"}
+.fa-chart-pie::before{content:"\f200"}
+.fa-chart-bar::before{content:"\f080"}
+.fa-gear::before{content:"\f013"}
+.fa-plus::before{content:"\f067"}
+.fa-mic::before{content:"\f130"}
+.fa-keyboard::before{content:"\f11c"}
+.fa-comment::before{content:"\f075"}
+.fa-search::before{content:"\f002"}
+.fa-xmark::before{content:"\f00d"}
+.fa-chev-l::before{content:"\f053"}
+.fa-chev-r::before{content:"\f054"}
+.fa-angle-r::before{content:"\f105"}
+.fa-calendar::before{content:"\f133"}
+.fa-pen::before{content:"\f303"}
+.fa-trash::before{content:"\f2ed"}
+.fa-excel::before{content:"\f1c3"}
+.fa-bell::before{content:"\f0f3"}
+.fa-palette::before{content:"\f53f"}
+.fa-repeat::before{content:"\f363"}
+.fa-image::before{content:"\f03e"}
+.fa-images::before{content:"\f302"}
+.fa-send::before{content:"\f1d8"}
+.fa-user::before{content:"\f007"}
+.fa-wallet::before{content:"\f555"}
+.fa-piggy::before{content:"\f4d3"}
+.fa-check::before{content:"\f00c"}
+.fa-tag::before{content:"\f02b"}
+.fa-store::before{content:"\f54e"}
+.fa-mobile::before{content:"\f3cd"}
+.fa-boxes::before{content:"\f468"}
+.fa-info::before{content:"\f05a"}
+.fa-clock::before{content:"\f017"}
+.fa-camera::before{content:"\f030"}
+.fa-rotate::before{content:"\f2f1"}
+.fa-signout::before{content:"\f2f5"}
+.fa-download::before{content:"\f019"}
+.fa-arrow-up::before{content:"\f062"}
+.fa-arrow-down::before{content:"\f063"}
+.fa-ellipsis::before{content:"\f141"}
+.fa-filter::before{content:"\f0b0"}
+.fa-eye::before{content:"\f06e"}
+.fa-rightleft::before{content:"\f362"}
+
 /* ===================================================================
    หมีจด MheeJod — Design system v2
    โทนเดิม: ครีม / น้ำผึ้ง / น้ำตาลหมี  •  มือถือมาก่อน  •  ใช้มือเดียวได้
@@ -54,7 +123,7 @@ body{
     var(--cream);
   background-attachment:fixed;
   color:var(--ink);
-  font-family:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:"FC Iconic","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:16px; line-height:1.55; letter-spacing:-.005em;
   overscroll-behavior-y:none; -webkit-font-smoothing:antialiased;
 }
@@ -241,7 +310,7 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   transition:box-shadow .25s,transform .25s var(--ease)
 }
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px}
-.card-head h3{font-size:16px}
+.card-head h3{font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card-head .link{font-size:13px;color:var(--ink-2);font-weight:650;transition:color .2s}
 .card-head .link:active{color:var(--honey-d)}
 .muted{color:var(--ink-2)}
@@ -264,7 +333,9 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 }
 .balance>*{position:relative}
 .balance .lbl{font-size:12.5px;opacity:.82;letter-spacing:.02em}
-.balance .amt{font-size:36px;font-weight:800;letter-spacing:-.03em;margin:4px 0 16px;font-variant-numeric:tabular-nums}
+.balance .amt{font-size:clamp(28px,9vw,38px);font-weight:800;letter-spacing:-.03em;margin:4px 0 16px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.balance .box b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .balance .grid{display:flex;gap:10px}
 .balance .box{
   flex:1;background:rgba(255,255,255,.15);border-radius:var(--r-xs);padding:11px 13px;
@@ -286,10 +357,10 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   font-size:20px;flex:none;transition:transform .25s var(--spring)
 }
 .tx:active .tx-ico{transform:scale(1.08) rotate(-6deg)}
-.tx-main{flex:1;min-width:0}
+.tx-main{flex:1;min-width:0;overflow:hidden}
 .tx-title{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tx-sub{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-amt{font-weight:750;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tx-amt{font-weight:750;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;flex:none;margin-left:auto}
 .tx-amt.in{color:var(--in)} .tx-amt.out{color:var(--out)}
 .day-head{
   display:flex;justify-content:space-between;align-items:baseline;
@@ -300,7 +371,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .bud{margin-bottom:16px}
 .bud:last-child{margin-bottom:0}
 .bud-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:7px;gap:8px}
-.bud-name{display:flex;align-items:center;gap:8px;font-weight:650;min-width:0}
+.bud-top>span:last-child{white-space:nowrap;flex:none}
+.bud-name{display:flex;align-items:center;gap:8px;font-weight:650;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .bar{height:10px;border-radius:999px;background:var(--cream-2);overflow:hidden;position:relative}
 .bar>i{
   display:block;height:100%;border-radius:999px;
@@ -346,6 +418,21 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
 
 .chips{display:flex;gap:8px;flex-wrap:wrap}
+/* แถวปุ่มลัดแบบเลื่อนแนวนอน ไม่มีแถบเลื่อนให้เกะกะ */
+.chips.scroll{
+  flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;
+  padding:2px 14px;margin-left:-14px;margin-right:-14px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+}
+.chips.scroll::-webkit-scrollbar{display:none;width:0;height:0}
+.chips.scroll .chip{flex:none;scroll-snap-align:start}
+.chip.mini{
+  padding:7px 12px;font-size:12.5px;font-weight:600;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px
+}
+.chip.mini b{font-weight:750}
+.chip.mini .ic{font-size:13px;opacity:.85}
 .chip{
   padding:9px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
   font-size:13.5px;font-weight:650;box-shadow:var(--sh-sm);
@@ -397,7 +484,7 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .cat-pick.active .ic{transform:scale(1.12)}
 
 .amount-display{text-align:center;padding:10px 0 16px}
-.amount-display b{font-size:44px;font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.amount-display b{font-size:clamp(32px,11vw,46px);font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .amount-display span{font-size:16px;color:var(--ink-3);margin-left:5px}
 .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .keypad button{
@@ -447,6 +534,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 
 /* ============================ กราฟ ============================ */
 .chart-donut{display:block;margin:0 auto}
+.chart-scroll{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.chart-bars{display:block;min-width:280px}
 .chart-donut circle.seg{animation:drawArc 1s var(--ease) both}
 .chart-bars rect{transform-origin:bottom;animation:growBar .6s var(--ease) both}
 .legend{display:flex;flex-direction:column;gap:10px;margin-top:14px}
@@ -464,7 +553,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   border:1px solid color-mix(in srgb,var(--line) 55%,transparent)
 }
 .stat .k{font-size:11.5px;color:var(--ink-3)}
-.stat .v{font-size:19px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums}
+.stat .v{font-size:19px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ============================ รายการตั้งค่า ============================ */
 .list-item{
@@ -478,8 +568,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   width:38px;height:38px;border-radius:13px;background:var(--cream-2);
   display:grid;place-items:center;font-size:17px;flex:none
 }
-.list-item .tx2{flex:1;min-width:0}
-.list-item .tx2 b{display:block;font-size:14.5px;font-weight:650}
+.list-item .tx2{flex:1;min-width:0;overflow:hidden}
+.list-item .tx2 b{display:block;font-size:14.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list-item .tx2 small{color:var(--ink-3);font-size:11.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .switch{
   width:52px;height:30px;border-radius:99px;background:var(--line-2);position:relative;
@@ -494,6 +584,19 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+/* ============================ ตัวเลือกเดือน ============================ */
+.mp-year{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mp-year b{font-size:19px;font-weight:750}
+.mp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mp-cell{
+  padding:14px 0;border-radius:var(--r-sm);background:var(--card);border:1.5px solid var(--line);
+  font-size:14px;font-weight:650;transition:transform .16s var(--spring),border-color .2s,background .2s,color .2s
+}
+.mp-cell:active{transform:scale(.93)}
+.mp-cell:disabled{opacity:.32;pointer-events:none}
+.mp-cell.now{border-color:var(--honey)}
+.mp-cell.sel{background:linear-gradient(135deg,var(--honey-l),var(--honey-d));color:#3A2A10;border-color:transparent;box-shadow:var(--sh-honey)}
+
 /* ============================ ตรวจสลิปหลายใบ ============================ */
 .batch-row{
   background:var(--card);border:1px solid var(--line);border-radius:var(--r);

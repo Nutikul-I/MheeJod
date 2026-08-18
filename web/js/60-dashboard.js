@@ -28,13 +28,6 @@ MJ.routes.dashboard = (view) => {
       </div>
     </div>
 
-    <div class="chips">
-      <button class="chip" data-quick="พิมพ์">✏️ พิมพ์จด</button>
-      <button class="chip" data-quick="เสียง">🎤 พูดจด</button>
-      <button class="chip" data-quick="สลิป">🧾 ถ่ายสลิป</button>
-      <button class="chip" data-quick="ฟอร์ม">⌨️ กรอกเอง</button>
-    </div>
-
     ${isCurrentMonth ? `
     <div class="stat-grid mb">
       <div class="stat"><div class="k">จ่ายเฉลี่ยต่อวัน</div><div class="v">${MJ.fmtBaht(avgPerDay)}</div></div>

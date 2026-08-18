@@ -15,7 +15,7 @@ MJ.tx = {
     return `<div class="tx" data-tx="${t.id}">
       <span class="tx-ico" style="background:${MJ.hex2rgba(color, .18)}">${c?.icon || '❓'}</span>
       <span class="tx-main">
-        <span class="tx-title">${MJ.esc(t.note || c?.name || 'รายการ')}</span>
+        <span class="tx-title">${MJ.esc(MJ.fixThai(t.note || c?.name || 'รายการ'))}</span>
         <span class="tx-sub">${MJ.esc(c?.name || 'ไม่ระบุหมวด')} • ${MJ.timeLabel(t.transaction_date)} ${badges}</span>
       </span>
       <span class="tx-amt ${t.type === 'income' ? 'in' : 'out'}">${t.type === 'income' ? '+' : '−'}${MJ.fmtMoney(t.amount)}</span>
@@ -50,7 +50,7 @@ MJ.tx = {
       if (f.category !== 'all' && t.category_id !== f.category) return false;
       if (q) {
         const c = MJ.data.catById(t.category_id);
-        const hay = `${t.note || ''} ${t.payee_name || ''} ${c?.name || ''} ${t.amount}`.toLowerCase();
+        const hay = MJ.fixThai(`${t.note || ''} ${t.payee_name || ''} ${c?.name || ''} ${t.amount}`).toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -69,11 +69,11 @@ MJ.tx = {
       </div>
       <div id="receiptBox"></div>
       <div class="card">
-        <div class="list-item"><span class="ic">🏷️</span><span class="tx2"><b>${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</b><small>หมวดหมู่</small></span></div>
-        <div class="list-item"><span class="ic">📝</span><span class="tx2"><b>${MJ.esc(t.note || '-')}</b><small>บันทึกช่วยจำ</small></span></div>
-        ${t.payee_name ? `<div class="list-item"><span class="ic">🏪</span><span class="tx2"><b>${MJ.esc(t.payee_name)}</b><small>ผู้รับเงิน</small></span></div>` : ''}
-        ${t.slip_reference ? `<div class="list-item"><span class="ic">🔖</span><span class="tx2"><b style="word-break:break-all;font-size:12px">${MJ.esc(t.slip_reference.slice(0, 60))}</b><small>รหัสอ้างอิงสลิป</small></span></div>` : ''}
-        <div class="list-item"><span class="ic">📥</span><span class="tx2"><b>${({ manual:'กรอกเอง', text:'พิมพ์จด', voice:'พูดจด', slip:'สลิป', recurring:'รายการประจำ', import:'นำเข้า' })[t.source] || t.source}</b><small>ที่มา</small></span></div>
+        <div class="list-item"><span class="ic"><i class="fa fa-tag"></i></span><span class="tx2"><b>${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</b><small>หมวดหมู่</small></span></div>
+        <div class="list-item"><span class="ic"><i class="fa fa-pen"></i></span><span class="tx2"><b>${MJ.esc(MJ.fixThai(t.note || '-'))}</b><small>บันทึกช่วยจำ</small></span></div>
+        ${t.payee_name ? `<div class="list-item"><span class="ic"><i class="fa fa-store"></i></span><span class="tx2"><b>${MJ.esc(MJ.fixThai(t.payee_name))}</b><small>ผู้รับเงิน</small></span></div>` : ''}
+        ${t.slip_reference ? `<div class="list-item"><span class="ic"><i class="fa fa-tag"></i></span><span class="tx2"><b style="word-break:break-all;font-size:12px">${MJ.esc(t.slip_reference.slice(0, 60))}</b><small>รหัสอ้างอิงสลิป</small></span></div>` : ''}
+        <div class="list-item"><span class="ic"><i class="fa fa-download"></i></span><span class="tx2"><b>${({ manual:'กรอกเอง', text:'พิมพ์จด', voice:'พูดจด', slip:'สลิป', recurring:'รายการประจำ', import:'นำเข้า' })[t.source] || t.source}</b><small>ที่มา</small></span></div>
       </div>
       <button class="btn btn-soft btn-block" id="txEdit">แก้ไขรายการ</button>
       <button class="btn btn-danger btn-block mt" id="txDel">ลบรายการนี้</button>
@@ -97,8 +97,8 @@ MJ.tx = {
     const cats = MJ.state.categories;
     MJ.sheet.open('แก้ไขรายการ', `
       <div class="seg" id="eType">
-        <button class="seg-btn ${t.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-        <button class="seg-btn ${t.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+        <button class="seg-btn ${t.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+        <button class="seg-btn ${t.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
       </div>
       <label class="field"><span>จำนวนเงิน</span>
         <input type="number" step="0.01" inputmode="decimal" id="eAmount" value="${t.amount}"></label>
@@ -143,8 +143,8 @@ MJ.tx = {
         'เวลา': MJ.timeLabel(d).replace(' น.', ''),
         'ประเภท': t.type === 'income' ? 'รายรับ' : 'รายจ่าย',
         'หมวดหมู่': c?.name || 'ไม่ระบุ',
-        'รายละเอียด': t.note || '',
-        'ผู้รับเงิน/ร้านค้า': t.payee_name || '',
+        'รายละเอียด': MJ.fixThai(t.note || ''),
+        'ผู้รับเงิน/ร้านค้า': MJ.fixThai(t.payee_name || ''),
         'จำนวนเงิน': Number(t.amount),
         'ที่มา': ({ manual:'กรอกเอง', text:'พิมพ์', voice:'เสียง', slip:'สลิป', recurring:'รายการประจำ' })[t.source] || t.source,
         'รหัสอ้างอิงสลิป': t.slip_reference || '',
@@ -174,15 +174,15 @@ MJ.routes.transactions = (view) => {
 
   view.innerHTML = `
     <div class="search">
-      <span>🔍</span>
+      <i class="fa fa-search muted"></i>
       <input id="txSearch" placeholder="ค้นหารายการ ร้านค้า หรือจำนวนเงิน" value="${MJ.esc(f.q)}">
-      ${f.q ? '<button class="icon-btn" id="clearQ">✕</button>' : ''}
+      ${f.q ? '<button class="icon-btn" id="clearQ"><i class="fa fa-xmark"></i></button>' : ''}
     </div>
     <div class="chips">
       <button class="chip ${f.type === 'all' ? 'active' : ''}" data-f="all">ทั้งหมด</button>
       <button class="chip ${f.type === 'expense' ? 'active' : ''}" data-f="expense">รายจ่าย</button>
       <button class="chip ${f.type === 'income' ? 'active' : ''}" data-f="income">รายรับ</button>
-      <button class="chip" id="btnExport">📄 Excel</button>
+      <button class="chip" id="btnExport"><i class="fa fa-excel"></i> Excel</button>
     </div>
     <div class="stat-grid mb">
       <div class="stat"><div class="k">รายรับ</div><div class="v" style="color:var(--in)">${MJ.fmtBaht(s.income)}</div></div>

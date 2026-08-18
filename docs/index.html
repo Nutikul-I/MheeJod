@@ -13,6 +13,75 @@
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <style>
+/* ============================ ฟอนต์และไอคอน ============================ */
+@font-face{
+  font-family:"FC Iconic";src:url("font/FCIconic-Light.ttf") format("truetype");
+  font-weight:300;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"FC Iconic";src:url("font/FCIconic-Regular.ttf") format("truetype");
+  font-weight:400 500;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"FC Iconic";src:url("font/FCIconic-Bold.ttf") format("truetype");
+  font-weight:600 800;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"FA Light";src:url("font/fa-light-300.woff") format("woff");
+  font-weight:300;font-style:normal;font-display:block;
+}
+
+/* ไอคอนทั้งเว็บใช้ Font Awesome Light */
+.fa{
+  font-family:"FA Light";font-weight:300;font-style:normal;line-height:1;
+  display:inline-block;text-rendering:auto;-webkit-font-smoothing:antialiased
+}
+.fa-home::before{content:"\f015"}
+.fa-list::before{content:"\f03a"}
+.fa-receipt::before{content:"\f543"}
+.fa-chart-pie::before{content:"\f200"}
+.fa-chart-bar::before{content:"\f080"}
+.fa-gear::before{content:"\f013"}
+.fa-plus::before{content:"\f067"}
+.fa-mic::before{content:"\f130"}
+.fa-keyboard::before{content:"\f11c"}
+.fa-comment::before{content:"\f075"}
+.fa-search::before{content:"\f002"}
+.fa-xmark::before{content:"\f00d"}
+.fa-chev-l::before{content:"\f053"}
+.fa-chev-r::before{content:"\f054"}
+.fa-angle-r::before{content:"\f105"}
+.fa-calendar::before{content:"\f133"}
+.fa-pen::before{content:"\f303"}
+.fa-trash::before{content:"\f2ed"}
+.fa-excel::before{content:"\f1c3"}
+.fa-bell::before{content:"\f0f3"}
+.fa-palette::before{content:"\f53f"}
+.fa-repeat::before{content:"\f363"}
+.fa-image::before{content:"\f03e"}
+.fa-images::before{content:"\f302"}
+.fa-send::before{content:"\f1d8"}
+.fa-user::before{content:"\f007"}
+.fa-wallet::before{content:"\f555"}
+.fa-piggy::before{content:"\f4d3"}
+.fa-check::before{content:"\f00c"}
+.fa-tag::before{content:"\f02b"}
+.fa-store::before{content:"\f54e"}
+.fa-mobile::before{content:"\f3cd"}
+.fa-boxes::before{content:"\f468"}
+.fa-info::before{content:"\f05a"}
+.fa-clock::before{content:"\f017"}
+.fa-camera::before{content:"\f030"}
+.fa-rotate::before{content:"\f2f1"}
+.fa-signout::before{content:"\f2f5"}
+.fa-download::before{content:"\f019"}
+.fa-arrow-up::before{content:"\f062"}
+.fa-arrow-down::before{content:"\f063"}
+.fa-ellipsis::before{content:"\f141"}
+.fa-filter::before{content:"\f0b0"}
+.fa-eye::before{content:"\f06e"}
+.fa-rightleft::before{content:"\f362"}
+
 /* ===================================================================
    หมีจด MheeJod — Design system v2
    โทนเดิม: ครีม / น้ำผึ้ง / น้ำตาลหมี  •  มือถือมาก่อน  •  ใช้มือเดียวได้
@@ -69,7 +138,7 @@ body{
     var(--cream);
   background-attachment:fixed;
   color:var(--ink);
-  font-family:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:"FC Iconic","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:16px; line-height:1.55; letter-spacing:-.005em;
   overscroll-behavior-y:none; -webkit-font-smoothing:antialiased;
 }
@@ -256,7 +325,7 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   transition:box-shadow .25s,transform .25s var(--ease)
 }
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px}
-.card-head h3{font-size:16px}
+.card-head h3{font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card-head .link{font-size:13px;color:var(--ink-2);font-weight:650;transition:color .2s}
 .card-head .link:active{color:var(--honey-d)}
 .muted{color:var(--ink-2)}
@@ -279,7 +348,9 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 }
 .balance>*{position:relative}
 .balance .lbl{font-size:12.5px;opacity:.82;letter-spacing:.02em}
-.balance .amt{font-size:36px;font-weight:800;letter-spacing:-.03em;margin:4px 0 16px;font-variant-numeric:tabular-nums}
+.balance .amt{font-size:clamp(28px,9vw,38px);font-weight:800;letter-spacing:-.03em;margin:4px 0 16px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.balance .box b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .balance .grid{display:flex;gap:10px}
 .balance .box{
   flex:1;background:rgba(255,255,255,.15);border-radius:var(--r-xs);padding:11px 13px;
@@ -301,10 +372,10 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   font-size:20px;flex:none;transition:transform .25s var(--spring)
 }
 .tx:active .tx-ico{transform:scale(1.08) rotate(-6deg)}
-.tx-main{flex:1;min-width:0}
+.tx-main{flex:1;min-width:0;overflow:hidden}
 .tx-title{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tx-sub{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-amt{font-weight:750;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tx-amt{font-weight:750;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;flex:none;margin-left:auto}
 .tx-amt.in{color:var(--in)} .tx-amt.out{color:var(--out)}
 .day-head{
   display:flex;justify-content:space-between;align-items:baseline;
@@ -315,7 +386,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .bud{margin-bottom:16px}
 .bud:last-child{margin-bottom:0}
 .bud-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:7px;gap:8px}
-.bud-name{display:flex;align-items:center;gap:8px;font-weight:650;min-width:0}
+.bud-top>span:last-child{white-space:nowrap;flex:none}
+.bud-name{display:flex;align-items:center;gap:8px;font-weight:650;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .bar{height:10px;border-radius:999px;background:var(--cream-2);overflow:hidden;position:relative}
 .bar>i{
   display:block;height:100%;border-radius:999px;
@@ -361,6 +433,21 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
 
 .chips{display:flex;gap:8px;flex-wrap:wrap}
+/* แถวปุ่มลัดแบบเลื่อนแนวนอน ไม่มีแถบเลื่อนให้เกะกะ */
+.chips.scroll{
+  flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;
+  padding:2px 14px;margin-left:-14px;margin-right:-14px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+}
+.chips.scroll::-webkit-scrollbar{display:none;width:0;height:0}
+.chips.scroll .chip{flex:none;scroll-snap-align:start}
+.chip.mini{
+  padding:7px 12px;font-size:12.5px;font-weight:600;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px
+}
+.chip.mini b{font-weight:750}
+.chip.mini .ic{font-size:13px;opacity:.85}
 .chip{
   padding:9px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
   font-size:13.5px;font-weight:650;box-shadow:var(--sh-sm);
@@ -412,7 +499,7 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .cat-pick.active .ic{transform:scale(1.12)}
 
 .amount-display{text-align:center;padding:10px 0 16px}
-.amount-display b{font-size:44px;font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.amount-display b{font-size:clamp(32px,11vw,46px);font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .amount-display span{font-size:16px;color:var(--ink-3);margin-left:5px}
 .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .keypad button{
@@ -462,6 +549,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 
 /* ============================ กราฟ ============================ */
 .chart-donut{display:block;margin:0 auto}
+.chart-scroll{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.chart-bars{display:block;min-width:280px}
 .chart-donut circle.seg{animation:drawArc 1s var(--ease) both}
 .chart-bars rect{transform-origin:bottom;animation:growBar .6s var(--ease) both}
 .legend{display:flex;flex-direction:column;gap:10px;margin-top:14px}
@@ -479,7 +568,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   border:1px solid color-mix(in srgb,var(--line) 55%,transparent)
 }
 .stat .k{font-size:11.5px;color:var(--ink-3)}
-.stat .v{font-size:19px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums}
+.stat .v{font-size:19px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ============================ รายการตั้งค่า ============================ */
 .list-item{
@@ -493,8 +583,8 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
   width:38px;height:38px;border-radius:13px;background:var(--cream-2);
   display:grid;place-items:center;font-size:17px;flex:none
 }
-.list-item .tx2{flex:1;min-width:0}
-.list-item .tx2 b{display:block;font-size:14.5px;font-weight:650}
+.list-item .tx2{flex:1;min-width:0;overflow:hidden}
+.list-item .tx2 b{display:block;font-size:14.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list-item .tx2 small{color:var(--ink-3);font-size:11.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .switch{
   width:52px;height:30px;border-radius:99px;background:var(--line-2);position:relative;
@@ -509,6 +599,19 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 136px)}
 .badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--cream-2);color:var(--ink-2)}
 .badge.in{background:rgba(47,163,107,.15);color:var(--in)}
 .badge.out{background:rgba(227,85,111,.15);color:var(--out)}
+/* ============================ ตัวเลือกเดือน ============================ */
+.mp-year{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mp-year b{font-size:19px;font-weight:750}
+.mp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mp-cell{
+  padding:14px 0;border-radius:var(--r-sm);background:var(--card);border:1.5px solid var(--line);
+  font-size:14px;font-weight:650;transition:transform .16s var(--spring),border-color .2s,background .2s,color .2s
+}
+.mp-cell:active{transform:scale(.93)}
+.mp-cell:disabled{opacity:.32;pointer-events:none}
+.mp-cell.now{border-color:var(--honey)}
+.mp-cell.sel{background:linear-gradient(135deg,var(--honey-l),var(--honey-d));color:#3A2A10;border-color:transparent;box-shadow:var(--sh-honey)}
+
 /* ============================ ตรวจสลิปหลายใบ ============================ */
 .batch-row{
   background:var(--card);border:1px solid var(--line);border-radius:var(--r);
@@ -600,9 +703,9 @@ details summary{cursor:pointer;padding:6px 0}
       </div>
     </div>
     <div class="topbar-right">
-      <button class="icon-btn" id="btnMonthPrev" title="เดือนก่อนหน้า">‹</button>
+      <button class="icon-btn" id="btnMonthPrev" title="เดือนก่อนหน้า"><i class="fa fa-chev-l"></i></button>
       <button class="pill" id="btnMonth">ส.ค. 2569</button>
-      <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป">›</button>
+      <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป"><i class="fa fa-chev-r"></i></button>
     </div>
    </div>
   </header>
@@ -614,11 +717,11 @@ details summary{cursor:pointer;padding:6px 0}
 
   <nav class="tabbar">
    <div class="tabbar-inner">
-    <button class="tab" data-route="dashboard"><span>🏠</span><em>ภาพรวม</em></button>
-    <button class="tab" data-route="transactions"><span>📒</span><em>รายการ</em></button>
-    <button class="fab" data-route="add" aria-label="เพิ่มรายการ">＋</button>
-    <button class="tab" data-route="analysis"><span>📊</span><em>วิเคราะห์</em></button>
-    <button class="tab" data-route="settings"><span>⚙️</span><em>ตั้งค่า</em></button>
+    <button class="tab" data-route="dashboard"><span class="fa fa-home"></span><em>ภาพรวม</em></button>
+    <button class="tab" data-route="transactions"><span class="fa fa-list"></span><em>รายการ</em></button>
+    <button class="fab" data-route="add" aria-label="เพิ่มรายการ"><span class="fa fa-plus"></span></button>
+    <button class="tab" data-route="analysis"><span class="fa fa-chart-pie"></span><em>วิเคราะห์</em></button>
+    <button class="tab" data-route="settings"><span class="fa fa-gear"></span><em>ตั้งค่า</em></button>
    </div>
   </nav>
 </div>
@@ -628,7 +731,7 @@ details summary{cursor:pointer;padding:6px 0}
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet" role="dialog" aria-modal="true">
     <div class="sheet-handle" data-close></div>
-    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="icon-btn" data-close>✕</button></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="icon-btn" data-close><i class="fa fa-xmark"></i></button></div>
     <div class="sheet-body" id="sheetBody"></div>
   </div>
 </div>
@@ -708,6 +811,16 @@ MJ.timeLabel = (dateStr) => {
 /* ------------------------------ DOM ------------------------------ */
 MJ.$  = (sel, root) => (root || document).querySelector(sel);
 MJ.$$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+/**
+ * แก้ "สระลอย" — OCR มักแทรกช่องว่างหน้าสระ/วรรณยุกต์ ทำให้ตัวไทยแยกออกจากพยัญชนะ
+ * เช่น "ล ิสซ ิ่ง" -> "ลิสซิ่ง"
+ */
+MJ.fixThai = (s) => String(s == null ? '' : s)
+  .replace(/[\s\u200b]+([\u0E31\u0E33-\u0E3A\u0E47-\u0E4E])/g, '$1')
+  .replace(/^[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/, '')
+  .replace(/\s{2,}/g, ' ')
+  .trim();
+
 MJ.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 MJ.hex2rgba = (hex, a) => {
@@ -791,6 +904,45 @@ MJ.confirm = (title, message, okLabel) => new Promise((resolve) => {
     MJ.$('#cfmNo', body).onclick = () => { MJ.sheet.close(); resolve(false); };
   });
 });
+
+/* ---------------------- ตัวเลือกเดือน (แผงปฏิทินย่อ) ---------------------- */
+MJ.openMonthPicker = (onPick) => {
+  let year = MJ.state.month.getFullYear();
+  const now = new Date();
+
+  const draw = (body) => {
+    const grid = MJ.TH_MONTHS.map((m, i) => {
+      const isSel = i === MJ.state.month.getMonth() && year === MJ.state.month.getFullYear();
+      const isNow = i === now.getMonth() && year === now.getFullYear();
+      const future = new Date(year, i, 1) > new Date(now.getFullYear(), now.getMonth(), 1);
+      return `<button class="mp-cell ${isSel ? 'sel' : ''} ${isNow ? 'now' : ''}" data-m="${i}" ${future ? 'disabled' : ''}>
+        ${m.replace('.', '')}</button>`;
+    }).join('');
+    body.innerHTML = `
+      <div class="mp-year">
+        <button class="icon-btn" data-y="-1"><i class="fa fa-chev-l"></i></button>
+        <b>${year + 543}</b>
+        <button class="icon-btn" data-y="1" ${year >= now.getFullYear() ? 'disabled style="opacity:.3"' : ''}>
+          <i class="fa fa-chev-r"></i></button>
+      </div>
+      <div class="mp-grid">${grid}</div>
+      <button class="btn btn-soft btn-block mt" id="mpNow"><i class="fa fa-calendar"></i> เดือนนี้</button>`;
+
+    MJ.$$('[data-y]', body).forEach((b) => b.onclick = () => {
+      const next = year + Number(b.dataset.y);
+      if (next > now.getFullYear()) return;
+      year = next; draw(body);
+    });
+    MJ.$$('.mp-cell', body).forEach((b) => b.onclick = () => {
+      if (b.disabled) return;
+      MJ.sheet.close();
+      onPick(new Date(year, Number(b.dataset.m), 1));
+    });
+    MJ.$('#mpNow', body).onclick = () => { MJ.sheet.close(); onPick(new Date()); };
+  };
+
+  MJ.sheet.open('เลือกเดือน', '<div id="mpBody"></div>', (body) => draw(MJ.$('#mpBody', body)));
+};
 
 /* ------------------------------ Router ------------------------------ */
 MJ.routes = {};
@@ -977,11 +1129,11 @@ MJ.data = {
       category_id: tx.category_id || null,
       amount: Number(tx.amount),
       type: tx.type,
-      note: tx.note || null,
+      note: tx.note ? MJ.fixThai(tx.note) : null,
       transaction_date: (tx.transaction_date instanceof Date ? tx.transaction_date : new Date(tx.transaction_date || Date.now())).toISOString(),
       receipt_image_url: tx.receipt_image_url || null,
       slip_reference: tx.slip_reference || null,
-      payee_name: tx.payee_name || null,
+      payee_name: tx.payee_name ? MJ.fixThai(tx.payee_name) : null,
       source: tx.source || 'manual',
       raw_input: tx.raw_input || null,
     };
@@ -1097,8 +1249,41 @@ MJ.data = {
     return hit ? hit.category_id : null;
   },
 
+  /* ---------------------- ย่อรูปก่อนอัปโหลด ---------------------- */
+  /**
+   * อ่านสลิปเสร็จแล้วไม่ต้องเก็บภาพความละเอียดเต็ม — ย่อเหลือด้านยาว 1080px
+   * คุณภาพ 0.72 พออ่านตัวเลขด้วยตาได้ ไฟล์เล็กลงราว 5-10 เท่า ประหยัดพื้นที่และเน็ต
+   */
+  async compressImage(file, maxSide, quality) {
+    if (!file || !/^image\//.test(file.type) || /heic|heif/i.test(file.type)) return file;
+    try {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      URL.revokeObjectURL(url);
+
+      const side = maxSide || 1080;
+      const scale = Math.min(1, side / Math.max(img.width, img.height));
+      if (scale === 1 && file.size < 400 * 1024) return file;   // เล็กอยู่แล้ว
+
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * scale);
+      cv.height = Math.round(img.height * scale);
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+
+      const blob = await new Promise((res) => cv.toBlob(res, 'image/jpeg', quality || 0.72));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], (file.name || 'slip').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } catch (e) {
+      return file;   // ย่อไม่ได้ก็อัปโหลดต้นฉบับ
+    }
+  },
+
   /* ---------------------- อัปโหลดสลิปขึ้น Storage ---------------------- */
-  async uploadReceipt(file) {
+  async uploadReceipt(rawFile) {
+    const file = await this.compressImage(rawFile);
     const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
     const path = `${MJ.state.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await MJ.sb.storage.from('receipts').upload(path, file, {
@@ -1777,6 +1962,7 @@ MJ.slip = (() => {
       .replace(/^(นาย|นาง|นางสาว|น\.ส\.|บจก\.|บมจ\.)\s*/i, (m) => m)   // คงคำนำหน้าไว้
       .replace(/\s{2,}/g, ' ')
       .trim();
+    v = (typeof MJ !== 'undefined' && MJ.fixThai) ? MJ.fixThai(v) : v;
     if (v.length < 3 || v.length > 80) return null;
     if (NOT_PAYEE_RE.test(v) && !/(บจก|บมจ|บริษัท|จำกัด|co\.,?\s*ltd|company)/i.test(v)) return null;
     if (/^[A-F0-9]{12,}$/i.test(v)) return null;   // ดูเป็นรหัส ไม่ใช่ชื่อ
@@ -1878,7 +2064,8 @@ MJ.charts = {
     const r = (o.size - o.thickness) / 2, cx = o.size / 2, cy = o.size / 2;
     const C = 2 * Math.PI * r;
     if (!total) {
-      return `<svg viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px">
+      return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="${o.size}" height="${o.size}"
+        style="max-width:100%">
         <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
         <text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="var(--ink-3)" font-size="13">ยังไม่มีข้อมูล</text></svg>`;
     }
@@ -1893,7 +2080,7 @@ MJ.charts = {
       offset += frac;
       return seg;
     }).join('');
-    return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="100%" style="max-width:${o.size}px">
+    return `<svg class="chart-donut" viewBox="0 0 ${o.size} ${o.size}" width="${o.size}" height="${o.size}" style="max-width:100%">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${o.thickness}"/>
       ${arcs}
       <text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="var(--ink-3)" font-size="12">${MJ.esc(o.centerTop)}</text>
@@ -1901,30 +2088,41 @@ MJ.charts = {
     </svg>`;
   },
 
-  /** แท่งรายวัน (รายจ่าย/รายรับซ้อนกัน) */
+  /** แท่งรายวัน (จ่าย/รับ) — ใช้พิกัดจริง ไม่ยืดภาพให้เพี้ยน */
   bars(expense, income, opts) {
-    const o = Object.assign({ h: 130 }, opts || {});
+    const o = Object.assign({ h: 150 }, opts || {});
     const n = expense.length;
     const max = Math.max(1, ...expense, ...(income || []));
-    const w = 100 / n;
+    const W = 8, GAP = 2;                       // ความกว้างช่องต่อวัน
+    const vw = n * (W + GAP), vh = 100;         // พื้นที่กราฟ (หน่วยเดียวกันทั้งแกน x/y)
     const today = new Date();
-    const isThisMonth = today.getMonth() === MJ.state.month.getMonth() && today.getFullYear() === MJ.state.month.getFullYear();
+    const isThisMonth = today.getMonth() === MJ.state.month.getMonth()
+      && today.getFullYear() === MJ.state.month.getFullYear();
+
     let bars = '';
     for (let i = 0; i < n; i++) {
-      const eh = (expense[i] / max) * 100;
-      const ih = income ? (income[i] / max) * 100 : 0;
-      const x = i * w;
+      const x = i * (W + GAP);
+      const eh = (expense[i] / max) * (vh - 16);
+      const ih = income ? (income[i] / max) * (vh - 16) : 0;
       const isToday = isThisMonth && today.getDate() === i + 1;
-      if (ih > 0) bars += `<rect style="animation-delay:${(i * .012).toFixed(3)}s" x="${x + w * 0.12}" y="${100 - ih}" width="${w * 0.34}" height="${ih}"
-        rx="1.2" fill="var(--in)" opacity=".85"><title>${i + 1}: รับ ${MJ.fmtBaht(income[i])}</title></rect>`;
-      if (eh > 0) bars += `<rect style="animation-delay:${(i * .012).toFixed(3)}s" x="${x + w * (ih > 0 ? 0.52 : 0.22)}" y="${100 - eh}" width="${w * (ih > 0 ? 0.34 : 0.56)}" height="${eh}"
-        rx="1.2" fill="${isToday ? 'var(--honey)' : 'var(--out)'}"><title>${i + 1}: จ่าย ${MJ.fmtBaht(expense[i])}</title></rect>`;
+      const both = ih > 0 && eh > 0;
+      const delay = `animation-delay:${(i * .012).toFixed(3)}s`;
+      if (ih > 0) bars += `<rect style="${delay}" x="${x}" y="${vh - 16 - ih}" width="${both ? W / 2 - .4 : W}"
+        height="${ih}" rx="1.6" fill="var(--in)" opacity=".9"><title>${i + 1}: รับ ${MJ.fmtBaht(income[i])}</title></rect>`;
+      if (eh > 0) bars += `<rect style="${delay}" x="${both ? x + W / 2 + .4 : x}" y="${vh - 16 - eh}"
+        width="${both ? W / 2 - .4 : W}" height="${eh}" rx="1.6"
+        fill="${isToday ? 'var(--honey-d)' : 'var(--out)'}"><title>${i + 1}: จ่าย ${MJ.fmtBaht(expense[i])}</title></rect>`;
     }
-    const labels = [1, Math.ceil(n / 2), n].map((d) =>
-      `<text x="${((d - 0.5) / n) * 100}" y="118" text-anchor="middle" fill="var(--ink-3)" font-size="7">${d}</text>`).join('');
-    return `<svg class="chart-bars" viewBox="0 0 100 122" width="100%" height="${o.h}" preserveAspectRatio="none"
-      style="overflow:visible">${bars}
-      <line x1="0" y1="100" x2="100" y2="100" stroke="var(--line)" stroke-width=".6"/>${labels}</svg>`;
+    const ticks = [1, Math.ceil(n / 2), n].map((d) =>
+      `<text x="${(d - 1) * (W + GAP) + W / 2}" y="${vh - 3}" text-anchor="middle"
+        fill="var(--ink-3)" font-size="7">${d}</text>`).join('');
+
+    return `<div class="chart-scroll"><svg class="chart-bars" viewBox="0 0 ${vw} ${vh}"
+      width="100%" height="${o.h}" preserveAspectRatio="xMidYMax meet">
+      ${bars}
+      <line x1="0" y1="${vh - 16}" x2="${vw}" y2="${vh - 16}" stroke="var(--line)" stroke-width=".5"/>
+      ${ticks}
+    </svg></div>`;
   },
 
   /** เส้นแนวโน้มยอดสะสม */
@@ -2005,13 +2203,6 @@ MJ.routes.dashboard = (view) => {
         <div class="box in"><span class="tiny">รายรับ</span><b>${MJ.fmtBaht(s.income)}</b></div>
         <div class="box out"><span class="tiny">รายจ่าย</span><b>${MJ.fmtBaht(s.expense)}</b></div>
       </div>
-    </div>
-
-    <div class="chips">
-      <button class="chip" data-quick="พิมพ์">✏️ พิมพ์จด</button>
-      <button class="chip" data-quick="เสียง">🎤 พูดจด</button>
-      <button class="chip" data-quick="สลิป">🧾 ถ่ายสลิป</button>
-      <button class="chip" data-quick="ฟอร์ม">⌨️ กรอกเอง</button>
     </div>
 
     ${isCurrentMonth ? `
@@ -2101,10 +2292,30 @@ MJ.routes.dashboard = (view) => {
    =================================================================== */
 MJ.add = {
   tab: 'chat',
-  chat: [],          // {who:'bot'|'me', text, img}
+  chat: [],          // {who:'bot'|'me', text, img, imgs}
   recognizer: null,
   recording: false,
   form: { amount: '', type: 'expense', category_id: null, date: null, note: '' },
+};
+
+/* ---------------------- เก็บแชทย้อนหลังไว้ในเครื่อง ---------------------- */
+MJ.add.CHAT_KEY = 'mj-chat';
+MJ.add.loadChat = function () {
+  try {
+    const raw = localStorage.getItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'));
+    if (raw) MJ.add.chat = JSON.parse(raw).slice(-60);
+  } catch (e) { /* อ่านไม่ได้ก็เริ่มใหม่ */ }
+};
+MJ.add.saveChat = function () {
+  try {
+    // รูปเป็น blob: ที่หมดอายุเมื่อปิดหน้า จึงเก็บแค่ข้อความ
+    const keep = MJ.add.chat.slice(-60).map((m) => ({
+      who: m.who,
+      text: m.text || (m.imgs?.length ? `🧾 ส่งสลิป ${m.imgs.length} ใบ` : (m.img ? '🧾 ส่งสลิป' : '')),
+      at: m.at || Date.now(),
+    })).filter((m) => m.text);
+    localStorage.setItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'), JSON.stringify(keep));
+  } catch (e) { /* เต็มก็ข้ามไป */ }
 };
 
 MJ.routes.add = (view) => {
@@ -2113,14 +2324,15 @@ MJ.routes.add = (view) => {
   const action = p.action || null;      // 'voice' | 'slip'
   MJ.state.routeParams = {};
 
+  if (!MJ.add.chat.length) MJ.add.loadChat();
   if (!MJ.add.chat.length) {
     MJ.add.chat = [{ who: 'bot', text: 'สวัสดี! บอกหมีได้เลย 🐻\n• พิมพ์ “กินกาแฟ 80”\n• กดไมค์แล้วพูด\n• หรือส่งรูปสลิปมาให้หมีอ่าน' }];
   }
 
   view.innerHTML = `
     <div class="seg" id="addTabs">
-      <button class="seg-btn" data-tab="chat">💬 แชท</button>
-      <button class="seg-btn" data-tab="form">⌨️ กรอกเอง</button>
+      <button class="seg-btn" data-tab="chat"><i class="fa fa-comment"></i> แชท</button>
+      <button class="seg-btn" data-tab="form"><i class="fa fa-keyboard"></i> กรอกเอง</button>
     </div>
     <div id="addBody"></div>`;
 
@@ -2139,6 +2351,46 @@ MJ.routes.add = (view) => {
   }
 };
 
+/**
+ * ปุ่มลัดในหน้าแชท — สร้างจากรายการที่ผู้ใช้จดบ่อยที่สุด (ชื่อ+ยอดเดิม)
+ * ถ้ายังไม่มีข้อมูลพอ ค่อยเติมตัวอย่างมาตรฐาน
+ */
+MJ.add.quickChips = function () {
+  const freq = new Map();
+  MJ.state.transactions.forEach((t) => {
+    const note = MJ.fixThai(t.note || MJ.data.catById(t.category_id)?.name || '');
+    if (!note || note.length > 22) return;
+    const amt = Math.round(Number(t.amount));
+    if (!amt) return;
+    const key = `${t.type}|${note}|${amt}`;
+    const cur = freq.get(key) || { note, amt, type: t.type, n: 0, last: 0,
+      icon: MJ.data.catById(t.category_id)?.icon || '' };
+    cur.n++;
+    cur.last = Math.max(cur.last, new Date(t.transaction_date).getTime());
+    freq.set(key, cur);
+  });
+
+  const top = Array.from(freq.values())
+    .sort((a, b) => (b.n - a.n) || (b.last - a.last))
+    .slice(0, 8)
+    .map((x) => ({
+      icon: x.icon,
+      label: `${x.note} ${MJ.fmtMoney(x.amt)}`,
+      text: `${x.type === 'income' ? 'รับ ' : ''}${x.note} ${x.amt}`,
+    }));
+
+  if (top.length >= 4) return top;
+  const defaults = [
+    { icon: '🍜', label: 'ข้าวเที่ยง 60', text: 'ข้าวเที่ยง 60' },
+    { icon: '☕', label: 'กาแฟ 60', text: 'กาแฟ 60' },
+    { icon: '🚕', label: 'ค่าแท็กซี่ 120', text: 'ค่าแท็กซี่ 120' },
+    { icon: '🛒', label: 'ของใช้ 200', text: 'ซื้อของใช้ 200' },
+    { icon: '💰', label: 'รับเงินเดือน', text: 'รับเงินเดือน 25000' },
+  ];
+  const firstWord = (x) => x.label.split(' ')[0];
+  return top.concat(defaults.filter((d) => !top.some((t) => firstWord(t) === firstWord(d)))).slice(0, 8);
+};
+
 /* ============================ แท็บแชท ============================ */
 function renderChat(body, action) {
   // ข้อความอยู่ในหน้า ส่วนแถบพิมพ์ตรึงติดด้านล่างเหมือนแอปแชท
@@ -2150,17 +2402,15 @@ function renderChat(body, action) {
   const dock = MJ.$('#composerDock');
   dock.classList.remove('hidden');
   dock.innerHTML = `
-    <div class="chips" id="samples" style="max-width:var(--wrap);margin:0 auto 8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px">
-      <button class="chip" data-s="กินข้าวเที่ยง 60">กินข้าวเที่ยง 60</button>
-      <button class="chip" data-s="ค่าแท็กซี่ 120">ค่าแท็กซี่ 120</button>
-      <button class="chip" data-s="รับเงินเดือน 25000">รับเงินเดือน 25000</button>
-      <button class="chip" data-s="เมื่อวาน ค่าไฟ 850">เมื่อวาน ค่าไฟ 850</button>
+    <div class="chips scroll" id="samples">
+      ${MJ.add.quickChips().map((c) => `<button class="chip mini" data-s="${MJ.esc(c.text)}">
+        ${c.icon ? `<span class="ic">${c.icon}</span>` : ''}${MJ.esc(c.label)}</button>`).join('')}
     </div>
     <div class="composer">
-      <button class="rnd" id="btnSlip" title="ส่งรูปสลิป">🧾</button>
+      <button class="rnd" id="btnSlip" title="ส่งรูปสลิป"><i class="fa fa-images"></i></button>
       <textarea id="chatInput" rows="1" placeholder="พิมพ์ พูด หรือส่งสลิป…"></textarea>
-      <button class="rnd" id="btnMic" title="พูด">🎤</button>
-      <button class="rnd send" id="btnSend" title="ส่ง">➤</button>
+      <button class="rnd" id="btnMic" title="พูด"><i class="fa fa-mic"></i></button>
+      <button class="rnd send" id="btnSend" title="ส่ง"><i class="fa fa-send"></i></button>
     </div>
     <input type="file" id="slipFile" accept="image/*" hidden multiple>`;
 
@@ -2188,11 +2438,12 @@ function renderChat(body, action) {
   if (action === 'slip') setTimeout(() => fileInput.click(), 250);
 
   function pushBubble(who, text, img, imgs) {
-    const msg = { who, text, img: img || null, imgs: imgs || null };
+    const msg = { who, text, img: img || null, imgs: imgs || null, at: Date.now() };
     MJ.add.chat.push(msg);
-    if (MJ.add.chat.length > 40) MJ.add.chat.splice(0, MJ.add.chat.length - 40);
+    if (MJ.add.chat.length > 60) MJ.add.chat.splice(0, MJ.add.chat.length - 60);
     box.insertAdjacentHTML('beforeend', bubbleHTML(msg));
     scrollChat(box);
+    MJ.add.saveChat();
     return msg;
   }
 
@@ -2480,8 +2731,8 @@ function renderForm(body) {
 
   body.innerHTML = `
     <div class="seg" id="typeSeg">
-      <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
     <div class="card">
       <div class="amount-display"><b id="amtView">${f.amount || '0'}</b><span>บาท</span></div>
@@ -2555,8 +2806,8 @@ MJ.add.openDraftSheet = function (draft, opts) {
     ${draft.file ? '<img class="slip-preview" id="slipImg" alt="สลิป">' : ''}
     ${opts.slip ? `<p class="tiny muted mb">${draft.hasQR ? '✅ อ่าน QR สำเร็จ — กันบันทึกซ้ำให้แล้ว' : '⚠️ ไม่พบ QR บนสลิป ตรวจตัวเลขอีกครั้งนะ'}</p>` : ''}
     <div class="seg" id="dType">
-      <button class="seg-btn ${draft.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${draft.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${draft.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${draft.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
     <label class="field"><span>จำนวนเงิน (บาท)</span>
       <input type="number" inputmode="decimal" step="0.01" id="dAmount" value="${draft.amount ?? ''}" placeholder="0.00"></label>
@@ -2638,7 +2889,7 @@ MJ.tx = {
     return `<div class="tx" data-tx="${t.id}">
       <span class="tx-ico" style="background:${MJ.hex2rgba(color, .18)}">${c?.icon || '❓'}</span>
       <span class="tx-main">
-        <span class="tx-title">${MJ.esc(t.note || c?.name || 'รายการ')}</span>
+        <span class="tx-title">${MJ.esc(MJ.fixThai(t.note || c?.name || 'รายการ'))}</span>
         <span class="tx-sub">${MJ.esc(c?.name || 'ไม่ระบุหมวด')} • ${MJ.timeLabel(t.transaction_date)} ${badges}</span>
       </span>
       <span class="tx-amt ${t.type === 'income' ? 'in' : 'out'}">${t.type === 'income' ? '+' : '−'}${MJ.fmtMoney(t.amount)}</span>
@@ -2673,7 +2924,7 @@ MJ.tx = {
       if (f.category !== 'all' && t.category_id !== f.category) return false;
       if (q) {
         const c = MJ.data.catById(t.category_id);
-        const hay = `${t.note || ''} ${t.payee_name || ''} ${c?.name || ''} ${t.amount}`.toLowerCase();
+        const hay = MJ.fixThai(`${t.note || ''} ${t.payee_name || ''} ${c?.name || ''} ${t.amount}`).toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -2692,11 +2943,11 @@ MJ.tx = {
       </div>
       <div id="receiptBox"></div>
       <div class="card">
-        <div class="list-item"><span class="ic">🏷️</span><span class="tx2"><b>${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</b><small>หมวดหมู่</small></span></div>
-        <div class="list-item"><span class="ic">📝</span><span class="tx2"><b>${MJ.esc(t.note || '-')}</b><small>บันทึกช่วยจำ</small></span></div>
-        ${t.payee_name ? `<div class="list-item"><span class="ic">🏪</span><span class="tx2"><b>${MJ.esc(t.payee_name)}</b><small>ผู้รับเงิน</small></span></div>` : ''}
-        ${t.slip_reference ? `<div class="list-item"><span class="ic">🔖</span><span class="tx2"><b style="word-break:break-all;font-size:12px">${MJ.esc(t.slip_reference.slice(0, 60))}</b><small>รหัสอ้างอิงสลิป</small></span></div>` : ''}
-        <div class="list-item"><span class="ic">📥</span><span class="tx2"><b>${({ manual:'กรอกเอง', text:'พิมพ์จด', voice:'พูดจด', slip:'สลิป', recurring:'รายการประจำ', import:'นำเข้า' })[t.source] || t.source}</b><small>ที่มา</small></span></div>
+        <div class="list-item"><span class="ic"><i class="fa fa-tag"></i></span><span class="tx2"><b>${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</b><small>หมวดหมู่</small></span></div>
+        <div class="list-item"><span class="ic"><i class="fa fa-pen"></i></span><span class="tx2"><b>${MJ.esc(MJ.fixThai(t.note || '-'))}</b><small>บันทึกช่วยจำ</small></span></div>
+        ${t.payee_name ? `<div class="list-item"><span class="ic"><i class="fa fa-store"></i></span><span class="tx2"><b>${MJ.esc(MJ.fixThai(t.payee_name))}</b><small>ผู้รับเงิน</small></span></div>` : ''}
+        ${t.slip_reference ? `<div class="list-item"><span class="ic"><i class="fa fa-tag"></i></span><span class="tx2"><b style="word-break:break-all;font-size:12px">${MJ.esc(t.slip_reference.slice(0, 60))}</b><small>รหัสอ้างอิงสลิป</small></span></div>` : ''}
+        <div class="list-item"><span class="ic"><i class="fa fa-download"></i></span><span class="tx2"><b>${({ manual:'กรอกเอง', text:'พิมพ์จด', voice:'พูดจด', slip:'สลิป', recurring:'รายการประจำ', import:'นำเข้า' })[t.source] || t.source}</b><small>ที่มา</small></span></div>
       </div>
       <button class="btn btn-soft btn-block" id="txEdit">แก้ไขรายการ</button>
       <button class="btn btn-danger btn-block mt" id="txDel">ลบรายการนี้</button>
@@ -2720,8 +2971,8 @@ MJ.tx = {
     const cats = MJ.state.categories;
     MJ.sheet.open('แก้ไขรายการ', `
       <div class="seg" id="eType">
-        <button class="seg-btn ${t.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-        <button class="seg-btn ${t.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+        <button class="seg-btn ${t.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+        <button class="seg-btn ${t.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
       </div>
       <label class="field"><span>จำนวนเงิน</span>
         <input type="number" step="0.01" inputmode="decimal" id="eAmount" value="${t.amount}"></label>
@@ -2766,8 +3017,8 @@ MJ.tx = {
         'เวลา': MJ.timeLabel(d).replace(' น.', ''),
         'ประเภท': t.type === 'income' ? 'รายรับ' : 'รายจ่าย',
         'หมวดหมู่': c?.name || 'ไม่ระบุ',
-        'รายละเอียด': t.note || '',
-        'ผู้รับเงิน/ร้านค้า': t.payee_name || '',
+        'รายละเอียด': MJ.fixThai(t.note || ''),
+        'ผู้รับเงิน/ร้านค้า': MJ.fixThai(t.payee_name || ''),
         'จำนวนเงิน': Number(t.amount),
         'ที่มา': ({ manual:'กรอกเอง', text:'พิมพ์', voice:'เสียง', slip:'สลิป', recurring:'รายการประจำ' })[t.source] || t.source,
         'รหัสอ้างอิงสลิป': t.slip_reference || '',
@@ -2797,15 +3048,15 @@ MJ.routes.transactions = (view) => {
 
   view.innerHTML = `
     <div class="search">
-      <span>🔍</span>
+      <i class="fa fa-search muted"></i>
       <input id="txSearch" placeholder="ค้นหารายการ ร้านค้า หรือจำนวนเงิน" value="${MJ.esc(f.q)}">
-      ${f.q ? '<button class="icon-btn" id="clearQ">✕</button>' : ''}
+      ${f.q ? '<button class="icon-btn" id="clearQ"><i class="fa fa-xmark"></i></button>' : ''}
     </div>
     <div class="chips">
       <button class="chip ${f.type === 'all' ? 'active' : ''}" data-f="all">ทั้งหมด</button>
       <button class="chip ${f.type === 'expense' ? 'active' : ''}" data-f="expense">รายจ่าย</button>
       <button class="chip ${f.type === 'income' ? 'active' : ''}" data-f="income">รายรับ</button>
-      <button class="chip" id="btnExport">📄 Excel</button>
+      <button class="chip" id="btnExport"><i class="fa fa-excel"></i> Excel</button>
     </div>
     <div class="stat-grid mb">
       <div class="stat"><div class="k">รายรับ</div><div class="v" style="color:var(--in)">${MJ.fmtBaht(s.income)}</div></div>
@@ -2861,15 +3112,15 @@ MJ.routes.analysis = (view) => {
   // ร้าน/ผู้รับเงินยอดฮิต
   const payees = new Map();
   MJ.state.transactions.filter((t) => t.type === 'expense' && t.payee_name).forEach((t) => {
-    const k = t.payee_name.trim();
+    const k = MJ.fixThai(t.payee_name);
     payees.set(k, (payees.get(k) || 0) + Number(t.amount));
   });
   const topPayees = Array.from(payees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   view.innerHTML = `
     <div class="seg" id="anType">
-      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
 
     <div class="card">
@@ -2973,8 +3224,8 @@ MJ.routes.budget = (view) => {
 
   view.innerHTML = `
     <div class="seg" id="budType">
-      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">💸 หมวดรายจ่าย</button>
-      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">💰 หมวดรายรับ</button>
+      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> หมวดรายจ่าย</button>
+      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> หมวดรายรับ</button>
     </div>
 
     ${type === 'expense' ? `<div class="card">
@@ -3104,7 +3355,7 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>การแสดงผล</h3></div>
-      <div class="list-item"><span class="ic">🎨</span>
+      <div class="list-item"><span class="ic"><i class="fa fa-palette"></i></span>
         <span class="tx2"><b>ธีม</b><small>เลือกโหมดสว่าง/มืด</small></span>
         <select id="themeSel" style="width:auto;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)">
           <option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>ตามเครื่อง</option>
@@ -3116,13 +3367,17 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>แจ้งเตือนให้จด</h3></div>
-      <div class="list-item"><span class="ic">⏰</span>
+      <div class="list-item"><span class="ic"><i class="fa fa-bell"></i></span>
         <span class="tx2"><b>เวลาเตือนประจำวัน</b><small>${notifState === 'granted' ? 'เปิดใช้งานแล้ว' : 'ต้องอนุญาตการแจ้งเตือนก่อน'}</small></span>
         <input type="time" id="reminderTime" value="${p.reminder_time ? String(p.reminder_time).slice(0, 5) : ''}"
           style="width:auto;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)">
       </div>
-      ${notifState !== 'granted' ? '<button class="btn btn-soft btn-block btn-sm mt" id="askNotif">อนุญาตการแจ้งเตือน</button>' : ''}
-      <p class="tiny muted mt">บน iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน แล้วเปิดจากไอคอนแอปถึงจะแจ้งเตือนได้</p>
+      <div class="list-item"><span class="ic"><i class="fa fa-mobile"></i></span>
+        <span class="tx2"><b>แจ้งเตือนแม้ปิดแอป (Push)</b><small id="pushHint">กำลังตรวจสอบ…</small></span>
+        <div class="switch" id="pushSwitch"><i></i></div>
+      </div>
+      <button class="btn btn-soft btn-block btn-sm mt" id="pushTest"><i class="fa fa-bell"></i> ทดสอบส่งแจ้งเตือน</button>
+      <p class="tiny muted mt">บน iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน แล้วเปิดจากไอคอนแอปถึงจะแจ้งเตือนได้ (iOS 16.4+)</p>
     </div>
 
     <div class="card">
@@ -3131,7 +3386,7 @@ MJ.routes.settings = (view) => {
         const c = MJ.data.catById(r.category_id);
         const freq = { daily: 'ทุกวัน', weekly: 'ทุกสัปดาห์', monthly: 'ทุกเดือน', yearly: 'ทุกปี' }[r.frequency];
         return `<div class="list-item" data-recur="${r.id}">
-          <span class="ic" style="background:${MJ.hex2rgba(c?.color || '#F2B23E', .18)}">${c?.icon || '🔁'}</span>
+          <span class="ic" style="background:${MJ.hex2rgba(c?.color || '#F2B23E', .18)}">${c?.icon || '<i class="fa fa-repeat"></i>'}</span>
           <span class="tx2"><b>${MJ.esc(r.note || c?.name || 'รายการประจำ')}</b>
             <small>${freq} • ครั้งถัดไป ${MJ.dayLabel(r.next_run_date)}</small></span>
           <span class="tx-amt ${r.type === 'income' ? 'in' : 'out'}">${MJ.fmtMoney(r.amount)}</span>
@@ -3141,7 +3396,7 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>อ่านสลิป (OCR)</h3></div>
-      <div class="list-item"><span class="ic">🔍</span>
+      <div class="list-item"><span class="ic"><i class="fa fa-eye"></i></span>
         <span class="tx2"><b>${p.ocr_endpoint ? 'PaddleOCR (เซิร์ฟเวอร์ของคุณ)' : 'อ่านในเครื่อง (Tesseract.js)'}</b>
           <small>${p.ocr_endpoint ? MJ.esc(p.ocr_endpoint) : 'ฟรี ไม่ต้องตั้งค่าอะไร'}</small></span>
         <button class="btn btn-soft btn-sm" id="editOcr">ตั้งค่า</button>
@@ -3150,17 +3405,17 @@ MJ.routes.settings = (view) => {
 
     <div class="card">
       <div class="card-head"><h3>ข้อมูลของฉัน</h3></div>
-      <div class="list-item" id="expMonth"><span class="ic">📄</span>
+      <div class="list-item" id="expMonth"><span class="ic"><i class="fa fa-excel"></i></span>
         <span class="tx2"><b>ส่งออกเดือนนี้เป็น Excel</b><small>${MJ.monthLabelFull(MJ.state.month)}</small></span><span class="tiny muted">›</span></div>
-      <div class="list-item" id="expAll"><span class="ic">📦</span>
+      <div class="list-item" id="expAll"><span class="ic"><i class="fa fa-boxes"></i></span>
         <span class="tx2"><b>ส่งออกทั้งหมด</b><small>ทุกรายการที่เคยบันทึก</small></span><span class="tiny muted">›</span></div>
-      <div class="list-item" id="runRecur"><span class="ic">🔁</span>
+      <div class="list-item" id="runRecur"><span class="ic"><i class="fa fa-rotate"></i></span>
         <span class="tx2"><b>ประมวลผลรายการประจำเดี๋ยวนี้</b><small>เผื่อรายการที่ถึงกำหนดแล้ว</small></span><span class="tiny muted">›</span></div>
     </div>
 
     <div class="card">
       <div class="card-head"><h3>เกี่ยวกับ</h3></div>
-      <div class="list-item" id="howInstall"><span class="ic">📲</span>
+      <div class="list-item" id="howInstall"><span class="ic"><i class="fa fa-mobile"></i></span>
         <span class="tx2"><b>ติดตั้งลงหน้าจอโฮม</b><small>ใช้เหมือนแอปจริง</small></span><span class="tiny muted">›</span></div>
       <div class="list-item"><span class="ic">🍯</span>
         <span class="tx2"><b>หมีจด MheeJod</b><small>เวอร์ชัน 1.0 • ข้อมูลเก็บใน Supabase ของคุณเอง</small></span></div>
@@ -3183,11 +3438,27 @@ MJ.routes.settings = (view) => {
       MJ.toast(v ? `จะเตือนทุกวันเวลา ${v} น.` : 'ปิดการเตือนแล้ว', 'ok');
     } catch (err) { MJ.toast('บันทึกไม่สำเร็จ', 'err'); }
   };
-  if (MJ.$('#askNotif', view)) MJ.$('#askNotif', view).onclick = async () => {
-    const res = await Notification.requestPermission();
-    MJ.toast(res === 'granted' ? 'เปิดแจ้งเตือนแล้ว 🔔' : 'ยังไม่ได้รับอนุญาต', res === 'granted' ? 'ok' : 'err');
-    MJ.render();
-  };
+  /* ---------- สวิตช์ Push ---------- */
+  (async () => {
+    const sw = MJ.$('#pushSwitch', view);
+    const hint = MJ.$('#pushHint', view);
+    if (!sw) return;
+    const st = await MJ.push.status();
+    const texts = {
+      on: 'เปิดอยู่บนเครื่องนี้',
+      off: MJ.push.needsInstall() ? 'ต้องเพิ่มลงหน้าจอโฮมก่อน' : 'ปิดอยู่ — แตะเพื่อเปิด',
+      denied: 'ถูกปิดไว้ในตั้งค่าเบราว์เซอร์',
+      unsupported: 'เบราว์เซอร์นี้ไม่รองรับ',
+    };
+    hint.textContent = texts[st] || '';
+    sw.classList.toggle('on', st === 'on');
+    sw.onclick = async () => {
+      const now = await MJ.push.status();
+      const ok = now === 'on' ? await MJ.push.disable() : await MJ.push.enable();
+      if (ok) MJ.render();
+    };
+  })();
+  if (MJ.$('#pushTest', view)) MJ.$('#pushTest', view).onclick = () => MJ.push.test();
   MJ.$('#addRecur', view).onclick = () => openRecurSheet(null);
   view.querySelectorAll('[data-recur]').forEach((el) => el.onclick = () =>
     openRecurSheet(MJ.state.recurring.find((r) => r.id === el.dataset.recur)));
@@ -3243,8 +3514,8 @@ function openRecurSheet(r) {
 
   MJ.sheet.open(isNew ? 'เพิ่มรายการประจำ' : 'แก้ไขรายการประจำ', `
     <div class="seg" id="rType">
-      <button class="seg-btn ${v.type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${v.type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${v.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${v.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
     <label class="field"><span>ชื่อรายการ</span>
       <input type="text" id="rNote" value="${MJ.esc(v.note || '')}" placeholder="เช่น Netflix, ค่าเช่าห้อง"></label>
@@ -3263,7 +3534,7 @@ function openRecurSheet(r) {
       <label class="field"><span>ครั้งถัดไป</span>
         <input type="date" id="rDate" value="${String(v.next_run_date).slice(0, 10)}"></label>
     </div>
-    <div class="list-item"><span class="ic">▶️</span><span class="tx2"><b>เปิดใช้งาน</b><small>ปิดไว้ถ้ายังไม่อยากให้จดอัตโนมัติ</small></span>
+    <div class="list-item"><span class="ic"><i class="fa fa-check"></i></span><span class="tx2"><b>เปิดใช้งาน</b><small>ปิดไว้ถ้ายังไม่อยากให้จดอัตโนมัติ</small></span>
       <div class="switch ${v.is_active ? 'on' : ''}" id="rActive"><i></i></div></div>
     <button class="btn btn-primary btn-block mt" id="rSave">${isNew ? 'เพิ่มรายการ' : 'บันทึก'}</button>
     ${isNew ? '' : '<button class="btn btn-danger btn-block mt" id="rDel">ลบรายการประจำ</button>'}
@@ -3369,6 +3640,145 @@ MJ.reminder = {
 
 </script>
 <script>
+/* ===== 70-push.js ===== */
+/* ===================================================================
+   70-push.js — แจ้งเตือนแบบ Push (Web Push + VAPID)
+   ทำงานแม้ปิดแอปอยู่ ต่างจากตัวเตือนเดิมที่ทำงานเฉพาะตอนเปิดแอปค้างไว้
+   บน iPhone ต้อง "เพิ่มไปยังหน้าจอโฮม" ก่อน แล้วเปิดจากไอคอนแอป (iOS 16.4+)
+   =================================================================== */
+MJ.push = {
+  VAPID_PUBLIC: 'BN4QfLrxWTUlBsqqhMMqY99IrqPZLFzx4GdRFhyMi15CNRgdxV-nYvrahxI10DCHZKeaqDNSnTESIP8eVt0e1ow',
+
+  /** เบราว์เซอร์นี้รองรับ push ไหม */
+  supported() {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  },
+
+  /** ต้องติดตั้งลงหน้าจอโฮมก่อนไหม (เฉพาะ iOS) */
+  needsInstall() {
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    return iOS && !standalone;
+  },
+
+  async status() {
+    if (!this.supported()) return 'unsupported';
+    if (Notification.permission === 'denied') return 'denied';
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      return sub ? 'on' : 'off';
+    } catch (e) { return 'off'; }
+  },
+
+  urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  },
+
+  /** เปิดการแจ้งเตือน: ขอสิทธิ์ -> สมัครกับเบราว์เซอร์ -> เก็บลง Supabase */
+  async enable() {
+    if (!this.supported()) {
+      MJ.toast('เบราว์เซอร์นี้ยังไม่รองรับการแจ้งเตือน', 'err');
+      return false;
+    }
+    if (this.needsInstall()) {
+      MJ.toast('บน iPhone ต้องเพิ่มลงหน้าจอโฮมก่อนนะ', 'err');
+      return false;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      MJ.toast(perm === 'denied' ? 'ถูกปิดไว้ในตั้งค่าเบราว์เซอร์' : 'ยังไม่ได้รับอนุญาต', 'err');
+      return false;
+    }
+
+    MJ.loading(true, 'กำลังเปิดการแจ้งเตือน…');
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC),
+        });
+      }
+      const json = sub.toJSON();
+      const { error } = await MJ.sb.from('push_subscriptions').upsert({
+        user_id: MJ.state.user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        user_agent: navigator.userAgent.slice(0, 200),
+        fail_count: 0,
+      }, { onConflict: 'endpoint' });
+      if (error) throw error;
+
+      MJ.toast('เปิดแจ้งเตือนแล้ว 🔔', 'ok');
+      return true;
+    } catch (err) {
+      MJ.toast('เปิดแจ้งเตือนไม่สำเร็จ: ' + (err.message || err), 'err');
+      return false;
+    } finally { MJ.loading(false); }
+  },
+
+  /** ปิดการแจ้งเตือนสำหรับอุปกรณ์นี้ */
+  async disable() {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await MJ.sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+        await sub.unsubscribe();
+      }
+      MJ.toast('ปิดแจ้งเตือนของเครื่องนี้แล้ว', 'ok');
+      return true;
+    } catch (err) {
+      MJ.toast('ปิดไม่สำเร็จ: ' + (err.message || err), 'err');
+      return false;
+    }
+  },
+
+  /** ยิงแจ้งเตือนทดสอบมาที่เครื่องนี้ (ผ่าน Edge Function) */
+  async test() {
+    MJ.loading(true, 'กำลังส่งแจ้งเตือนทดสอบ…');
+    try {
+      const { data, error } = await MJ.sb.functions.invoke('notify', {
+        body: { test_user_id: MJ.state.user.id },
+      });
+      if (error) throw error;
+      MJ.toast(data?.sent ? 'ส่งแล้ว รอสัก 2-3 วินาที 🔔' : 'ยังไม่มีอุปกรณ์ที่เปิดแจ้งเตือน', data?.sent ? 'ok' : 'err');
+    } catch (err) {
+      MJ.toast('ส่งไม่สำเร็จ: ' + (err.message || err), 'err');
+    } finally { MJ.loading(false); }
+  },
+
+  /** เช็กตอนเปิดแอป: ถ้าเคยเปิดไว้ ให้ sync ข้อมูล subscription ล่าสุดขึ้นฐานข้อมูล */
+  async sync() {
+    if (!this.supported() || Notification.permission !== 'granted') return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (!sub) return;
+      const json = sub.toJSON();
+      await MJ.sb.from('push_subscriptions').upsert({
+        user_id: MJ.state.user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        user_agent: navigator.userAgent.slice(0, 200),
+        fail_count: 0,
+      }, { onConflict: 'endpoint' });
+    } catch (e) { /* ไม่สำคัญพอที่จะรบกวนผู้ใช้ */ }
+  },
+};
+
+</script>
+<script>
 /* ===== 99-boot.js ===== */
 /* ===================================================================
    99-boot.js — เริ่มระบบ: ธีม, auth, การนำทาง, service worker, share target
@@ -3403,13 +3813,17 @@ MJ.boot = async function () {
   };
   MJ.$('#btnMonthPrev').onclick = () => shiftMonth(-1);
   MJ.$('#btnMonthNext').onclick = () => shiftMonth(1);
-  MJ.$('#btnMonth').onclick = async () => {
-    const now = new Date();
-    MJ.state.month = new Date(now.getFullYear(), now.getMonth(), 1);
+  MJ.$('#btnMonth').onclick = () => MJ.openMonthPicker(shiftToMonth);
+
+  /** ไปยังเดือนที่เลือกจากตัวเลือกเดือน */
+  async function shiftToMonth(date) {
+    MJ.state.month = new Date(date.getFullYear(), date.getMonth(), 1);
     MJ.$('#btnMonth').textContent = MJ.monthLabel(MJ.state.month);
+    MJ.loading(true, 'กำลังโหลด ' + MJ.monthLabelFull(MJ.state.month));
     await MJ.data.loadMonth();
+    MJ.loading(false);
     MJ.render();
-  };
+  }
 
   /* ---------- Service worker + share target ---------- */
   if ('serviceWorker' in navigator) {
@@ -3454,6 +3868,7 @@ MJ.start = async function (user) {
   MJ.render();
 
   MJ.reminder.schedule();
+  MJ.push.sync();
   MJ.data.runRecurring().then((n) => { if (n) MJ.render(); });
   handleSharedSlip();
 };

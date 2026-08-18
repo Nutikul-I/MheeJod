@@ -62,9 +62,9 @@
       </div>
     </div>
     <div class="topbar-right">
-      <button class="icon-btn" id="btnMonthPrev" title="เดือนก่อนหน้า">‹</button>
+      <button class="icon-btn" id="btnMonthPrev" title="เดือนก่อนหน้า"><i class="fa fa-chev-l"></i></button>
       <button class="pill" id="btnMonth">ส.ค. 2569</button>
-      <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป">›</button>
+      <button class="icon-btn" id="btnMonthNext" title="เดือนถัดไป"><i class="fa fa-chev-r"></i></button>
     </div>
    </div>
   </header>
@@ -76,11 +76,11 @@
 
   <nav class="tabbar">
    <div class="tabbar-inner">
-    <button class="tab" data-route="dashboard"><span>🏠</span><em>ภาพรวม</em></button>
-    <button class="tab" data-route="transactions"><span>📒</span><em>รายการ</em></button>
-    <button class="fab" data-route="add" aria-label="เพิ่มรายการ">＋</button>
-    <button class="tab" data-route="analysis"><span>📊</span><em>วิเคราะห์</em></button>
-    <button class="tab" data-route="settings"><span>⚙️</span><em>ตั้งค่า</em></button>
+    <button class="tab" data-route="dashboard"><span class="fa fa-home"></span><em>ภาพรวม</em></button>
+    <button class="tab" data-route="transactions"><span class="fa fa-list"></span><em>รายการ</em></button>
+    <button class="fab" data-route="add" aria-label="เพิ่มรายการ"><span class="fa fa-plus"></span></button>
+    <button class="tab" data-route="analysis"><span class="fa fa-chart-pie"></span><em>วิเคราะห์</em></button>
+    <button class="tab" data-route="settings"><span class="fa fa-gear"></span><em>ตั้งค่า</em></button>
    </div>
   </nav>
 </div>
@@ -90,7 +90,7 @@
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet" role="dialog" aria-modal="true">
     <div class="sheet-handle" data-close></div>
-    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="icon-btn" data-close>✕</button></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="icon-btn" data-close><i class="fa fa-xmark"></i></button></div>
     <div class="sheet-body" id="sheetBody"></div>
   </div>
 </div>

@@ -25,15 +25,15 @@ MJ.routes.analysis = (view) => {
   // ร้าน/ผู้รับเงินยอดฮิต
   const payees = new Map();
   MJ.state.transactions.filter((t) => t.type === 'expense' && t.payee_name).forEach((t) => {
-    const k = t.payee_name.trim();
+    const k = MJ.fixThai(t.payee_name);
     payees.set(k, (payees.get(k) || 0) + Number(t.amount));
   });
   const topPayees = Array.from(payees.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   view.innerHTML = `
     <div class="seg" id="anType">
-      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense">💸 รายจ่าย</button>
-      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income">💰 รายรับ</button>
+      <button class="seg-btn ${type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
+      <button class="seg-btn ${type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
     </div>
 
     <div class="card">
