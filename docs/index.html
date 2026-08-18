@@ -81,6 +81,7 @@
 .fa-filter::before{content:"\f0b0"}
 .fa-eye::before{content:"\f06e"}
 .fa-rightleft::before{content:"\f362"}
+.fa-paperclip::before{content:"\f0c6"}
 
 /* ===================================================================
    หมีจด MheeJod — Design system v2
@@ -372,9 +373,14 @@ body.chat-open .app{padding-bottom:calc(var(--tab-h) + var(--safe-b) + 118px)}
   font-size:16px;flex:none;transition:transform .25s var(--spring)
 }
 .tx:active .tx-ico{transform:scale(1.08) rotate(-6deg)}
-.tx-main{flex:1;min-width:0;overflow:hidden}
-.tx-title{font-weight:600;font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-sub{font-size:10.5px;color:var(--ink-3);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-main{flex:1;min-width:0;overflow:hidden;display:flex;flex-direction:column;gap:1px}
+.tx-l1{display:flex;align-items:baseline;gap:6px;min-width:0}
+.tx-time{font-size:10.5px;color:var(--ink-3);flex:none;font-variant-numeric:tabular-nums}
+.tx-cat{overflow:hidden;text-overflow:ellipsis}
+.tx-marks{display:inline-flex;gap:5px;align-items:center;color:var(--ink-3);font-size:10px;flex:none}
+.tx-title{font-weight:600;font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.tx-sub{font-size:10.5px;color:var(--ink-3);line-height:1.3;white-space:nowrap;overflow:hidden;
+  display:flex;align-items:center;gap:6px;min-width:0}
 .tx-amt{font-weight:700;font-size:13.5px;white-space:nowrap;font-variant-numeric:tabular-nums;flex:none;margin-left:auto}
 .tx-amt.in{color:var(--in)} .tx-amt.out{color:var(--out)}
 .day-head{
@@ -2918,19 +2924,29 @@ MJ.add.openDraftSheet = function (draft, opts) {
 MJ.tx = {
   filter: { type: 'all', q: '', category: 'all' },
 
-  /** แถวรายการหนึ่งบรรทัด */
+  /** แถวรายการ — 2 บรรทัดเสมอ
+   *  บรรทัดบน: ชื่อรายการ + เวลา (ตัวเล็ก)
+   *  บรรทัดล่าง: หมวดหมู่ + ไอคอนที่มา/ไฟล์แนบ  */
   row(t) {
     const c = MJ.data.catById(t.category_id);
     const color = c?.color || '#9AA0A6';
-    const badges = [
-      t.source === 'slip' ? '🧾' : '', t.source === 'voice' ? '🎤' : '',
-      t.source === 'recurring' ? '🔁' : '', t.receipt_image_url ? '📎' : '',
-    ].filter(Boolean).join(' ');
+    const marks = [
+      t.source === 'slip' ? '<i class="fa fa-receipt" title="จากสลิป"></i>' : '',
+      t.source === 'voice' ? '<i class="fa fa-mic" title="จดด้วยเสียง"></i>' : '',
+      t.source === 'recurring' ? '<i class="fa fa-repeat" title="รายการประจำ"></i>' : '',
+      t.receipt_image_url ? '<i class="fa fa-paperclip" title="มีรูปแนบ"></i>' : '',
+    ].filter(Boolean).join('');
     return `<div class="tx" data-tx="${t.id}">
       <span class="tx-ico" style="background:${MJ.hex2rgba(color, .18)}">${c?.icon || '❓'}</span>
       <span class="tx-main">
-        <span class="tx-title">${MJ.esc(MJ.fixThai(t.note || c?.name || 'รายการ'))}</span>
-        <span class="tx-sub">${MJ.esc(c?.name || 'ไม่ระบุหมวด')} • ${MJ.timeLabel(t.transaction_date)} ${badges}</span>
+        <span class="tx-l1">
+          <span class="tx-title">${MJ.esc(MJ.fixThai(t.note || c?.name || 'รายการ'))}</span>
+          <span class="tx-time">${MJ.timeLabel(t.transaction_date)}</span>
+        </span>
+        <span class="tx-sub">
+          <span class="tx-cat">${MJ.esc(c?.name || 'ไม่ระบุหมวด')}</span>
+          ${marks ? `<span class="tx-marks">${marks}</span>` : ''}
+        </span>
       </span>
       <span class="tx-amt ${t.type === 'income' ? 'in' : 'out'}">${t.type === 'income' ? '+' : '−'}${MJ.fmtMoney(t.amount)}</span>
     </div>`;
