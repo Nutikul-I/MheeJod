@@ -63,6 +63,7 @@ MJ.add.persist = async function (msg) {
   MJ.add.saveLocal();
   if (!MJ.state.user || !navigator.onLine) return;
   const imgs = (msg.imgs || (msg.img ? [msg.img] : []))
+    .map((u) => (typeof u === 'string' ? u : u?.src))
     .filter((u) => typeof u === 'string' && u.startsWith('data:') && u.length <= MJ.add.MAX_IMG_BYTES)
     .slice(0, 4);
   const text = msg.text || (msg.imgs?.length ? `🧾 ส่งสลิป ${msg.imgs.length} ใบ` : (msg.img ? '🧾 ส่งสลิป' : ''));
@@ -79,7 +80,8 @@ MJ.add.saveLocal = function () {
   try {
     let imgBudget = 6;
     const keep = MJ.add.chat.slice(-60).reverse().map((m) => {
-      const smallImgs = (m.imgs || []).filter((u) => String(u).startsWith('data:'));
+      const smallImgs = (m.imgs || []).map((u) => (typeof u === 'string' ? u : u?.src))
+        .filter((u) => String(u).startsWith('data:'));
       const smallImg = String(m.img || '').startsWith('data:') ? m.img : null;
       const item = { who: m.who, text: m.text || '', at: m.at || Date.now(), saved: !!m.saved };
       if (smallImgs.length && imgBudget > 0) {
@@ -263,7 +265,13 @@ function bubbleHTML(m) {
   if (m.imgs && m.imgs.length) {
     const cols = m.imgs.length === 1 ? 1 : (m.imgs.length === 2 ? 2 : 3);
     const grid = `<div class="img-grid" style="grid-template-columns:repeat(${cols},1fr)">
-      ${m.imgs.map((u, i) => `<img src="${u}" alt="สลิปใบที่ ${i + 1}" loading="lazy">`).join('')}</div>`;
+      ${m.imgs.map((im, i) => {
+        const src = typeof im === 'string' ? im : im.src;
+        const done = typeof im === 'object' && im.done;
+        return `<span class="img-cell${done ? ' done' : ''}">
+          <img src="${src}" alt="สลิปใบที่ ${i + 1}" loading="lazy">
+          ${done ? '<i class="fa fa-check" title="เคยอัปโหลดแล้ว"></i>' : ''}</span>`;
+      }).join('')}</div>`;
     return `<div class="bubble ${m.who} has-img">${grid}${m.text ? MJ.esc(m.text) : ''}</div>`;
   }
   const img = m.img ? `<img src="${m.img}" alt="สลิป" style="width:100%;border-radius:14px;margin-bottom:${m.text ? '7px' : '0'}">` : '';
@@ -329,14 +337,28 @@ MJ.add.processSlips = async function (files) {
   if (files.length === 1) return MJ.add.processSlip(files[0]);
 
   const items = files.map((file) => ({ file, url: URL.createObjectURL(file) }));
-  // ใช้ภาพย่อแบบ data URL ในแชท (blob URL จะพังเมื่อ re-render/ปิดแอป)
+
+  // 1) ลายนิ้วมือของแต่ละรูป -> รู้ทันทีว่ารูปไหนเคยอัปโหลดไปแล้ว (ก่อนอ่าน OCR ด้วยซ้ำ)
+  MJ.loading(true, 'กำลังตรวจรูปที่เคยส่ง…');
+  for (const it of items) it.hash = await MJ.data.hashFile(it.file);
+  const uploaded = await MJ.data.findUploadedHashes(items.map((it) => it.hash));
+  items.forEach((it) => { it.alreadyUploaded = !!(it.hash && uploaded.has(it.hash)); });
+
+  // 2) ภาพย่อแบบ data URL ไว้โชว์ในแชท (blob URL จะพังเมื่อ re-render/ปิดแอป)
   const thumbs = [];
   for (const it of items) {
     const th = await MJ.data.thumbnail(it.file);
     it.thumb = th || it.url;
-    thumbs.push(it.thumb);
+    thumbs.push({ src: it.thumb, done: it.alreadyUploaded });
   }
+  MJ.loading(false);
   MJ.add.pushBubble && MJ.add.pushBubble('me', '', null, thumbs);
+
+  const dupFiles = items.filter((it) => it.alreadyUploaded).length;
+  if (dupFiles) {
+    MJ.add.pushBubble && MJ.add.pushBubble('bot',
+      `✅ มี ${dupFiles} รูปที่เคยอัปโหลดไปแล้ว หมีติ๊กออกให้ ไม่ต้องกลัวจดซ้ำ`);
+  }
   MJ.add.pushBubble && MJ.add.pushBubble('bot', `ได้รับสลิป ${files.length} ใบ กำลังอ่านให้นะ… 🐻`);
 
   const drafts = [];
@@ -347,9 +369,12 @@ MJ.add.processSlips = async function (files) {
       const draft = await MJ.slip.analyze(it.file, (msg) => MJ.loading(true, `(${i + 1}/${items.length}) ${msg}`));
       draft.file = it.file;
       draft.previewUrl = it.thumb || it.url;
+      draft.image_hash = it.hash;
+      draft.alreadyUploaded = it.alreadyUploaded;
       drafts.push(draft);
     } catch (err) {
-      drafts.push({ file: it.file, previewUrl: it.url, error: err.message || String(err),
+      drafts.push({ file: it.file, previewUrl: it.thumb || it.url, error: err.message || String(err),
+        image_hash: it.hash, alreadyUploaded: it.alreadyUploaded,
         amount: null, type: 'expense', transaction_date: new Date(), source: 'slip' });
     }
   }
@@ -364,8 +389,10 @@ MJ.add.processSlips = async function (files) {
   }
   const seen = new Set();
   drafts.forEach((d) => {
-    d.duplicate = !!(d.slip_reference && (existing.has(d.slip_reference) || seen.has(d.slip_reference)));
+    const dupRef = !!(d.slip_reference && (existing.has(d.slip_reference) || seen.has(d.slip_reference)));
     if (d.slip_reference) seen.add(d.slip_reference);
+    d.duplicate = dupRef || !!d.alreadyUploaded;
+    d.dupReason = d.alreadyUploaded ? 'file' : (dupRef ? 'ref' : null);
     d.include = !d.duplicate;
   });
 
@@ -387,10 +414,11 @@ MJ.add.openBatchSheet = function (drafts, items) {
   const rows = drafts.map((d, i) => `
     <div class="batch-row ${d.include ? '' : 'off'}" data-i="${i}">
       <div class="batch-head">
-        <img src="${d.previewUrl}" alt="สลิป ${i + 1}">
+        <span class="batch-thumb${d.duplicate ? ' done' : ''}"><img src="${d.previewUrl}" alt="สลิป ${i + 1}"></span>
         <div class="batch-sum">
           <b>ใบที่ ${i + 1}${d.payee_name ? ' • ' + MJ.esc(MJ.fixThai(d.payee_name)) : ''}</b>
-          <small>${d.duplicate ? '⚠️ เคยบันทึกแล้ว'
+          <small>${d.dupReason === 'file' ? '✅ รูปนี้เคยอัปโหลดแล้ว'
+            : d.duplicate ? '⚠️ เคยบันทึกแล้ว (สลิปซ้ำ)'
             : (d.error ? '⚠️ อ่านไม่สำเร็จ'
             : `${d.hasQR ? '✅ มี QR' : '⚠️ ไม่พบ QR'} • ${d.dateFromSlip ? 'วันที่จากสลิป' : 'ใช้วันนี้'}`)}</small>
         </div>
@@ -468,6 +496,7 @@ MJ.add.openBatchSheet = function (drafts, items) {
             payee_name: d.payee_name || null,
             transaction_date: new Date(MJ.$('[data-f="date"]', row).value),
             slip_reference: d.slip_reference || null,
+            image_hash: d.image_hash || null,
             receipt_image_url: receiptPath,
             source: 'slip',
             raw_input: d.raw_input || null,
@@ -489,12 +518,20 @@ MJ.add.openBatchSheet = function (drafts, items) {
 
 /* ============================ สลิปใบเดียว ============================ */
 MJ.add.processSlip = async function (file) {
+  const hash = await MJ.data.hashFile(file);
+  const known = await MJ.data.findUploadedHashes([hash]);
+  const alreadyUploaded = !!(hash && known.has(hash));
   const thumb = await MJ.data.thumbnail(file);
-  if (MJ.add.pushBubble) MJ.add.pushBubble('me', '', thumb || URL.createObjectURL(file));
+  if (MJ.add.pushBubble) MJ.add.pushBubble('me', '', null, [{ src: thumb || URL.createObjectURL(file), done: alreadyUploaded }]);
+  if (alreadyUploaded) {
+    MJ.add.pushBubble && MJ.add.pushBubble('bot', '✅ รูปนี้เคยอัปโหลดไปแล้วนะ ถ้าตั้งใจจดซ้ำก็กดบันทึกได้เลย');
+  }
   MJ.loading(true, 'กำลังเปิดสลิป…');
   try {
     const draft = await MJ.slip.analyze(file, (msg) => MJ.loading(true, msg));
     draft.file = file;
+    draft.image_hash = hash;
+    draft.alreadyUploaded = alreadyUploaded;
     MJ.loading(false);
 
     if (draft.slip_reference) {
@@ -616,7 +653,8 @@ MJ.add.openDraftSheet = function (draft, opts) {
 
   MJ.sheet.open(opts.slip ? 'ตรวจสอบสลิป' : 'ยืนยันรายการ', `
     ${draft.file ? '<img class="slip-preview" id="slipImg" alt="สลิป">' : ''}
-    ${opts.slip ? `<p class="tiny muted mb">${draft.hasQR ? '✅ อ่าน QR สำเร็จ — กันบันทึกซ้ำให้แล้ว' : '⚠️ ไม่พบ QR บนสลิป ตรวจตัวเลขอีกครั้งนะ'}</p>` : ''}
+    ${opts.slip ? `<p class="tiny muted mb">${draft.hasQR ? '✅ อ่าน QR สำเร็จ — กันบันทึกซ้ำให้แล้ว' : '⚠️ ไม่พบ QR บนสลิป ตรวจตัวเลขอีกครั้งนะ'}
+      ${draft.alreadyUploaded ? '<br><b>✅ รูปนี้เคยอัปโหลดไปแล้ว</b>' : ''}</p>` : ''}
     <div class="seg" id="dType">
       <button class="seg-btn ${draft.type === 'expense' ? 'active' : ''}" data-type="expense"><i class="fa fa-arrow-up"></i> รายจ่าย</button>
       <button class="seg-btn ${draft.type === 'income' ? 'active' : ''}" data-type="income"><i class="fa fa-arrow-down"></i> รายรับ</button>
@@ -669,6 +707,7 @@ MJ.add.openDraftSheet = function (draft, opts) {
           payee_name: MJ.$('#dPayee', bodyEl)?.value.trim() || draft.payee_name || null,
           transaction_date: new Date(MJ.$('#dDate', bodyEl).value),
           slip_reference: draft.slip_reference || null,
+          image_hash: draft.image_hash || null,
           receipt_image_url: receiptPath,
           source: draft.source || 'text',
           raw_input: draft.raw_input || null,

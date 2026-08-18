@@ -104,6 +104,7 @@ MJ.data = {
       transaction_date: (tx.transaction_date instanceof Date ? tx.transaction_date : new Date(tx.transaction_date || Date.now())).toISOString(),
       receipt_image_url: tx.receipt_image_url || null,
       slip_reference: tx.slip_reference || null,
+      image_hash: tx.image_hash || null,
       payee_name: tx.payee_name ? MJ.fixThai(tx.payee_name) : null,
       source: tx.source || 'manual',
       raw_input: tx.raw_input || null,
@@ -124,6 +125,7 @@ MJ.data = {
     }
     // จำร้าน/ผู้รับโอน เพื่อเดาหมวดครั้งหน้า
     if (tx.payee_name && tx.category_id) this.rememberMerchant(tx.payee_name, tx.category_id);
+    if (payload.image_hash) this.rememberHash(payload.image_hash);
     const d = new Date(data.transaction_date);
     if (d >= MJ.startOfMonth(MJ.state.month) && d <= MJ.endOfMonth(MJ.state.month)) {
       MJ.state.transactions.unshift(data);
@@ -311,6 +313,42 @@ MJ.data = {
     } catch (e) {
       return file;   // ย่อไม่ได้ก็อัปโหลดต้นฉบับ
     }
+  },
+
+  /* ---------------------- ลายนิ้วมือของไฟล์รูป ---------------------- */
+  HASH_KEY: 'mj-img-hashes',
+
+  /** SHA-256 ของไฟล์ ใช้บอกว่ารูปนี้เคยอัปโหลดไปแล้วหรือยัง */
+  async hashFile(file) {
+    try {
+      const buf = await file.arrayBuffer();
+      const digest = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) { return null; }
+  },
+
+  localHashes() {
+    try { return new Set(JSON.parse(localStorage.getItem(this.HASH_KEY) || '[]')); }
+    catch (e) { return new Set(); }
+  },
+  rememberHash(hash) {
+    if (!hash) return;
+    const set = this.localHashes();
+    set.add(hash);
+    try { localStorage.setItem(this.HASH_KEY, JSON.stringify([...set].slice(-400))); } catch (e) {}
+  },
+
+  /** เช็กทีเดียวหลายรูปว่ารูปไหนเคยอัปโหลดแล้วบ้าง -> คืน Set ของ hash ที่เคยส่ง */
+  async findUploadedHashes(hashes) {
+    const list = hashes.filter(Boolean);
+    if (!list.length) return new Set();
+    const local = this.localHashes();
+    const known = new Set(list.filter((h) => local.has(h)));
+    try {
+      const { data } = await MJ.sb.from('transactions').select('image_hash').in('image_hash', list);
+      (data || []).forEach((r) => { known.add(r.image_hash); this.rememberHash(r.image_hash); });
+    } catch (e) { /* ออฟไลน์ก็ใช้ที่จำไว้ในเครื่อง */ }
+    return known;
   },
 
   /** ย่อรูปเป็น data URL ขนาดเล็กไว้โชว์ในแชท (อยู่รอดแม้ re-render หรือปิดแอป) */
