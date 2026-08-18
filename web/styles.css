@@ -187,6 +187,18 @@ a{color:var(--bear)}
   background:var(--card);color:var(--ink);outline:none;
   transition:border-color .2s,box-shadow .2s,background .2s;
 }
+/* ช่องวันที่/เวลาบน iOS มีความกว้างขั้นต่ำของตัวเอง ต้องบังคับให้อยู่ในกรอบ */
+.field input[type="date"],
+.field input[type="time"],
+.field input[type="datetime-local"]{
+  min-width:0;max-width:100%;font-size:14px;
+  -webkit-appearance:none;appearance:none;text-align:left
+}
+.field input[type="datetime-local"]::-webkit-date-and-time-value,
+.field input[type="date"]::-webkit-date-and-time-value{text-align:left;margin:0}
+.row>*{flex:1;min-width:0}
+.batch-fields .field input{font-size:13.5px}
+
 .field input:focus,.field select:focus,.field textarea:focus{
   border-color:var(--honey);box-shadow:0 0 0 4px rgba(242,178,62,.16)
 }

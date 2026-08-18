@@ -22,11 +22,21 @@ MJ.add.loadChat = function () {
 MJ.add.saveChat = function () {
   try {
     // รูปเป็น blob: ที่หมดอายุเมื่อปิดหน้า จึงเก็บแค่ข้อความ
-    const keep = MJ.add.chat.slice(-60).map((m) => ({
-      who: m.who,
-      text: m.text || (m.imgs?.length ? `🧾 ส่งสลิป ${m.imgs.length} ใบ` : (m.img ? '🧾 ส่งสลิป' : '')),
-      at: m.at || Date.now(),
-    })).filter((m) => m.text);
+    let imgBudget = 6;                     // เก็บรูปย่อไว้ไม่เกิน 6 รูปล่าสุด
+    const keep = MJ.add.chat.slice(-60).reverse().map((m) => {
+      const smallImgs = (m.imgs || []).filter((u) => String(u).startsWith('data:'));
+      const smallImg = String(m.img || '').startsWith('data:') ? m.img : null;
+      const item = { who: m.who, text: m.text || '', at: m.at || Date.now() };
+      if (smallImgs.length && imgBudget > 0) {
+        item.imgs = smallImgs.slice(0, imgBudget);
+        imgBudget -= item.imgs.length;
+      } else if (smallImg && imgBudget > 0) {
+        item.img = smallImg; imgBudget--;
+      } else if (!item.text) {
+        item.text = m.imgs?.length ? `🧾 ส่งสลิป ${m.imgs.length} ใบ` : '🧾 ส่งสลิป';
+      }
+      return item;
+    }).reverse().filter((m) => m.text || m.img || m.imgs);
     localStorage.setItem(MJ.add.CHAT_KEY + ':' + (MJ.state.user?.id || 'guest'), JSON.stringify(keep));
   } catch (e) { /* เต็มก็ข้ามไป */ }
 };
@@ -248,7 +258,14 @@ MJ.add.processSlips = async function (files) {
   if (files.length === 1) return MJ.add.processSlip(files[0]);
 
   const items = files.map((file) => ({ file, url: URL.createObjectURL(file) }));
-  MJ.add.pushBubble && MJ.add.pushBubble('me', '', null, items.map((it) => it.url));
+  // ใช้ภาพย่อแบบ data URL ในแชท (blob URL จะพังเมื่อ re-render/ปิดแอป)
+  const thumbs = [];
+  for (const it of items) {
+    const th = await MJ.data.thumbnail(it.file);
+    it.thumb = th || it.url;
+    thumbs.push(it.thumb);
+  }
+  MJ.add.pushBubble && MJ.add.pushBubble('me', '', null, thumbs);
   MJ.add.pushBubble && MJ.add.pushBubble('bot', `ได้รับสลิป ${files.length} ใบ กำลังอ่านให้นะ… 🐻`);
 
   const drafts = [];
@@ -258,7 +275,7 @@ MJ.add.processSlips = async function (files) {
     try {
       const draft = await MJ.slip.analyze(it.file, (msg) => MJ.loading(true, `(${i + 1}/${items.length}) ${msg}`));
       draft.file = it.file;
-      draft.previewUrl = it.url;
+      draft.previewUrl = it.thumb || it.url;
       drafts.push(draft);
     } catch (err) {
       drafts.push({ file: it.file, previewUrl: it.url, error: err.message || String(err),
@@ -288,10 +305,10 @@ MJ.add.processSlips = async function (files) {
     + (dupCount ? `\n⚠️ มี ${dupCount} ใบที่เคยบันทึกแล้ว หมีติ๊กออกให้` : '')
     + '\nตรวจดูแล้วกดบันทึกรวดเดียวได้เลย');
 
-  MJ.add.openBatchSheet(drafts);
+  MJ.add.openBatchSheet(drafts, items);
 };
 
-MJ.add.openBatchSheet = function (drafts) {
+MJ.add.openBatchSheet = function (drafts, items) {
   const cats = MJ.state.categories;
   const catOptions = (type, selected) => cats.filter((c) => c.type === type)
     .map((c) => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${c.icon} ${MJ.esc(c.name)}</option>`).join('');
@@ -390,7 +407,7 @@ MJ.add.openBatchSheet = function (drafts) {
       MJ.loading(false);
       MJ.sheet.close();
       MJ.buzz(30);
-      drafts.forEach((d) => { try { URL.revokeObjectURL(d.previewUrl); } catch (e) {} });
+      (items || []).forEach((it) => { try { URL.revokeObjectURL(it.url); } catch (e) {} });
       MJ.toast(`บันทึกแล้ว ${saved} รายการ 🐻`, saved ? 'ok' : 'err');
       MJ.add.chat.push({ who: 'bot',
         text: `บันทึกให้แล้ว ${saved} รายการ รวม ${MJ.fmtBaht(total)} 🍯` + (failed ? `\n(ข้าม ${failed} ใบที่ยอดยังว่างหรือบันทึกไม่สำเร็จ)` : '') });
@@ -401,8 +418,8 @@ MJ.add.openBatchSheet = function (drafts) {
 
 /* ============================ สลิปใบเดียว ============================ */
 MJ.add.processSlip = async function (file) {
-  const url = URL.createObjectURL(file);
-  if (MJ.add.pushBubble) MJ.add.pushBubble('me', '', url);
+  const thumb = await MJ.data.thumbnail(file);
+  if (MJ.add.pushBubble) MJ.add.pushBubble('me', '', thumb || URL.createObjectURL(file));
   MJ.loading(true, 'กำลังเปิดสลิป…');
   try {
     const draft = await MJ.slip.analyze(file, (msg) => MJ.loading(true, msg));

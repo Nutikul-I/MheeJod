@@ -313,6 +313,19 @@ MJ.data = {
     }
   },
 
+  /** ย่อรูปเป็น data URL ขนาดเล็กไว้โชว์ในแชท (อยู่รอดแม้ re-render หรือปิดแอป) */
+  async thumbnail(file, maxSide, quality) {
+    try {
+      const small = await this.compressImage(file, maxSide || 260, quality || 0.6);
+      return await new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.onerror = rej;
+        fr.readAsDataURL(small);
+      });
+    } catch (e) { return null; }
+  },
+
   /* ---------------------- อัปโหลดสลิปขึ้น Storage ---------------------- */
   async uploadReceipt(rawFile) {
     const file = await this.compressImage(rawFile);
