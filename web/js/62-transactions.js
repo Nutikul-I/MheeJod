@@ -222,14 +222,25 @@ MJ.routes.transactions = (view) => {
       <button class="icon-btn" id="btnFilter" title="ตัวกรอง"><i class="fa fa-filter"></i></button>
     </div>
 
-    <div class="chips">
-      <button class="chip ${f.scope === 'month' ? 'active' : ''}" data-scope="month">เดือนนี้</button>
-      <button class="chip ${f.scope === 'all' ? 'active' : ''}" data-scope="all">ทุกเดือน</button>
-      <button class="chip ${f.type === 'all' ? 'active' : ''}" data-f="all">ทั้งหมด</button>
-      <button class="chip ${f.type === 'expense' ? 'active' : ''}" data-f="expense">รายจ่าย</button>
-      <button class="chip ${f.type === 'income' ? 'active' : ''}" data-f="income">รายรับ</button>
-      <button class="chip" id="btnSelect">${MJ.tx.selectMode ? 'ยกเลิกเลือก' : '☑︎ เลือกหลายรายการ'}</button>
-      <button class="chip" id="btnExport"><i class="fa fa-excel"></i> Excel</button>
+    <div class="filter-group">
+      <span class="filter-label">ช่วงเวลา</span>
+      <div class="seg" id="scopeSeg">
+        <button class="seg-btn ${f.scope === 'month' ? 'active' : ''}" data-scope="month">
+          <i class="fa fa-calendar"></i> ${MJ.monthLabel(MJ.state.month)}</button>
+        <button class="seg-btn ${f.scope === 'all' ? 'active' : ''}" data-scope="all">
+          <i class="fa fa-boxes"></i> ทุกเดือน</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">ประเภท</span>
+      <div class="seg" id="typeSegTx">
+        <button class="seg-btn ${f.type === 'all' ? 'active' : ''}" data-f="all">ทั้งหมด</button>
+        <button class="seg-btn ${f.type === 'expense' ? 'active' : ''}" data-f="expense">
+          <i class="fa fa-arrow-up"></i> รายจ่าย</button>
+        <button class="seg-btn ${f.type === 'income' ? 'active' : ''}" data-f="income">
+          <i class="fa fa-arrow-down"></i> รายรับ</button>
+      </div>
     </div>
 
     ${(f.category !== 'all' || f.account !== 'all' || f.from || f.to) ? `<div class="chips">
@@ -242,6 +253,15 @@ MJ.routes.transactions = (view) => {
     <div class="stat-grid">
       <div class="stat"><div class="k">รายรับ</div><div class="v" style="color:var(--in)">${MJ.fmtBaht(s.income)}</div></div>
       <div class="stat"><div class="k">รายจ่าย</div><div class="v" style="color:var(--out)">${MJ.fmtBaht(s.expense)}</div></div>
+    </div>
+
+    <div class="tx-toolbar">
+      <span class="tx-count">${list.length} รายการ</span>
+      <div class="tx-actions">
+        <button class="tool-btn ${MJ.tx.selectMode ? 'on' : ''}" id="btnSelect">
+          <i class="fa fa-check"></i> ${MJ.tx.selectMode ? 'ยกเลิกเลือก' : 'เลือกหลายรายการ'}</button>
+        <button class="tool-btn" id="btnExport"><i class="fa fa-excel"></i> Excel</button>
+      </div>
     </div>
 
     <div class="card">
@@ -282,6 +302,8 @@ MJ.routes.transactions = (view) => {
   };
   MJ.$('#btnFilter', view).onclick = () => MJ.tx.openFilterSheet();
 
+  MJ.segInit(MJ.$('#scopeSeg', view));
+  MJ.segInit(MJ.$('#typeSegTx', view));
   view.querySelectorAll('[data-scope]').forEach((b) => b.onclick = async () => {
     MJ.tx.filter.scope = b.dataset.scope;
     MJ.tx.limit = 50;
