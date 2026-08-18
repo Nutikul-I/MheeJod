@@ -301,7 +301,7 @@ MJ.add.openBatchSheet = function (drafts) {
       <div class="batch-head">
         <img src="${d.previewUrl}" alt="สลิป ${i + 1}">
         <div class="batch-sum">
-          <b>ใบที่ ${i + 1}${d.payee_name ? ' • ' + MJ.esc(d.payee_name) : ''}</b>
+          <b>ใบที่ ${i + 1}${d.payee_name ? ' • ' + MJ.esc(MJ.fixThai(d.payee_name)) : ''}</b>
           <small>${d.duplicate ? '⚠️ เคยบันทึกแล้ว'
             : (d.error ? '⚠️ อ่านไม่สำเร็จ'
             : `${d.hasQR ? '✅ มี QR' : '⚠️ ไม่พบ QR'} • ${d.dateFromSlip ? 'วันที่จากสลิป' : 'ใช้วันนี้'}`)}</small>

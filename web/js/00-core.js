@@ -63,14 +63,37 @@ MJ.timeLabel = (dateStr) => {
 MJ.$  = (sel, root) => (root || document).querySelector(sel);
 MJ.$$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 /**
- * แก้ "สระลอย" — OCR มักแทรกช่องว่างหน้าสระ/วรรณยุกต์ ทำให้ตัวไทยแยกออกจากพยัญชนะ
- * เช่น "ล ิสซ ิ่ง" -> "ลิสซิ่ง"
+ * แก้ข้อความไทยที่ OCR ทำพัง 2 แบบ
+ *   1) สระลอย  — มีช่องว่างหน้าสระ/วรรณยุกต์  "ล ิสซ ิ่ง" -> "ลิสซิ่ง"
+ *   2) คำแตก   — มีช่องว่างแทรกกลางคำ        "บ ริษัท" -> "บริษัท", "น . ส . ป ระ ภ าพ ร" -> "น.ส. ประภาพร"
+ * จะรวมคำเฉพาะเมื่อพบชิ้นส่วนไทยสั้น ๆ (1-2 ตัว) ซึ่งเป็นสัญญาณว่าคำถูกตัด
+ * ชื่อที่พิมพ์มาถูกอยู่แล้ว เช่น "นาย นุติกุล อินทะโนรัตน์" จะไม่ถูกยุ่ง
  */
-MJ.fixThai = (s) => String(s == null ? '' : s)
-  .replace(/[\s\u200b]+([\u0E31\u0E33-\u0E3A\u0E47-\u0E4E])/g, '$1')
-  .replace(/^[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/, '')
-  .replace(/\s{2,}/g, ' ')
-  .trim();
+MJ.fixThai = (input) => {
+  let t = String(input == null ? '' : input)
+    .replace(/[\s\u200b]+([\u0E31\u0E33-\u0E3A\u0E47-\u0E4E])/g, '$1')
+    .replace(/([\u0E00-\u0E7F])\s*\.\s*(?=[\u0E00-\u0E7F])/g, '$1.')
+    .replace(/^[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E]+/, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  if (!/[\u0E00-\u0E7F]/.test(t) || !t.includes(' ')) return t;
+
+  const isThai = (w) => /^[\u0E00-\u0E7F.]+$/.test(w);
+  const baseLen = (w) => w.replace(/[\u0E31\u0E33-\u0E3A\u0E47-\u0E4E.]/g, '').length;
+  const PREFIX = /^(นาย|นาง|นางสาว|น\.ส\.|ด\.ช\.|ด\.ญ\.|บจก\.|บมจ\.|หจก\.|ร้าน|บริษัท|โอนให้|ให้|จาก|ถึง|ไปยัง)$/;
+
+  const words = t.split(' ');
+  const broken = words.some((w) => isThai(w) && baseLen(w) > 0 && baseLen(w) <= 2 && !PREFIX.test(w));
+  if (!broken) return t;
+
+  const out = [];
+  for (const w of words) {
+    const prev = out[out.length - 1];
+    if (prev && isThai(prev) && isThai(w) && !PREFIX.test(prev)) out[out.length - 1] = prev + w;
+    else out.push(w);
+  }
+  return out.join(' ');
+};
 
 MJ.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));

@@ -22,11 +22,26 @@ webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
 const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
+// เบราว์เซอร์เรียกข้ามโดเมน (GitHub Pages -> Supabase) ต้องมี CORS ครบ
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-methods": "POST, OPTIONS",
+};
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS, "content-type": "application/json" },
+  });
+
 const money = (n: number) =>
   "฿" + Number(n || 0).toLocaleString("th-TH", { maximumFractionDigits: 0 });
 
-function buildMessage(row: { display_name?: string; spent_today: number; tx_today: number }) {
+function buildMessage(row: { display_name?: string; spent_today: number; tx_today: number; test?: boolean }) {
   const name = row.display_name || "หมีน้อย";
+  if (row.test) {
+    return { title: "ทดสอบแจ้งเตือน 🔔", body: `${name} ถ้าเห็นข้อความนี้แปลว่าใช้งานได้แล้ว 🐻` };
+  }
   if (!row.tx_today) {
     return {
       title: "หมีจดเตือนแล้วนะ 🐻",
@@ -40,13 +55,25 @@ function buildMessage(row: { display_name?: string; spent_today: number; tx_toda
 }
 
 Deno.serve(async (req) => {
-  let testUserId: string | null = null;
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+
+  let wantTest = false;
   try {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
-      testUserId = body?.test_user_id ?? null;
+      wantTest = !!(body?.test || body?.test_user_id);
     }
   } catch { /* ไม่มี body ก็ทำงานปกติ */ }
+
+  // โหมดทดสอบ: ส่งหาเจ้าของ token ที่เรียกมาเท่านั้น (กันยิงใส่คนอื่น)
+  let testUserId: string | null = null;
+  if (wantTest) {
+    const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (!token) return json({ error: "ต้องเข้าสู่ระบบก่อน" }, 401);
+    const { data, error } = await db.auth.getUser(token);
+    if (error || !data?.user) return json({ error: "ยืนยันตัวตนไม่สำเร็จ" }, 401);
+    testUserId = data.user.id;
+  }
 
   let rows: any[] = [];
 
@@ -55,17 +82,15 @@ Deno.serve(async (req) => {
       .select("endpoint, p256dh, auth, user_id").eq("user_id", testUserId);
     const { data: profile } = await db.from("profiles")
       .select("display_name").eq("id", testUserId).maybeSingle();
-    rows = (subs ?? []).map((s) => ({
-      ...s, display_name: profile?.display_name, spent_today: 0, tx_today: 0,
+    if (!subs?.length) return json({ ok: true, candidates: 0, sent: 0, failed: 0, dropped: 0,
+      note: "เครื่องนี้ยังไม่ได้เปิดแจ้งเตือน" });
+    rows = subs.map((s) => ({
+      ...s, display_name: profile?.display_name, spent_today: 0, tx_today: 0, test: true,
       local_date: new Date().toISOString().slice(0, 10),
     }));
   } else {
     const { data, error } = await db.rpc("due_reminders", { p_window_minutes: 15 });
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500, headers: { "content-type": "application/json" },
-      });
-    }
+    if (error) return json({ error: error.message }, 500);
     rows = data ?? [];
   }
 
@@ -109,7 +134,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, candidates: rows.length, sent, failed, dropped }), {
-    headers: { "content-type": "application/json" },
-  });
+  return json({ ok: true, candidates: rows.length, sent, failed, dropped });
 });

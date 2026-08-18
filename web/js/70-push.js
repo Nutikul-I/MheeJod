@@ -104,11 +104,22 @@ MJ.push = {
   async test() {
     MJ.loading(true, 'กำลังส่งแจ้งเตือนทดสอบ…');
     try {
-      const { data, error } = await MJ.sb.functions.invoke('notify', {
-        body: { test_user_id: MJ.state.user.id },
+      // ให้แน่ใจว่าอุปกรณ์นี้ลงทะเบียนไว้แล้วก่อนยิงทดสอบ
+      await this.sync();
+      const { data: { session } } = await MJ.sb.auth.getSession();
+      const res = await fetch(MJ.CONFIG.SUPABASE_URL + '/functions/v1/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: MJ.CONFIG.SUPABASE_KEY,
+          Authorization: 'Bearer ' + (session?.access_token || MJ.CONFIG.SUPABASE_KEY),
+        },
+        body: JSON.stringify({ test: true }),
       });
-      if (error) throw error;
-      MJ.toast(data?.sent ? 'ส่งแล้ว รอสัก 2-3 วินาที 🔔' : 'ยังไม่มีอุปกรณ์ที่เปิดแจ้งเตือน', data?.sent ? 'ok' : 'err');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      MJ.toast(data?.sent ? 'ส่งแล้ว รอสัก 2-3 วินาที 🔔'
+        : (data?.note || 'ยังไม่มีอุปกรณ์ที่เปิดแจ้งเตือน'), data?.sent ? 'ok' : 'err');
     } catch (err) {
       MJ.toast('ส่งไม่สำเร็จ: ' + (err.message || err), 'err');
     } finally { MJ.loading(false); }
